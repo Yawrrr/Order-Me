@@ -5,16 +5,20 @@ import { colors } from "@/constants/Colors";
 interface CustomButtonProps {
   title: string;
   handleOnPress: () => void;
-  width ?: number;
+  width?: number;
 }
 
 const CustomButton: React.FC<CustomButtonProps> = ({
   title,
   handleOnPress,
-  width
+  width,
 }) => {
   return (
-    <TouchableOpacity style={styles.buttonContainer} activeOpacity={0.7} onPress={handleOnPress}>
+    <TouchableOpacity
+      style={styles.buttonContainer}
+      activeOpacity={0.7}
+      onPress={handleOnPress}
+    >
       <Text style={styles.text}>{title}</Text>
     </TouchableOpacity>
   );
@@ -27,11 +31,11 @@ const styles = StyleSheet.create({
     backgroundColor: colors.secondary.DEFAULT,
     minHeight: 48,
     borderRadius: 12,
-    minWidth : 128,
+    minWidth: 128,
     justifyContent: "center",
-    alignItems: "center"
+    alignItems: "center",
   },
-  text:{
-    color: colors.primary
-  }
+  text: {
+    color: colors.primary,
+  },
 });
