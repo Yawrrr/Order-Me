@@ -12,7 +12,7 @@ import React from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
 import images from "@/constants/images";
 import CustomTextInput from "@/components/CustomTextInput";
-import { colors } from "@/constants/colors";
+import { colors } from "@/constants/Colors";
 import { Link, router } from "expo-router";
 import CustomButton from "@/components/CustomButton";
 
