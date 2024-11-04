@@ -9,7 +9,7 @@ const App = () => {
     <SafeAreaView style={styles.container}>
         <View style={styles.info}>
           <Image source={icons.logo}></Image>
-          <Text>Welcome to Order Me!</Text>
+          <Text>Welcome to Order Me!!!</Text>
         </View>
         <CustomButton
           title="Continue with Email"
