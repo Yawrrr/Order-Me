@@ -23,7 +23,7 @@ const signIn = () => {
           <View style={styles.container}>
             <View style={styles.info}>
               <Image source={images.man} style={styles.image}></Image>
-              <Text>Let's sign in to continue order me</Text>
+              <Text>Let's sign in to continue order meee</Text>
             </View>
             <View style={styles.form}>
               <CustomTextInput placeholder="Email"></CustomTextInput>
