@@ -4,10 +4,17 @@ import { colors } from "@/constants/colors";
 
 interface textInputProps {
   placeholder: string;
+  value: string;
+  onChangeText: (text: string) => void;
+  secureTextEntry?: boolean;
 }
 
-const CustomTextInput: React.FC<textInputProps> = ({ placeholder }) => {
-  return <TextInput placeholder={placeholder} style={styles.container} />;
+const CustomTextInput: React.FC<textInputProps> = ({ placeholder, value, onChangeText, secureTextEntry }) => {
+  return <TextInput placeholder={placeholder} 
+  value={value}
+  onChangeText={onChangeText} 
+  secureTextEntry={secureTextEntry}
+  style={styles.container} />;
 };
 
 export default CustomTextInput;
