@@ -1,10 +1,7 @@
-<<<<<<< Updated upstream
-import { SafeAreaView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
-=======
 import { StyleSheet, Text, TouchableOpacity, View, Image } from "react-native";
->>>>>>> Stashed changes
 import React from "react";
 import { router } from "expo-router";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 const Profile = () => {
   return (
@@ -12,8 +9,8 @@ const Profile = () => {
       <View style={styles.profileImageContainer}>
       <Image
         source={require("../../assets/images/yuting_profile.jpg")}
-  style={styles.profileImage}
-/>
+        style={styles.profileImage}
+      />
 
       </View>
       <View style={styles.infoContainer}>
@@ -21,13 +18,13 @@ const Profile = () => {
         <Text style={styles.infoText}>Yuting</Text>
         
         <Text style={styles.label}>Phone</Text>
-        <Text style={styles.infoText}>+60 12-345-6789</Text>
+        <Text style={styles.infoText}>+60 123-456-789</Text>
         
         <Text style={styles.label}>Address</Text>
-        <Text style={styles.infoText}>123, Jalan Kukup, Pontian, Johor, Malaysia</Text>
+        <Text style={styles.infoText}>123, Jalan Example, Pontian, Johor, Malaysia</Text>
       </View>
       <TouchableOpacity style={styles.saveButton}>
-        <Text style={styles.buttonText}>Edit</Text>
+        <Text style={styles.buttonText}>Save</Text>
       </TouchableOpacity>
       <TouchableOpacity style={styles.logoutButton} onPress={() => { router.replace("/sign-in") }}>
         <Text style={styles.buttonText}>Log Out</Text>
