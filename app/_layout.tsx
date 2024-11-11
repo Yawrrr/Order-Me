@@ -1,6 +1,6 @@
 import { View, Text } from "react-native";
 import React, { useEffect } from "react";
-import { SplashScreen, Stack, Slot} from "expo-router";
+import { SplashScreen, Stack, Slot } from "expo-router";
 import { useFonts } from "expo-font";
 
 import "./global.css";
@@ -41,6 +41,13 @@ export default function rootLayout() {
         name="(tabs)"
         options={{
           headerShown: false,
+        }}
+      />
+      <Stack.Screen
+        name="listing/[id]"
+        options={{
+          headerShown: true,
+          title: "Listing Details", // Customize title as needed
         }}
       />
     </Stack>
