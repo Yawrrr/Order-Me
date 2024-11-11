@@ -14,4 +14,7 @@ export const colors = {
     DEFAULT: "#969696",
     100: "#CDCDE0",
   },
+  white:{
+   DEFAULT:"#FFFFFF" 
+  }
 };
