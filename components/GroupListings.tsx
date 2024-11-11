@@ -5,7 +5,7 @@ import { GroupType } from '@/type/groupType'
 import { colors } from '@/constants/Colors';
 import { Ionicons } from '@expo/vector-icons';
 
-const GroupListings = ({listings}:{listings:GroupType}) => {
+const GroupListings = ({listings}:{listings:GroupType[]}) => {
     const renderItem:ListRenderItem<GroupType>=({item})=>{
           return(
                  

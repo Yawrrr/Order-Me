@@ -29,7 +29,7 @@ const Login = () => {
     try {
       const user = await signInWithEmailAndPassword(auth, email, password);
       console.log(user);
-      router.replace('/home'); 
+      router.replace('../home'); 
     } catch (error) {
       console.log(error);
       alert('Sign in failed: '+error);

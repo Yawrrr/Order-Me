@@ -20,7 +20,7 @@ const signUp = () => {
       const user = await createUserWithEmailAndPassword(auth, email, password);
       console.log(user);
       alert('Sign up successful!');
-      router.replace('/home');
+      router.replace('../home');
     } catch (error) {
       console.log(error);
       alert('Sign up failed:'+ error);
