@@ -4,12 +4,13 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import icons from "@/constants/images";
 import CustomButton from "../components/CustomButton";
 import { router } from "expo-router";
+
 const App = () => {
   return (
     <SafeAreaView style={styles.container}>
         <View style={styles.info}>
           <Image source={icons.logo}></Image>
-          <Text>Welcome to Order Me!</Text>
+          <Text>Welcome to Order Me!!!</Text>
         </View>
         <CustomButton
           title="Continue with Email"
