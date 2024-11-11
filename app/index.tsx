@@ -4,6 +4,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import icons from "@/constants/images";
 import CustomButton from "../components/CustomButton";
 import { router } from "expo-router";
+
 const App = () => {
   return (
     <SafeAreaView style={styles.container}>
