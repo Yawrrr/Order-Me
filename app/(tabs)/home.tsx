@@ -11,7 +11,6 @@ import restaurantData from '@/data/restaurants.json';
 import groupData from '@/data/groups.json';
 import GroupListings from "@/components/GroupListings";
 
-
 type Category = {
   title: string;
   iconName: string;
@@ -53,6 +52,7 @@ const Home = () => {
               <TouchableOpacity onPress={() => {}}>
                 <Ionicons name="menu" size={20} color={colors.black.DEFAULT} style={styles.menuIcon} />
               </TouchableOpacity>
+
               <TouchableOpacity onPress={() => {}}>
                 <Image
                   source={favicon}
