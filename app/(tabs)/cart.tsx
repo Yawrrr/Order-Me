@@ -1,14 +1,14 @@
 import { StyleSheet, Text, View } from "react-native";
-import React , {useState}from "react";
+import React, { useState } from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
-import {colors} from "../../constants/colors"
+import { colors } from "../../constants/colors";
 import { fonts } from "../../src/utils/font";
 import StartNewCartCard from "../../components/MyCarts/StartNewCartCard";
 
 import { FIREBASE_AUTH } from "../../FirebaseConfig";
 
 export default function cart() {
-  const [userCart, setUserCart] = useState('');
+  const [userCart, setUserCart] = useState("");
 
   const auth = FIREBASE_AUTH;
 
@@ -18,14 +18,10 @@ export default function cart() {
         <Text style={styles.title}>My Carts</Text>
       </View>
 
-    {userCart?.length==0 ?
-      <StartNewCartCard/>
-      :null
-    }
-  </SafeAreaView>
+      {userCart?.length == 0 ? <StartNewCartCard /> : null}
+    </SafeAreaView>
   );
-};
-
+}
 
 const styles = StyleSheet.create({
   header: {

@@ -1,6 +1,5 @@
-import { View, Text } from "react-native";
 import React, { useEffect } from "react";
-import { SplashScreen, Stack, Slot, useSegments, router, Redirect } from "expo-router";
+import { SplashScreen, Stack, Slot, useSegments, router, Redirect  } from "expo-router";
 import { useFonts } from "expo-font";
 import { AuthContextProvider, useAuth } from "@/context/AuthContext";
 
@@ -41,7 +40,14 @@ const MainLayout = () => {
             headerShown: false,
           }}
         />
-      </Stack>
+        <Stack.Screen
+        name="listing/[id]"
+        options={{
+          headerShown: true,
+          title: "Listing Details", // Customize title as needed
+        }}
+      />
+    </Stack>
   )
 }
 
