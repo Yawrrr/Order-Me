@@ -1,6 +1,6 @@
 import { StyleSheet, Text, TextInput, View } from "react-native";
 import React from "react";
-import { colors } from "@/constants/Colors";
+import { colors } from "@/constants/colors";
 
 interface textInputProps {
   placeholder: string;
@@ -8,11 +8,19 @@ interface textInputProps {
   secureTextEntry?: boolean;
 }
 
-const CustomTextInput: React.FC<textInputProps> = ({ placeholder, onChangeText, secureTextEntry }) => {
-  return <TextInput placeholder={placeholder} 
-  onChangeText={onChangeText} 
-  secureTextEntry={secureTextEntry}
-  style={styles.container} />;
+const CustomTextInput: React.FC<textInputProps> = ({
+  placeholder,
+  onChangeText,
+  secureTextEntry,
+}) => {
+  return (
+    <TextInput
+      placeholder={placeholder}
+      onChangeText={onChangeText}
+      secureTextEntry={secureTextEntry}
+      style={styles.container}
+    />
+  );
 };
 
 export default CustomTextInput;

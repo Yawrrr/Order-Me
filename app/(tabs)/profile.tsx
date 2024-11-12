@@ -5,36 +5,37 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { useAuth } from "@/context/AuthContext";
 
 const Profile = () => {
+  const { logout } = useAuth();
 
-  const {logout} = useAuth();
-
-  const handleLogout = async() => {
+  const handleLogout = async () => {
     await logout();
-  }
+    router.replace('/sign-in')
+  };
 
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.profileImageContainer}>
-      <Image
-        source={require("../../assets/images/yuting_profile.jpg")}
-        style={styles.profileImage}
-      />
-
+        <Image
+          source={require("../../assets/images/yuting_profile.jpg")}
+          style={styles.profileImage}
+        />
       </View>
       <View style={styles.infoContainer}>
         <Text style={styles.label}>Name</Text>
         <Text style={styles.infoText}>Yuting</Text>
-        
+
         <Text style={styles.label}>Phone</Text>
         <Text style={styles.infoText}>+60 123-456-789</Text>
-        
+
         <Text style={styles.label}>Address</Text>
-        <Text style={styles.infoText}>123, Jalan Example, Pontian, Johor, Malaysia</Text>
+        <Text style={styles.infoText}>
+          123, Jalan Example, Pontian, Johor, Malaysia
+        </Text>
       </View>
       <TouchableOpacity style={styles.saveButton}>
         <Text style={styles.buttonText}>Save</Text>
       </TouchableOpacity>
-      <TouchableOpacity style={styles.logoutButton} onPress={() => { router.replace("/sign-in") }}>
+      <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
         <Text style={styles.buttonText}>Log Out</Text>
       </TouchableOpacity>
     </SafeAreaView>

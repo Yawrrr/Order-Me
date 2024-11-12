@@ -108,8 +108,6 @@ export const AuthContextProvider = ({ children }: AuthContextProviderProps) => {
   const logout = async () => {
     try {
       const response = await signOut(FIREBASE_AUTH);
-      console.log(response);
-      setIsAuthenticated(false);
     } catch (error) {
       alert("Log out failed:" + error);
     }
