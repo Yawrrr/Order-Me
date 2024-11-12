@@ -1,37 +1,87 @@
-import { Keyboard, ScrollView, StyleSheet, Text, TouchableWithoutFeedback, View, Image } from "react-native";
-import React from "react";
+import {
+  Keyboard,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableWithoutFeedback,
+  View,
+  Image,
+} from "react-native";
+import React, { useRef, useState } from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Link, router } from "expo-router";
 import CustomButton from "@/components/CustomButton";
 import CustomTextInput from "@/components/CustomTextInput";
 import images from "@/constants/images";
+import { FIREBASE_AUTH } from "../../FirebaseConfig";
+import { createUserWithEmailAndPassword } from "firebase/auth";
+import { useAuth } from "@/context/AuthContext";
 
 const signUp = () => {
+  const { signUp, isAuthenticated } = useAuth();
+  // const [email, setEmail] = useState('');
+  // const [password, setPassword] = useState('');
+  const emailRef = useRef("");
+  const passwordRef = useRef("");
+  const confirmPasswordRef = useRef("");
+  const phoneNumRef = useRef(0);
+  const addressRef = useRef("");
+  const [loading, setLoading] = useState(false);
+  const auth = FIREBASE_AUTH;
+
+  const handleSignUp = () => {
+    if (passwordRef.current == confirmPasswordRef.current) {
+      signUp(
+        emailRef.current,
+        passwordRef.current,
+        phoneNumRef.current,
+        addressRef.current
+      );
+    } else {
+      alert("Password must be the same");
+    }
+  };
+
   return (
-    <SafeAreaView style={{height: "100%"}}>
+    <SafeAreaView style={{ height: "100%" }}>
       <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
         <ScrollView>
           <View style={styles.container}>
             <View style={styles.info}>
               <Image source={images.man} style={styles.image}></Image>
-              <Text>Let's sign in to continue order me</Text>
+              <Text>Let's create an account to continue order me</Text>
             </View>
             <View style={styles.form}>
-              <CustomTextInput placeholder="Email"></CustomTextInput>
-              <CustomTextInput placeholder="Password"></CustomTextInput>
-              <CustomTextInput placeholder="Confirm Password"></CustomTextInput>
-              <CustomButton
-                title="Sign Up"
-                handleOnPress={() => {
-                  router.replace('/home')
-                }}
-              ></CustomButton>
+              <CustomTextInput
+                placeholder="Email"
+                onChangeText={(email) => (emailRef.current = email)}
+              />
+              <CustomTextInput
+                placeholder="Phone Number"
+                onChangeText={(phoneNum) => (phoneNumRef.current = Number(phoneNum))}
+              />
+              <CustomTextInput
+                placeholder="Address"
+                onChangeText={(address) => (addressRef.current = address)}
+              />
+              <CustomTextInput
+                placeholder="Password"
+                onChangeText={(password) => (passwordRef.current = password)}
+                secureTextEntry= {true}
+              />
+              <CustomTextInput
+                placeholder="Confirm Password"
+                onChangeText={(cPassword) =>
+                  (confirmPasswordRef.current = cPassword)
+                }
+                secureTextEntry={true}
+              />
+              <CustomButton title="Sign Up" handleOnPress={handleSignUp} />
             </View>
-            <View style={styles.line}>
-            </View>
+            <View style={styles.line} />
             <View style={styles.signUp}>
-              <Text>Don't have an account? </Text>
-              <Link href='/sign-in' >Sign Ip</Link>
+              <Text>Already have an account? </Text>
+              <Link href="/sign-in">Sign In</Link>
             </View>
           </View>
         </ScrollView>
@@ -62,14 +112,14 @@ const styles = StyleSheet.create({
     resizeMode: "contain",
     maxHeight: 267,
   },
-  signUp:{
-    marginTop : 8,
-    flexDirection : 'row',
-    justifyContent : 'center'
+  signUp: {
+    marginTop: 8,
+    flexDirection: "row",
+    justifyContent: "center",
   },
-  line:{
-    borderWidth:0.5,
-    borderColor : "grey",
+  line: {
+    borderWidth: 0.5,
+    borderColor: "grey",
     marginTop: 16,
-  }
+  },
 });

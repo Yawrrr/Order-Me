@@ -1,9 +1,49 @@
 import { View, Text } from "react-native";
 import React, { useEffect } from "react";
-import { SplashScreen, Stack, Slot} from "expo-router";
+import { SplashScreen, Stack, Slot, useSegments, router, Redirect } from "expo-router";
 import { useFonts } from "expo-font";
+import { AuthContextProvider, useAuth } from "@/context/AuthContext";
 
 import "./global.css";
+
+const MainLayout = () => {
+  const {isAuthenticated} = useAuth();
+  const segments = useSegments();
+  useEffect( () => {
+    const inApp = segments[0] == "(tabs)"
+    console.log(segments, " and ", isAuthenticated)
+    if(typeof isAuthenticated == 'undefined') return;
+    else if (isAuthenticated && !inApp){
+      router.replace("/home");
+    }
+    else if (!isAuthenticated && inApp){
+      router.replace('/sign-in')
+    }
+  })
+
+  return (
+    <Stack>
+        <Stack.Screen
+          name="index"
+          options={{
+            headerShown: false,
+          }}
+        />
+        <Stack.Screen
+          name="(auth)"
+          options={{
+            headerShown: false,
+          }}
+        />
+        <Stack.Screen
+          name="(tabs)"
+          options={{
+            headerShown: false,
+          }}
+        />
+      </Stack>
+  )
+}
 
 export default function rootLayout() {
   const [fontsLoaded, error] = useFonts({
@@ -22,27 +62,9 @@ export default function rootLayout() {
   }, [fontsLoaded, error]);
 
   if (!fontsLoaded && !error) return null;
-
   return (
-    <Stack>
-      <Stack.Screen
-        name="index"
-        options={{
-          headerShown: false,
-        }}
-      />
-      <Stack.Screen
-        name="(auth)"
-        options={{
-          headerShown: false,
-        }}
-      />
-      <Stack.Screen
-        name="(tabs)"
-        options={{
-          headerShown: false,
-        }}
-      />
-    </Stack>
+    <AuthContextProvider>
+      <MainLayout/>
+    </AuthContextProvider>
   );
 }
