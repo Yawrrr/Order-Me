@@ -14,6 +14,7 @@ import {
   useEffect,
   useState,
 } from "react";
+import { Alert } from "react-native";
 
 interface AuthContextType {
   user: User | null;
@@ -47,7 +48,6 @@ export const AuthContextProvider = ({ children }: AuthContextProviderProps) => {
   const [user, setUser] = useState<User|null>(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const auth = FIREBASE_AUTH;
-  const defaultImage = images.defaultProfile;
 
   useEffect(() => {
     //check auth state
@@ -68,7 +68,7 @@ export const AuthContextProvider = ({ children }: AuthContextProviderProps) => {
       const response = await signInWithEmailAndPassword(auth, email, password);
     } catch (error) {
       console.log(error);
-      alert("Sign in failed: " + error);
+      Alert.alert("Sign In","Sign in failed: " + error);
     } finally {
     }
   };
@@ -76,10 +76,13 @@ export const AuthContextProvider = ({ children }: AuthContextProviderProps) => {
   const signUp = async (
     email: string,
     password: string,
-    phoneNum: number,
+    phoneNumber: number,
     address: string
   ) => {
     try {
+      const defaultImage = images.defaultProfile;
+      const username = "";
+      const role = "user";
       const response = await createUserWithEmailAndPassword(
         auth,
         email,
@@ -88,9 +91,11 @@ export const AuthContextProvider = ({ children }: AuthContextProviderProps) => {
       console.log("User: ", response?.user);
       await setDoc(doc(FIREBASE_DB, "users", response?.user?.uid), {
         email,
-        phoneNum,
+        phoneNumber,
         defaultImage,
         address,
+        username,
+        role
       });
       alert("Sign up successful!");
     } catch (error) {

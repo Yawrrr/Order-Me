@@ -64,7 +64,7 @@ export default function rootLayout() {
   if (!fontsLoaded && !error) return null;
   return (
     <AuthContextProvider>
-      <MainLayout></MainLayout>
+      <MainLayout/>
     </AuthContextProvider>
   );
 }
