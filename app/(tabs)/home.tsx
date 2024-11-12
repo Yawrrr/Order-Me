@@ -91,7 +91,7 @@ const Home = () => {
 export default Home;
 
 type Props = {
-  onCategoryChanged: (category: String) => void;
+  onCategoryChanged: (category: string) => void;
 };
 const CategoryButtons = ({ onCategoryChanged }: Props) => {
   const scrollRef = useRef<ScrollView>(null);
