@@ -2,7 +2,7 @@ import { ListRenderItem, StyleSheet, Text, View,Image } from 'react-native'
 import { FlatList, GestureHandlerRootView } from 'react-native-gesture-handler';
 import React from 'react'
 import { GroupType } from '@/type/groupType'
-import { colors } from '@/constants/Colors';
+import { colors } from '@/constants/colors';
 import { Ionicons } from '@expo/vector-icons';
 
 const GroupListings = ({listings}:{listings:GroupType[]}) => {
