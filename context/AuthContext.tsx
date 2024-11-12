@@ -1,12 +1,13 @@
 import images from "@/constants/images";
-import { FIREBASE_AUTH, FIREBASE_DB } from "@/FirebaseConfig";
+import { FIREBASE_AUTH, FIREBASE_DB} from "@/FirebaseConfig";
+import { useSegments } from "expo-router";
 import {
   createUserWithEmailAndPassword,
   onAuthStateChanged,
   signInWithEmailAndPassword,
   signOut,
 } from "firebase/auth";
-import { doc, setDoc } from "firebase/firestore";
+import { doc, getDoc, setDoc } from "firebase/firestore";
 import {
   createContext,
   ReactNode,
@@ -23,7 +24,7 @@ interface AuthContextType {
   signUp: (
     email: string,
     password: string,
-    phoneNum: number,
+    phoneNum: string,
     address: string
   ) => Promise<void>;
   logout: () => Promise<void>;
@@ -40,35 +41,51 @@ const defaultAuthContext: AuthContextType = {
 type AuthContextProviderProps = {
   children: ReactNode;
 };
-interface User {}
+interface User {
+  address: string;
+  email: string;
+  phoneNumber: string;
+  role: string;
+  username: string;
+}
 
 export const AuthContext = createContext<AuthContextType>(defaultAuthContext);
 
 export const AuthContextProvider = ({ children }: AuthContextProviderProps) => {
-  const [user, setUser] = useState<User|null>(null);
+  const [user, setUser] = useState<User | null>(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const auth = FIREBASE_AUTH;
+  const segments = useSegments();
 
   useEffect(() => {
     //check auth state
-    const unsub = onAuthStateChanged(auth, (user) => {
-      if (user) {
+    const unsub = onAuthStateChanged(auth, async (authUser) => {
+      if (authUser) {
         setIsAuthenticated(true);
-        setUser(user);
+        try {
+          const userRef = doc(FIREBASE_DB, "users", authUser.uid);
+          const userDoc = await getDoc(userRef);
+          if (userDoc.exists()) {
+            const userData = userDoc.data() as User;
+            setUser({...userData});
+          }
+        } catch (error) {
+          console.log("User document not found: ",error)
+        }
       } else {
         setIsAuthenticated(false);
         setUser(null);
       }
     });
     return () => unsub();
-  });
+  },[segments[1] == "profile"]);
 
   const signIn = async (email: string, password: string) => {
     try {
       const response = await signInWithEmailAndPassword(auth, email, password);
     } catch (error) {
       console.log(error);
-      Alert.alert("Sign In","Sign in failed: " + error);
+      Alert.alert("Sign In", "Sign in failed: " + error);
     } finally {
     }
   };
@@ -76,7 +93,7 @@ export const AuthContextProvider = ({ children }: AuthContextProviderProps) => {
   const signUp = async (
     email: string,
     password: string,
-    phoneNumber: number,
+    phoneNumber: string,
     address: string
   ) => {
     try {
@@ -95,7 +112,7 @@ export const AuthContextProvider = ({ children }: AuthContextProviderProps) => {
         defaultImage,
         address,
         username,
-        role
+        role,
       });
       alert("Sign up successful!");
     } catch (error) {
@@ -114,7 +131,9 @@ export const AuthContextProvider = ({ children }: AuthContextProviderProps) => {
   };
 
   return (
-    <AuthContext.Provider value={{user, isAuthenticated, signIn, signUp, logout }}>
+    <AuthContext.Provider
+      value={{ user, isAuthenticated, signIn, signUp, logout }}
+    >
       {children}
     </AuthContext.Provider>
   );
