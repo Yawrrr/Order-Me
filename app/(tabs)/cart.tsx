@@ -1,10 +1,7 @@
 import { StyleSheet, Text, View } from "react-native";
 import React, { useState } from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { colors } from "../../constants/colors";
-import { fonts } from "../../src/utils/font";
 import StartNewCartCard from "../../components/MyCarts/StartNewCartCard";
-
 import { FIREBASE_AUTH } from "../../FirebaseConfig";
 
 export default function cart() {
@@ -32,5 +29,6 @@ const styles = StyleSheet.create({
   title: {
     fontFamily: "Poppins-Bold",
     fontSize: 30,
+    color: "orange",
   },
 });

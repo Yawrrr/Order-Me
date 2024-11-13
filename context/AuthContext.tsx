@@ -1,48 +1,8 @@
-import images from "@/constants/images";
+import React, { createContext, ReactNode, useContext, useEffect, useState } from "react";
+import { Alert, Text } from "react-native";
 import { FIREBASE_AUTH, FIREBASE_DB } from "@/FirebaseConfig";
-import { useSegments } from "expo-router";
-import {
-  createUserWithEmailAndPassword,
-  onAuthStateChanged,
-  signInWithEmailAndPassword,
-  signOut,
-} from "firebase/auth";
+import { onAuthStateChanged, signOut, signInWithEmailAndPassword, createUserWithEmailAndPassword } from "firebase/auth";
 import { doc, getDoc, setDoc } from "firebase/firestore";
-import {
-  createContext,
-  ReactNode,
-  useContext,
-  useEffect,
-  useState,
-} from "react";
-import { Alert } from "react-native";
-
-interface AuthContextType {
-  user: User | null;
-  isAuthenticated: boolean | undefined;
-  setUser: (user: User | null) => void;  // Add setUser to the interface
-  signIn: (email: string, password: string) => Promise<void>;
-  signUp: (
-    email: string,
-    password: string,
-    phoneNum: string,
-    address: string
-  ) => Promise<void>;
-  logout: () => Promise<void>;
-}
-
-const defaultAuthContext: AuthContextType = {
-  user: null,
-  isAuthenticated: undefined,
-  setUser: () => {},  // Provide a default empty setUser function
-  signIn: async () => {},
-  signUp: async () => {},
-  logout: async () => {},
-};
-
-type AuthContextProviderProps = {
-  children: ReactNode;
-};
 
 interface User {
   address: string;
@@ -52,17 +12,39 @@ interface User {
   username: string;
 }
 
+interface AuthContextType {
+  user: User | null;
+  isAuthenticated: boolean | undefined;
+  authInitialized: boolean;
+  setUser: (user: User | null) => void;
+  signIn: (email: string, password: string) => Promise<void>;
+  signUp: (email: string, password: string, phoneNumber: string, address: string) => Promise<void>;
+  logout: () => Promise<void>;
+}
+
+const defaultAuthContext: AuthContextType = {
+  user: null,
+  isAuthenticated: undefined,
+  authInitialized: false,
+  setUser: () => {},
+  signIn: async () => {},
+  signUp: async () => {},
+  logout: async () => {},
+};
+
+type AuthContextProviderProps = {
+  children: ReactNode;
+};
+
 export const AuthContext = createContext<AuthContextType>(defaultAuthContext);
 
 export const AuthContextProvider = ({ children }: AuthContextProviderProps) => {
   const [user, setUser] = useState<User | null>(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const auth = FIREBASE_AUTH;
-  const segments = useSegments();
+  const [authInitialized, setAuthInitialized] = useState(false);
 
   useEffect(() => {
-    // Check auth state
-    const unsub = onAuthStateChanged(auth, async (authUser) => {
+    const unsubscribe = onAuthStateChanged(FIREBASE_AUTH, async (authUser) => {
       if (authUser) {
         setIsAuthenticated(true);
         try {
@@ -70,232 +52,84 @@ export const AuthContextProvider = ({ children }: AuthContextProviderProps) => {
           const userDoc = await getDoc(userRef);
           if (userDoc.exists()) {
             const userData = userDoc.data() as User;
-            setUser({ ...userData });
+            setUser(userData);
           }
-        } catch (error) {
-          console.log("User document not found: ", error);
+        } catch (error: unknown) {
+          if (error instanceof Error) {
+            console.log("Error fetching user data: ", error.message);
+          } else {
+            console.log("An unknown error occurred");
+          }
         }
       } else {
         setIsAuthenticated(false);
         setUser(null);
       }
+      setAuthInitialized(true);
     });
-    return () => unsub();
-  }, [segments[1] === "profile"]);
+    return () => unsubscribe();
+  }, []);
 
   const signIn = async (email: string, password: string) => {
     try {
-      await signInWithEmailAndPassword(auth, email, password);
-    } catch (error) {
-      console.log(error);
-      Alert.alert("Sign In", "Sign in failed: " + error);
+      await signInWithEmailAndPassword(FIREBASE_AUTH, email, password);
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        console.log("Sign In Error:", error.message);
+        Alert.alert("Sign In Error", error.message);
+      } else {
+        console.log("An unknown sign-in error occurred");
+        Alert.alert("Sign In Error", "An unknown error occurred.");
+      }
     }
   };
 
-  const signUp = async (
-    email: string,
-    password: string,
-    phoneNumber: string,
-    address: string
-  ) => {
+  const signUp = async (email: string, password: string, phoneNumber: string, address: string) => {
     try {
-      const defaultImage = images.defaultProfile;
-      const username = "";
-      const role = "user";
-      const response = await createUserWithEmailAndPassword(
-        auth,
-        email,
-        password
-      );
-      console.log("User: ", response?.user);
-      await setDoc(doc(FIREBASE_DB, "users", response?.user?.uid), {
+      const response = await createUserWithEmailAndPassword(FIREBASE_AUTH, email, password);
+      await setDoc(doc(FIREBASE_DB, "users", response.user.uid), {
         email,
         phoneNumber,
-        defaultImage,
         address,
-        username,
-        role,
+        username: "",
+        role: "user",
       });
       alert("Sign up successful!");
-    } catch (error) {
-      console.log(error);
-      alert("Sign up failed:" + error);
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        console.log("Sign Up Error:", error.message);
+        alert("Sign up failed: " + error.message);
+      } else {
+        console.log("An unknown sign-up error occurred");
+        alert("Sign up failed due to an unknown error.");
+      }
     }
   };
 
   const logout = async () => {
     try {
       await signOut(FIREBASE_AUTH);
-    } catch (error) {
-      alert("Log out failed:" + error);
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        alert("Log out failed: " + error.message);
+      } else {
+        alert("Log out failed due to an unknown error.");
+      }
     }
   };
 
   return (
-    <AuthContext.Provider
-      value={{ user, isAuthenticated, setUser, signIn, signUp, logout }}
-    >
-      {children}
+    <AuthContext.Provider value={{ user, isAuthenticated, authInitialized, setUser, signIn, signUp, logout }}>
+      {authInitialized ? children : <Text>Loading...</Text>}
     </AuthContext.Provider>
   );
 };
 
 export const useAuth = () => {
-  const value = useContext(AuthContext);
-
-  if (!value) {
-    throw new Error("useAuth must be wrapped in AuthContextProvider");
+  const context = useContext(AuthContext);
+  if (!context) {
+    throw new Error("useAuth must be used within an AuthContextProvider");
   }
-  return value;
+  return context;
 };
 
-
-// import images from "@/constants/images";
-// import { FIREBASE_AUTH, FIREBASE_DB} from "@/FirebaseConfig";
-// import { useSegments } from "expo-router";
-// import {
-//   createUserWithEmailAndPassword,
-//   onAuthStateChanged,
-//   signInWithEmailAndPassword,
-//   signOut,
-// } from "firebase/auth";
-// import { doc, getDoc, setDoc } from "firebase/firestore";
-// import {
-//   createContext,
-//   ReactNode,
-//   useContext,
-//   useEffect,
-//   useState,
-// } from "react";
-// import { Alert } from "react-native";
-
-// interface AuthContextType {
-//   user: User | null;
-//   isAuthenticated: boolean | undefined;
-//   signIn: (email: string, password: string) => Promise<void>;
-//   signUp: (
-//     email: string,
-//     password: string,
-//     phoneNum: string,
-//     address: string
-//   ) => Promise<void>;
-//   logout: () => Promise<void>;
-// }
-
-// const defaultAuthContext: AuthContextType = {
-//   user: null,
-//   isAuthenticated: undefined,
-//   signIn: async () => {},
-//   signUp: async () => {},
-//   logout: async () => {},
-// };
-
-// type AuthContextProviderProps = {
-//   children: ReactNode;
-// };
-// interface User {
-//   address: string;
-//   email: string;
-//   phoneNumber: string;
-//   role: string;
-//   username: string;
-// }
-
-// export const AuthContext = createContext<AuthContextType>(defaultAuthContext);
-
-// export const AuthContextProvider = ({ children }: AuthContextProviderProps) => {
-//   const [user, setUser] = useState<User | null>(null);
-//   const [isAuthenticated, setIsAuthenticated] = useState(false);
-//   const auth = FIREBASE_AUTH;
-//   const segments = useSegments();
-
-//   useEffect(() => {
-//     //check auth state
-//     const unsub = onAuthStateChanged(auth, async (authUser) => {
-//       if (authUser) {
-//         setIsAuthenticated(true);
-//         try {
-//           const userRef = doc(FIREBASE_DB, "users", authUser.uid);
-//           const userDoc = await getDoc(userRef);
-//           if (userDoc.exists()) {
-//             const userData = userDoc.data() as User;
-//             setUser({...userData});
-//           }
-//         } catch (error) {
-//           console.log("User document not found: ",error)
-//         }
-//       } else {
-//         setIsAuthenticated(false);
-//         setUser(null);
-//       }
-//     });
-//     return () => unsub();
-//   },[segments[1] == "profile"]);
-
-//   const signIn = async (email: string, password: string) => {
-//     try {
-//       const response = await signInWithEmailAndPassword(auth, email, password);
-//     } catch (error) {
-//       console.log(error);
-//       Alert.alert("Sign In", "Sign in failed: " + error);
-//     } finally {
-//     }
-//   };
-
-//   const signUp = async (
-//     email: string,
-//     password: string,
-//     phoneNumber: string,
-//     address: string
-//   ) => {
-//     try {
-//       const defaultImage = images.defaultProfile;
-//       const username = "";
-//       const role = "user";
-//       const response = await createUserWithEmailAndPassword(
-//         auth,
-//         email,
-//         password
-//       );
-//       console.log("User: ", response?.user);
-//       await setDoc(doc(FIREBASE_DB, "users", response?.user?.uid), {
-//         email,
-//         phoneNumber,
-//         defaultImage,
-//         address,
-//         username,
-//         role,
-//       });
-//       alert("Sign up successful!");
-//     } catch (error) {
-//       console.log(error);
-//       alert("Sign up failed:" + error);
-//     } finally {
-//     }
-//   };
-
-//   const logout = async () => {
-//     try {
-//       const response = await signOut(FIREBASE_AUTH);
-//     } catch (error) {
-//       alert("Log out failed:" + error);
-//     }
-//   };
-
-//   return (
-//     <AuthContext.Provider
-//       value={{ user, isAuthenticated, signIn, signUp, logout }}
-//     >
-//       {children}
-//     </AuthContext.Provider>
-//   );
-// };
-
-// export const useAuth = () => {
-//   const value = useContext(AuthContext);
-
-//   if (!value) {
-//     throw new Error("useAuth must be wrap in AuthContextProvider");
-//   }
-//   return value;
-// };

@@ -1,52 +1,45 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { StyleSheet, Text, TextInput, TouchableOpacity, View, Alert } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { router } from "expo-router";
 import { useAuth } from "@/context/AuthContext";
 import { doc, updateDoc, query, where, getDocs, collection } from "firebase/firestore";
 import { FIREBASE_DB } from "@/FirebaseConfig";
-
-interface User {
-  email: string;
-  username?: string;
-  phoneNumber?: string;
-  address?: string;
-}
+import Ionicons from '@expo/vector-icons/Ionicons';
+import { useNavigation } from '@react-navigation/native'
 
 const EditProfile: React.FC = () => {
-  const { user, setUser } = useAuth(); // Access setUser from context
+  const { user, setUser, authInitialized } = useAuth();
+  const navigation = useNavigation(); 
 
-  const [username, setUsername] = useState(user?.username || user?.email || "");
+  if (!authInitialized) return <Text>Loading...</Text>; 
+  const [username, setUsername] = useState(user?.username || "");
   const [phoneNumber, setPhoneNumber] = useState(user?.phoneNumber || "");
   const [address, setAddress] = useState(user?.address || "");
   const [loading, setLoading] = useState(false);
 
   const handleSave = async () => {
-    if (!user?.email) {
-      Alert.alert("Error", "User email is missing.");
+    if (!user) {
+      Alert.alert("Error", "User data is unavailable.");
       return;
     }
 
     setLoading(true);
     try {
-      // Query Firebase to find the document based on email
       const usersRef = collection(FIREBASE_DB, "users");
       const q = query(usersRef, where("email", "==", user.email));
       const querySnapshot = await getDocs(q);
 
-      // Ensure that the user document exists
       if (querySnapshot.empty) {
         Alert.alert("Error", "User not found.");
         return;
       }
 
-      const userDoc = querySnapshot.docs[0]; // Assuming the email is unique
+      const userDoc = querySnapshot.docs[0];
       const userRef = doc(FIREBASE_DB, "users", userDoc.id);
 
-      // Update the document
       await updateDoc(userRef, { username, phoneNumber, address });
-      setUser({ ...user, username, phoneNumber, address }); // Update context
-      router.back();
+      setUser({ ...user, username, phoneNumber, address });
+      Alert.alert("Profile", "Profile updated successfully.");
     } catch (error) {
       console.error("Failed to update profile:", error);
       Alert.alert("Error", "Failed to update profile.");
@@ -55,10 +48,21 @@ const EditProfile: React.FC = () => {
     }
   };
 
-  if (!user) return <Text>Loading...</Text>;
-
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={{ height: "100%", padding: 25, paddingTop: 15 }}>
+       <View style={styles.header}>
+       <Ionicons
+        name="arrow-back-outline"
+        size={25}
+        color="black"
+        onPress={() => navigation.goBack()} 
+       /> 
+       <Text style={styles.headerText}> Edit Profile</Text>
+       </View>
+      
+      <SafeAreaView style={styles.container2}>
+      
+
       <Text style={styles.label}>Username</Text>
       <TextInput style={styles.input} value={username} onChangeText={setUsername} />
 
@@ -67,10 +71,12 @@ const EditProfile: React.FC = () => {
 
       <Text style={styles.label}>Address</Text>
       <TextInput style={styles.input} value={address} onChangeText={setAddress} />
-
       <TouchableOpacity style={styles.saveButton} onPress={handleSave} disabled={loading}>
         <Text style={styles.buttonText}>{loading ? "Saving..." : "Save"}</Text>
       </TouchableOpacity>
+      </SafeAreaView>
+    
+      
     </SafeAreaView>
   );
 };
@@ -83,10 +89,25 @@ const styles = StyleSheet.create({
     padding: 20,
     backgroundColor: "#f5f5f5",
   },
+  container2: {
+    flex: 1,
+    backgroundColor: "#f5f5f5",
+  },
+  header: {
+    flexDirection: "row",
+    alignItems: "center",
+
+  },
+  headerText: {
+    fontSize: 24,
+    fontWeight: "bold",
+    marginLeft: 10,
+    color: "orange",
+  },
   label: {
     fontSize: 16,
     color: "#888",
-    marginTop: 10,
+    marginTop: 5,
   },
   input: {
     height: 40,
@@ -99,7 +120,7 @@ const styles = StyleSheet.create({
   },
   saveButton: {
     paddingVertical: 15,
-    backgroundColor: "#4CAF50",
+    backgroundColor: "orange",
     borderRadius: 8,
     alignItems: "center",
   },
