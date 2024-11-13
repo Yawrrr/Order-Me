@@ -1,18 +1,11 @@
-<<<<<<< HEAD
-import { ListRenderItem, StyleSheet, Text, View,Image } from 'react-native'
-import { FlatList, GestureHandlerRootView } from 'react-native-gesture-handler';
-import React from 'react'
-import { GroupType } from '@/type/groupType'
-import { colors } from '@/constants/color';
-import { Ionicons } from '@expo/vector-icons';
-=======
+
 import { ListRenderItem, StyleSheet, Text, View, Image } from "react-native";
 import { FlatList, GestureHandlerRootView } from "react-native-gesture-handler";
 import React from "react";
 import { GroupType } from "@/type/groupType";
 import { colors } from "@/constants/colors";
 import { Ionicons } from "@expo/vector-icons";
->>>>>>> main
+
 
 const GroupListings = ({ listings }: { listings: GroupType[] }) => {
   const renderItem: ListRenderItem<GroupType> = ({ item }) => {

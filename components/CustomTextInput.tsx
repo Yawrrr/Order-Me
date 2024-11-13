@@ -1,10 +1,9 @@
 import { StyleSheet, Text, TextInput, View } from "react-native";
 import React from "react";
-<<<<<<< HEAD
-import { colors } from "@/constants/color";
-=======
+
+
 import { colors } from "@/constants/colors";
->>>>>>> main
+
 
 interface textInputProps {
   placeholder: string;

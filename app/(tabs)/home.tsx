@@ -4,11 +4,10 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { Stack } from 'expo-router';
 import favicon from '../../assets/images/profile.jpeg';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
-<<<<<<< HEAD
-import { colors } from "@/constants/color";
-=======
+
+//=======
 import { colors } from "@/constants/colors";
->>>>>>> main
+//>>>>>>> main
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import RestaurantListing from "../../components/RestaurantListing";
 import restaurantData from '@/data/restaurants.json';

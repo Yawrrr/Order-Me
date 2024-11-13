@@ -1,13 +1,4 @@
-<<<<<<< HEAD
-import { StyleSheet, View, Text,Image ,ListRenderItem} from 'react-native';
-import React, { useEffect, useState } from 'react';
-import { FlatList, GestureHandlerRootView } from 'react-native-gesture-handler';
-import { ListingType } from '@/type/listingType';
-import { FontAwesome5, Ionicons } from '@expo/vector-icons';
-import { colors } from "@/constants/color";
-import { Link } from 'expo-router';
-import { TouchableOpacity } from 'react-native-gesture-handler';
-=======
+
 import { StyleSheet, View, Text, Image, ListRenderItem } from "react-native";
 import React, { useEffect, useState } from "react";
 import { FlatList, GestureHandlerRootView } from "react-native-gesture-handler";
@@ -16,7 +7,6 @@ import { FontAwesome5, Ionicons } from "@expo/vector-icons";
 import { colors } from "@/constants/colors";
 import { Link } from "expo-router";
 import { TouchableOpacity } from "react-native-gesture-handler";
->>>>>>> main
 
 type Props = {
   listings: any[];

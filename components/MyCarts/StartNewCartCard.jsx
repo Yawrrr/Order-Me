@@ -1,12 +1,9 @@
 import React, { useState } from "react";
 import { StyleSheet, Text, View } from "react-native";
-<<<<<<< HEAD
-import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
-import {colors} from "../../constants/color"
-=======
+
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import { colors } from "../../constants/colors";
->>>>>>> main
+
 
 export default function StartNewCartCard() {
   return (
