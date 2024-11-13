@@ -1,6 +1,10 @@
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import React from "react";
+<<<<<<< HEAD
 import { colors } from "@/constants/color";
+=======
+import { colors } from "@/constants/colors";
+>>>>>>> main
 
 interface CustomButtonProps {
   title: string;

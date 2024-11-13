@@ -2,31 +2,42 @@ import { StyleSheet, Text, TouchableOpacity, View, Image } from "react-native";
 import React from "react";
 import { router } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { useAuth } from "@/context/AuthContext";
+import images from "@/constants/images";
 
 const Profile = () => {
+  const { logout, user } = useAuth();
+
+  const handleLogout = async () => {
+    await logout();
+    router.replace('/sign-in')
+  };
+  const username = user?.username ? user?.username : user?.email;
+  const phoneNumber = user?.phoneNumber;
+  const address = user?.address;
+
   return (
     <SafeAreaView style={styles.container}>
-      <View style={styles.profileImageContainer}>
-      <Image
-        source={require("../../assets/images/yuting_profile.jpg")}
-        style={styles.profileImage}
-      />
-
+      <View className="items-center" style={styles.profileImageContainer}>
+        <Image
+          source={images.defaultProfile}
+          style={styles.profileImage}
+        />
+        <Text className="mt-4" style={styles.infoText}>{username}</Text>
       </View>
       <View style={styles.infoContainer}>
-        <Text style={styles.label}>Name</Text>
-        <Text style={styles.infoText}>Yuting</Text>
-        
         <Text style={styles.label}>Phone</Text>
-        <Text style={styles.infoText}>+60 123-456-789</Text>
-        
+        <Text style={styles.infoText}>+60 {phoneNumber}</Text>
+
         <Text style={styles.label}>Address</Text>
-        <Text style={styles.infoText}>123, Jalan Example, Pontian, Johor, Malaysia</Text>
+        <Text style={styles.infoText}>
+          {address}
+        </Text>
       </View>
       <TouchableOpacity style={styles.saveButton}>
         <Text style={styles.buttonText}>Save</Text>
       </TouchableOpacity>
-      <TouchableOpacity style={styles.logoutButton} onPress={() => { router.replace("/sign-in") }}>
+      <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
         <Text style={styles.buttonText}>Log Out</Text>
       </TouchableOpacity>
     </SafeAreaView>
@@ -44,7 +55,7 @@ const styles = StyleSheet.create({
   },
   profileImageContainer: {
     marginTop: 30,
-    marginBottom: 20,
+    marginBottom: 8,
   },
   profileImage: {
     width: 120,

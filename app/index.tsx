@@ -7,8 +7,8 @@ import { router } from "expo-router";
 
 const App = () => {
   return (
-    <SafeAreaView style={styles.container}>
-        <View style={styles.info}>
+    <SafeAreaView className="p-5 justify-center h-full gap-4">
+        <View className="items-center mb-16">
           <Image source={icons.logo}></Image>
           <Text>Welcome to Order Me!!!</Text>
         </View>
@@ -21,16 +21,3 @@ const App = () => {
 };
 
 export default App;
-
-const styles = StyleSheet.create({
-  container: {
-    padding: 20,
-    justifyContent: "center",
-    height: "100%",
-    gap: 16
-  },
-  info: {
-    alignItems: "center",
-    marginBottom: 64
-  },
-});
