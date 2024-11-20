@@ -1,62 +1,62 @@
 [
   {
     "id": 1,
-    "name": "Sushi Haven",
-    "cuisine": "Japanese",
+    "name": "Sister Fen",
+    "cuisine": "Mix Rice",
     "location": "1.5km away",
     "rating": 4.8,
     "priceRange": "$$$",
-    "isOpen": true,
-    "imageUrl": "https://dynamic-media-cdn.tripadvisor.com/media/photo-o/15/11/fe/1c/sushi-boats-order-your.jpg?w=600&h=-1&s=1",
+    "isOpen": false,
+    "imageUrl": "https://scontent.fkul18-2.fna.fbcdn.net/v/t39.30808-6/467745334_24705804152361343_6169229785999823180_n.jpg?_nc_cat=111&ccb=1-7&_nc_sid=127cfc&_nc_ohc=0oXiDR_MiwAQ7kNvgH6W8Yh&_nc_zt=23&_nc_ht=scontent.fkul18-2.fna&_nc_gid=AVGBj8_wdRVu6umNo3gdkc_&oh=00_AYDS0Uw00eRNOedvUpBSkrKvEWmNIn9ir5PREDbko6MN-Q&oe=674325D2",
     "description": "A cozy spot offering traditional sushi and sashimi along with modern Japanese dishes.",
-    "category": "Japanese Food"
+    "category": "Mix Rice"
   },
   {
     "id": 2,
-    "name": "Burger World",
-    "cuisine": "American",
+    "name": "JoJoe",
+    "cuisine": "Mix Rice",
     "location": "3km away",
     "rating": 4.3,
     "priceRange": "$$",
     "isOpen": false,
-    "imageUrl": "https://www.seriouseats.com/thmb/_c-xbP-tch4dpSTxKE1zY16sHo8=/1500x0/filters:no_upscale():max_bytes(150000):strip_icc()/20231204-SEA-VeganBurger-FredHardy-00-dbf603c78b694bfd99489b85ab44f4c4.jpg",
+    "imageUrl": "https://scontent.fkul18-2.fna.fbcdn.net/v/t39.30808-6/467768647_24705815385693553_6984819236282154411_n.jpg?_nc_cat=107&ccb=1-7&_nc_sid=127cfc&_nc_ohc=-5ZDZEigHPgQ7kNvgFs4YKf&_nc_zt=23&_nc_ht=scontent.fkul18-2.fna&_nc_gid=AY383PGp_CXRi5B0ZN3lEvc&oh=00_AYDMppiItTtCNHGUyBr8m92SOqZWvM1qoSkEK3RZvdiOpA&oe=6743292D",
     "description": "A popular burger joint known for its gourmet burgers and hand-cut fries.",
-    "category": "Fast Food"
+    "category": "Mix Rice"
   },
   {
     "id": 3,
-    "name": "Spice Route",
+    "name": "Umi Kitchen Bajet",
     "cuisine": "Indian",
     "location": "2km away",
     "rating": 4.7,
     "priceRange": "$$$",
     "isOpen": true,
-    "imageUrl": "https://images.squarespace-cdn.com/content/v1/612d4825ee7c3b7ba3e215b7/1667458982443-N6XGU1PU7335QEMVUP7M/Delicious+food.png",
+    "imageUrl": "https://scontent.fkul18-2.fna.fbcdn.net/v/t39.30808-6/467705861_24705804002361358_9184647380349856978_n.jpg?_nc_cat=111&ccb=1-7&_nc_sid=127cfc&_nc_ohc=m83ofzj7fjIQ7kNvgGIY_j3&_nc_zt=23&_nc_ht=scontent.fkul18-2.fna&_nc_gid=AGSeAgrn-9o_mPYhqfD1rl-&oh=00_AYBZAP8VEmnAuYC1AOpcquPJeHZtugrT_dSnhRRFoYHmow&oe=67431BFB",
     "description": "Authentic Indian cuisine with a wide variety of vegetarian and non-vegetarian options.",
-    "category": "Indian Food"
+    "category": "Western Food"
   },
   {
     "id": 4,
-    "name": "Pasta Paradise",
+    "name": "感恩 Vegetarian",
     "cuisine": "Italian",
     "location": "Taman Universiti",
     "rating": 4.5,
     "priceRange": "$$",
     "isOpen": true,
-    "imageUrl": "https://www.thespruceeats.com/thmb/ovIQQQxQajADuIE2lqhgqq7ppyE=/1500x0/filters:no_upscale():max_bytes(150000):strip_icc()/pasta-carbonara-recipe-5210168-hero-01-80090e56abc04ca19d88ebf7fad1d157.jpg",
+    "imageUrl": "https://scontent.fkul18-1.fna.fbcdn.net/v/t39.30808-6/467715270_24705804169028008_2866585395029306728_n.jpg?_nc_cat=108&ccb=1-7&_nc_sid=127cfc&_nc_ohc=dQeWyBFodi0Q7kNvgG29RYb&_nc_zt=23&_nc_ht=scontent.fkul18-1.fna&_nc_gid=AGSeAgrn-9o_mPYhqfD1rl-&oh=00_AYAO4GjaQbhWkc9GY9LWy5sAyu6YkYthgM_BQ263H81sLg&oe=6743086A",
     "description": "Family-owned Italian restaurant with handmade pasta and wood-fired pizzas.",
-    "category": "Western Food"
+    "category": "Vegetarian"
   },
   {
     "id": 5,
-    "name": "Green Delight",
+    "name": "No.80 Fruits",
     "cuisine": "Vegan",
     "location": "202 Greenway, Austin, TX",
     "rating": 4.6,
     "priceRange": "$$",
     "isOpen": false,
-    "imageUrl": "https://images.everydayhealth.com/images/diet-nutrition/what-is-a-vegan-diet-benefits-food-list-beginners-guide-alt-1440x810.jpg",
+    "imageUrl": "https://scontent.fkul18-2.fna.fbcdn.net/v/t39.30808-6/467758653_24705804012361357_5240458236796589302_n.jpg?_nc_cat=109&ccb=1-7&_nc_sid=127cfc&_nc_ohc=ANwpMo81jm4Q7kNvgHoJTlR&_nc_zt=23&_nc_ht=scontent.fkul18-2.fna&_nc_gid=AlKDzed_wbxzQvkc_BdFmeS&oh=00_AYCwoa4UEmruM6irJA1hUGTyfbT0o7FOdqJf3EuSRABlAw&oe=67430C54",
     "description": "A plant-based eatery serving fresh and flavorful vegan dishes.",
-    "category": "Vegetarian"
+    "category": "Fruits"
   }
 ]

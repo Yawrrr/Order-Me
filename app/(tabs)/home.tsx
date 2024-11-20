@@ -17,11 +17,11 @@ type Category = {
 };
 const Categories: Category[] = [
   { title: "All", iconName: "food" },
-  { title: "Japanese Food", iconName: "food" },
+  { title: "Mix Rice", iconName: "rice" },
   { title: "Indian Food", iconName: "food" },
   { title: "Western Food", iconName: "food" },
-  { title: "Fast Food", iconName: "food" },
   { title: "Vegetarian", iconName: "food" },
+  { title: "Fruits", iconName: "fruit-watermelon" },
 ];
 
 const Home = () => {
