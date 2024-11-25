@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { View, Text, TouchableOpacity, StyleSheet, ScrollView } from 'react-native';
 
 // Define the types for the orders
 interface Order {
@@ -11,13 +12,9 @@ interface Order {
 }
 
 const Status: React.FC = () => {
-  // Mock state for orders (replace with API call in a real app)
   const [orders, setOrders] = useState<Order[]>([]);
-
-  // Selected order for detailed view
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
 
-  // Fetch orders (mock data for now)
   useEffect(() => {
     const mockOrders: Order[] = [
       {
@@ -54,54 +51,78 @@ const Status: React.FC = () => {
   }, []);
 
   return (
-    <div>
-      <h1>Order Status</h1>
+    <View style={styles.container}>
+      <Text style={styles.header}>Order Status</Text>
       {!selectedOrder ? (
-        <div>
+        <ScrollView>
           {orders.map((order) => (
-            <div
+            <TouchableOpacity
               key={order.id}
-              style={{
-                border: '1px solid #ccc',
-                padding: '10px',
-                margin: '10px',
-                cursor: 'pointer',
-              }}
-              onClick={() => setSelectedOrder(order)}
+              style={styles.orderCard}
+              onPress={() => setSelectedOrder(order)}
             >
-              <p>Order {order.id}</p>
-              <p>Address: {order.address}</p>
-              <p>Estimated Time: {order.estimatedTime}</p>
-            </div>
+              <Text>Order {order.id}</Text>
+              <Text>Address: {order.address}</Text>
+              <Text>Estimated Time: {order.estimatedTime}</Text>
+            </TouchableOpacity>
           ))}
-        </div>
+        </ScrollView>
       ) : (
-        <div>
-          <button onClick={() => setSelectedOrder(null)}>Back</button>
-          <h2>Order Details</h2>
-          <p>Address: {selectedOrder.address}</p>
-          <p>Estimated Time: {selectedOrder.estimatedTime}</p>
-          <h3>Status</h3>
-          <ul>
-            {selectedOrder.status.map((step, index) => (
-              <li key={index}>{step}</li>
-            ))}
-          </ul>
-          <h3>Items</h3>
-          <div>
-            {selectedOrder.items.map((item, index) => (
-              <div key={index} style={{ marginBottom: '10px' }}>
-                <p>
-                  {item.name} x{item.quantity}
-                </p>
-              </div>
-            ))}
-          </div>
-          <p>Total: RM {selectedOrder.total.toFixed(2)}</p>
-        </div>
+        <View>
+          <TouchableOpacity onPress={() => setSelectedOrder(null)}>
+            <Text style={styles.backButton}>Back</Text>
+          </TouchableOpacity>
+          <Text style={styles.subHeader}>Order Details</Text>
+          <Text>Address: {selectedOrder.address}</Text>
+          <Text>Estimated Time: {selectedOrder.estimatedTime}</Text>
+          <Text style={styles.subHeader}>Status</Text>
+          {selectedOrder.status.map((step, index) => (
+            <Text key={index}>{step}</Text>
+          ))}
+          <Text style={styles.subHeader}>Items</Text>
+          {selectedOrder.items.map((item, index) => (
+            <View key={index} style={styles.itemRow}>
+              <Text>
+                {item.name} x{item.quantity}
+              </Text>
+            </View>
+          ))}
+          <Text>Total: RM {selectedOrder.total.toFixed(2)}</Text>
+        </View>
       )}
-    </div>
+    </View>
   );
 };
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    padding: 16,
+  },
+  header: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    marginBottom: 16,
+  },
+  subHeader: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginTop: 16,
+  },
+  orderCard: {
+    borderWidth: 1,
+    borderColor: '#ccc',
+    borderRadius: 8,
+    padding: 16,
+    marginBottom: 16,
+  },
+  backButton: {
+    color: 'blue',
+    marginBottom: 16,
+  },
+  itemRow: {
+    marginBottom: 8,
+  },
+});
 
 export default Status;
