@@ -5,11 +5,11 @@ import { useAuth } from "@/context/AuthContext";
 import { doc, updateDoc, query, where, getDocs, collection } from "firebase/firestore";
 import { FIREBASE_DB } from "@/FirebaseConfig";
 import Ionicons from '@expo/vector-icons/Ionicons';
-import { useNavigation } from '@react-navigation/native'
+import { router } from "expo-router";
 
 const EditProfile: React.FC = () => {
   const { user, setUser, authInitialized } = useAuth();
-  const navigation = useNavigation(); 
+
 
   if (!authInitialized) return <Text>Loading...</Text>; 
   const [username, setUsername] = useState(user?.username || "");
@@ -55,7 +55,7 @@ const EditProfile: React.FC = () => {
         name="arrow-back-outline"
         size={25}
         color="black"
-        onPress={() => navigation.goBack()} 
+        onPress={() => router.back()}
        /> 
        <Text style={styles.headerText}> Edit Profile</Text>
        </View>
