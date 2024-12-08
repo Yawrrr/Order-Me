@@ -21,7 +21,7 @@ const Categories: Category[] = [
   { title: "Indian Food", iconName: "food" },
   { title: "Western Food", iconName: "food" },
   { title: "Vegetarian", iconName: "food" },
-  { title: "Fruits", iconName: "fruit-watermelon" },
+  { title: "Others", iconName: "fruit-watermelon" },
 ];
 
 const Home = () => {

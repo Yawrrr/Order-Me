@@ -23,8 +23,8 @@ const TabLayout = () => {
         }}/>
         <Tabs.Screen name="Profile" options={{
           headerShown: false,
-          title: 'Message',
-          tabBarIcon: ({ color }) => <AntDesign name="message1" size={22} color={color}  />
+          title: 'Profile',
+          tabBarIcon: ({ color }) => <Ionicons name="person" size={24} color={color}  />
         }}/>
        
       </Tabs>

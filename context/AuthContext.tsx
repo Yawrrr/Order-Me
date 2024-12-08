@@ -10,6 +10,8 @@ interface User {
   phoneNumber: string;
   role: string;
   username: string;
+  restaurantName: string;
+  category:string;
 }
 
 interface AuthContextType {
