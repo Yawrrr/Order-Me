@@ -21,7 +21,7 @@ const Categories: Category[] = [
   { title: "Indian Food", iconName: "food" },
   { title: "Western Food", iconName: "food" },
   { title: "Vegetarian", iconName: "food" },
-  { title: "Fruits", iconName: "fruit-watermelon" },
+  { title: "Others", iconName: "fruit-watermelon" },
 ];
 
 const Home = () => {
@@ -95,17 +95,17 @@ type Props = {
 };
 const CategoryButtons = ({ onCategoryChanged }: Props) => {
   const scrollRef = useRef<ScrollView>(null);
-  const itemRef = useRef<TouchableOpacity[]>([]);
+  const itemRef = useRef<(TouchableOpacity | null)[]>([]);
   const [activeIndex, setActiveIndex] = useState(0);
 
   const handleSelectCategory = (index: number) => {
-    setActiveIndex(index);
-    const selected = itemRef.current[index];
-    selected?.measure((x, y, width, height, pageX) => {
-      scrollRef.current?.scrollTo({ x: pageX - 10, animated: true });
-    });
-    onCategoryChanged(Categories[index].title);
-  };
+  setActiveIndex(index);
+  const selected = itemRef.current[index];
+  selected?.measure((x: number, y: number, width: number, height: number, pageX: number) => {
+    scrollRef.current?.scrollTo({ x: pageX - 10, animated: true });
+  });
+  onCategoryChanged(Categories[index].title);
+};
 
   return (
     <View>
