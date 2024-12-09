@@ -24,3 +24,4 @@ export const FIREBASE_DB = getFirestore(FIREBASE_APP);
 
 export const userRef = collection(FIREBASE_DB, "users");
 export const roomRef = collection(FIREBASE_DB, "rooms");
+export const itemsRef = collection(FIREBASE_DB, "items");

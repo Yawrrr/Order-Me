@@ -3,7 +3,7 @@ import React from "react";
 import { Tabs } from "expo-router";
 import { FontAwesome } from "@expo/vector-icons";
 import Feather from '@expo/vector-icons/Feather';
-import AntDesign from '@expo/vector-icons/AntDesign';
+import Ionicons from '@expo/vector-icons/Ionicons';
 
 const TabLayout = () => {
   return (
@@ -28,21 +28,22 @@ const TabLayout = () => {
           }} 
         />
         <Tabs.Screen 
-          name="cart" 
+          name="order" 
           options={{
             headerShown: false,
             title: 'Order',
             tabBarIcon: ({ color }) => <Feather size={24} name="shopping-cart" color={color} />,
-            tabBarLabel: 'Order',  // Explicitly setting label
+            tabBarLabel: 'Orders',  // Explicitly setting label
           }} 
         />
+        
         <Tabs.Screen 
-          name="Profile" 
+          name="profile" 
           options={{
             headerShown: false,
-            title: 'Message',
-            tabBarIcon: ({ color }) => <AntDesign name="message1" size={22} color={color} />,
-            tabBarLabel: 'Message',  // Explicitly setting label
+            title: 'Profile',
+            tabBarIcon: ({ color }) => <Ionicons name="person" size={22} color={color} />,
+            tabBarLabel: 'Profile', 
           }} 
         />
 
