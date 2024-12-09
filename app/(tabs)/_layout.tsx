@@ -2,6 +2,8 @@ import { StyleSheet, Text, View } from "react-native";
 import React from "react";
 import { Stack, Tabs } from "expo-router";
 import { FontAwesome } from "@expo/vector-icons";
+import { FontAwesome5 } from "@expo/vector-icons";
+
 import Feather from '@expo/vector-icons/Feather';
 import AntDesign from '@expo/vector-icons/AntDesign';
 import Ionicons from '@expo/vector-icons/Ionicons';
@@ -27,10 +29,11 @@ const TabLayout = () => {
           tabBarIcon: ({ color }) => <AntDesign name="message1" size={22} color={color}  />
         }}/>
         <Tabs.Screen name="status" options={{
-          headerShown: false,
-          title: 'Status',
-          tabBarIcon: ({ color }) => <Ionicons name="star" size={24} color={color}  />
-        }}/>
+        headerShown: false,
+        title: 'Status',
+        tabBarIcon: ({ color }) => <FontAwesome5 name="star" size={24} color={color} />
+      }}/>
+
         <Tabs.Screen name="profile" options={{
           headerShown: false,
           title: 'Profile',

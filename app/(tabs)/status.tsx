@@ -1,17 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import {
-  ScrollView,
-  StyleSheet,
-  View,
-  Text,
-  TouchableOpacity,
-} from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { Stack } from 'expo-router';
-import { Ionicons } from '@expo/vector-icons';
-import { GestureHandlerRootView } from 'react-native-gesture-handler';
-import { colors } from '@/constants/colors';
+import { View, Text, TouchableOpacity, StyleSheet, ScrollView } from 'react-native';
+import Ionicons from "@expo/vector-icons/Ionicons";
 
+// Define the types for the orders
 interface Order {
   id: number;
   address: string;
@@ -60,100 +51,141 @@ const Status: React.FC = () => {
     setOrders(mockOrders);
   }, []);
 
-  const renderStatusColor = (index: number, totalSteps: number): string => {
-    return index === totalSteps - 1 ? 'text-green-500' : 'text-blue-500';
-  };
-
   return (
-    <GestureHandlerRootView>
-      <SafeAreaView style={styles.container}>
-        <Stack.Screen
-          options={{
-            headerTransparent: true,
-            headerTitle: '',
-          }}
-        />
-        <ScrollView
-          contentContainerStyle={styles.scrollContent}
-          showsVerticalScrollIndicator={false}
-        >
-          <View style={styles.content}>
-            <View style={styles.rowContainer}>
-              <TouchableOpacity onPress={() => console.log('Menu pressed')}>
-                <Ionicons name="menu" size={20} color={colors.black.DEFAULT} style={{ marginLeft: 5 }} />
-              </TouchableOpacity>
-              <Text style={styles.heading}>Order Status</Text>
-            </View>
-            {!selectedOrder ? (
-              <View>
-                {orders.map((order) => (
-                  <TouchableOpacity
-                    key={order.id}
-                    style={styles.card}
-                    onPress={() => setSelectedOrder(order)}
-                  >
-                    <Text style={styles.cardTitle}>Order {order.id}</Text>
-                    <Text>Address: {order.address}</Text>
-                    <Text>Estimated Time: {order.estimatedTime}</Text>
-                  </TouchableOpacity>
-                ))}
-              </View>
-            ) : (
-              <View>
-                <TouchableOpacity onPress={() => setSelectedOrder(null)}>
-                  <Text style={styles.backButton}>Back</Text>
-                </TouchableOpacity>
-                <Text style={styles.detailsHeading}>Order Details</Text>
-                <View style={styles.card}>
-                  <Text>Address: {selectedOrder.address}</Text>
-                  <Text>Estimated Time: {selectedOrder.estimatedTime}</Text>
-                </View>
-                <View style={styles.card}>
-                  <Text style={styles.cardTitle}>Status</Text>
-                  {selectedOrder.status.map((step, index) => (
-                    <Text key={index} className={renderStatusColor(index, selectedOrder.status.length)}>
-                      {step}
-                    </Text>
-                  ))}
-                </View>
-                <View style={styles.card}>
-                  <Text style={styles.cardTitle}>Items</Text>
-                  {selectedOrder.items.map((item, index) => (
-                    <Text key={index}>{item.name} x{item.quantity}</Text>
-                  ))}
-                </View>
-                <View style={styles.card}>
-                  <Text style={styles.cardTitle}>
-                    Total: RM {selectedOrder.total.toFixed(2)}
-                  </Text>
-                </View>
-              </View>
-            )}
-          </View>
+    <View style={styles.container}>
+      <Text style={styles.header}>Order Status</Text>
+      {!selectedOrder ? (
+        <ScrollView>
+          {orders.map((order) => (
+            <TouchableOpacity
+              key={order.id}
+              style={styles.orderCard}
+              onPress={() => setSelectedOrder(order)}
+            >
+              <Text style={styles.orderCardText}>Order {order.id}</Text>
+              <Text style={styles.orderCardText}>Address: {order.address}</Text>
+              <Text style={styles.orderCardText}>Estimated Time: {order.estimatedTime}</Text>
+            </TouchableOpacity>
+          ))}
         </ScrollView>
-      </SafeAreaView>
-    </GestureHandlerRootView>
+      ) : (
+        <View>
+          <TouchableOpacity onPress={() => setSelectedOrder(null)}>
+            <Text style={styles.backButton}>Back</Text>
+          </TouchableOpacity>
+          <Text style={styles.subHeader}>Order Details</Text>
+          <Text style={styles.detailText}>Address: {selectedOrder.address}</Text>
+          <Text style={styles.detailText}>Estimated Time: {selectedOrder.estimatedTime}</Text>
+          <Text style={styles.subHeader}>Status</Text>
+          {selectedOrder.status.map((step, index) => (
+            <View key={index} style={styles.statusContainer}>
+              <View style={styles.statusDot} />
+              <View style={styles.statusLine} />
+              <Text style={styles.statusStep}>{step}</Text>
+            </View>
+          ))}
+          <Text style={styles.subHeader}>Items</Text>
+          {selectedOrder.items.map((item, index) => (
+            <View key={index} style={styles.itemRow}>
+              <Text style={styles.itemText}>
+                {item.name} x{item.quantity}
+              </Text>
+            </View>
+          ))}
+          <Text style={styles.totalText}>Total: RM {selectedOrder.total.toFixed(2)}</Text>
+        </View>
+      )}
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#f0f0f0' },
-  scrollContent: { paddingBottom: 20 },
-  content: { padding: 16 },
-  rowContainer: { flexDirection: 'row', alignItems: 'center' },
-  heading: { fontSize: 24, fontWeight: 'bold', marginLeft: 8 , color: colors.secondary.DEFAULT,},
-  card: {
-    borderWidth: 1,
-    borderColor: '#ccc',
-    backgroundColor: '#fff',
+  container: {
+    flex: 1,
+    backgroundColor: 'white',
     padding: 16,
-    borderRadius: 8,
-    marginBottom: 8,
-    marginTop: 20,
   },
-  cardTitle: { fontWeight: 'bold', fontSize: 18, marginBottom: 4 },
-  backButton: { color: '#007bff', marginBottom: 16 },
-  detailsHeading: { fontSize: 20, fontWeight: 'bold', marginBottom: 8 },
+  header: {
+    fontSize: 26,
+    fontWeight: 'bold',
+    color: '#FF8C00',
+    marginBottom: 16,
+    textAlign: 'center',
+  },
+  subHeader: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    marginTop: 16,
+    marginBottom: 8,
+    color: '#FF8C00',
+  },
+  orderCard: {
+    borderWidth: 1,
+    borderColor: '#FFCC99',
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 16,
+    backgroundColor: '#FFF7E6',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  orderCardText: {
+    fontSize: 16,
+    color: '#333',
+  },
+  backButton: {
+    color: '#FF4500',
+    fontSize: 16,
+    marginBottom: 16,
+    textAlign: 'left',
+    fontWeight: '600',
+  },
+  detailText: {
+    fontSize: 16,
+    color: '#333',
+    marginVertical: 4,
+  },
+  itemRow: {
+    marginBottom: 8,
+    backgroundColor: '#FFE5CC',
+    borderRadius: 8,
+    padding: 8,
+  },
+  itemText: {
+    fontSize: 16,
+    color: '#333',
+  },
+  totalText: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#FF4500',
+    marginTop: 12,
+  },
+  statusContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginVertical: 4,
+  },
+  statusDot: {
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+    backgroundColor: '#FF8C00',
+    marginRight: 8,
+  },
+  statusLine: {
+    width: 2,
+    height: 20,
+    backgroundColor: '#FFCC99',
+    marginRight: 8,
+  },
+  statusStep: {
+    fontSize: 16,
+    color: '#FF8C00',
+  },
 });
 
 export default Status;

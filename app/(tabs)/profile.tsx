@@ -15,7 +15,7 @@ const Profile = () => {
   };
 
   const navigateToVendor = () => {
-    router.push("/menu"); // Replace with the correct vendor-side route
+    router.push('/menu'); // Replace with the correct vendor-side route
   };
 
   const username = user?.username ? user?.username : user?.email;

@@ -24,7 +24,7 @@ const signUp = () => {
   const emailRef = useRef("");
   const passwordRef = useRef("");
   const confirmPasswordRef = useRef("");
-  const phoneNumRef = useRef(0);
+  const phoneNumRef = useRef("0");
   const addressRef = useRef("");
   const [loading, setLoading] = useState(false);
   const auth = FIREBASE_AUTH;
