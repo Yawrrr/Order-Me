@@ -2,6 +2,7 @@ import { StyleSheet, Text, View } from "react-native";
 import React from "react";
 import { Stack, Tabs } from "expo-router";
 import { FontAwesome } from "@expo/vector-icons";
+import { FontAwesome5 } from "@expo/vector-icons";
 import Feather from '@expo/vector-icons/Feather';
 import AntDesign from '@expo/vector-icons/AntDesign';
 import Ionicons from '@expo/vector-icons/Ionicons';
