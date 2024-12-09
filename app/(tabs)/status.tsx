@@ -6,6 +6,7 @@ interface Order {
   id: number;
   address: string;
   estimatedTime: string;
+  restaurantname: string;
   status: string[];
   items: { name: string; quantity: number }[];
   total: number;
@@ -21,6 +22,7 @@ const Status: React.FC = () => {
         id: 1,
         address: 'MA7 Ktdi Utm',
         estimatedTime: '1:00 PM',
+        restaurantname: 'Jojoe',
         status: [
           '10:00 AM - Order Placed',
           '11:30 AM - Kitchen Preparing',
@@ -34,6 +36,7 @@ const Status: React.FC = () => {
         id: 2,
         address: 'L50 Utm',
         estimatedTime: '2:30 PM',
+        restaurantname: 'Umi Kitchen',
         status: [
           '11:00 AM - Order Placed',
           '12:45 PM - Kitchen Preparing',
@@ -63,6 +66,7 @@ const Status: React.FC = () => {
             >
               <Text>Order {order.id}</Text>
               <Text>Address: {order.address}</Text>
+              <Text>Restaurant: {order.restaurantname}</Text>
               <Text>Estimated Time: {order.estimatedTime}</Text>
             </TouchableOpacity>
           ))}
@@ -75,6 +79,7 @@ const Status: React.FC = () => {
           <Text style={styles.subHeader}>Order Details</Text>
           <Text>Address: {selectedOrder.address}</Text>
           <Text>Estimated Time: {selectedOrder.estimatedTime}</Text>
+          <Text>Restaurant: Jojoe</Text>
           <Text style={styles.subHeader}>Status</Text>
           {selectedOrder.status.map((step, index) => (
             <View key={index} style={styles.statusStepContainer}>
