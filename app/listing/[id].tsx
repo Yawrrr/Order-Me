@@ -4,7 +4,10 @@ import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import restaurantData from '@/data/restaurants.json';
 
 import { Feather, FontAwesome5, Ionicons } from '@expo/vector-icons';
+
+//=======
 import { colors } from '@/constants/colors';
+//>>>>>>> main
 import Animated, {
   interpolate,
   SlideInDown,

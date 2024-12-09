@@ -1,3 +1,4 @@
+
 import { StyleSheet, View, Text, Image, ListRenderItem } from "react-native";
 import React, { useEffect, useState } from "react";
 import { FlatList, GestureHandlerRootView } from "react-native-gesture-handler";
