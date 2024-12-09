@@ -10,32 +10,23 @@ const TabLayout = () => {
   return (
     <>
       <Tabs screenOptions={{ tabBarActiveTintColor: 'orange' }}>
-        <Tabs.Screen name="home" options={{
+        <Tabs.Screen name="menu" options={{
           headerShown: false,
-          title: 'Home',
+          title: 'Menu',
           tabBarIcon: ({ color }) => <FontAwesome size={28} name="home" color={color} />
           
         }}/>
         <Tabs.Screen name="cart" options={{
           headerShown: false,
-          title: 'Cart',
+          title: 'Order',
           tabBarIcon: ({ color }) => <Feather size={24} name="shopping-cart" color={color} />
         }}/>
-        <Tabs.Screen name="message" options={{
+        <Tabs.Screen name="Profile" options={{
           headerShown: false,
           title: 'Message',
           tabBarIcon: ({ color }) => <AntDesign name="message1" size={22} color={color}  />
         }}/>
-        <Tabs.Screen name="status" options={{
-          headerShown: false,
-          title: 'Status',
-          tabBarIcon: ({ color }) => <Ionicons name="star" size={24} color={color}  />
-        }}/>
-        <Tabs.Screen name="profile" options={{
-          headerShown: false,
-          title: 'Profile',
-          tabBarIcon: ({ color }) => <Ionicons name="person" size={24} color={color}  />
-        }}/>
+       
       </Tabs>
     </>
   );
