@@ -1,7 +1,17 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, ScrollView } from 'react-native';
+import {
+  ScrollView,
+  StyleSheet,
+  View,
+  Text,
+  TouchableOpacity,
+} from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { Stack } from 'expo-router';
+import { Ionicons } from '@expo/vector-icons';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import { colors } from '@/constants/colors';
 
-// Define the types for the orders
 interface Order {
   id: number;
   address: string;
@@ -50,79 +60,100 @@ const Status: React.FC = () => {
     setOrders(mockOrders);
   }, []);
 
+  const renderStatusColor = (index: number, totalSteps: number): string => {
+    return index === totalSteps - 1 ? 'text-green-500' : 'text-blue-500';
+  };
+
   return (
-    <View style={styles.container}>
-      <Text style={styles.header}>Order Status</Text>
-      {!selectedOrder ? (
-        <ScrollView>
-          {orders.map((order) => (
-            <TouchableOpacity
-              key={order.id}
-              style={styles.orderCard}
-              onPress={() => setSelectedOrder(order)}
-            >
-              <Text>Order {order.id}</Text>
-              <Text>Address: {order.address}</Text>
-              <Text>Estimated Time: {order.estimatedTime}</Text>
-            </TouchableOpacity>
-          ))}
-        </ScrollView>
-      ) : (
-        <View>
-          <TouchableOpacity onPress={() => setSelectedOrder(null)}>
-            <Text style={styles.backButton}>Back</Text>
-          </TouchableOpacity>
-          <Text style={styles.subHeader}>Order Details</Text>
-          <Text>Address: {selectedOrder.address}</Text>
-          <Text>Estimated Time: {selectedOrder.estimatedTime}</Text>
-          <Text style={styles.subHeader}>Status</Text>
-          {selectedOrder.status.map((step, index) => (
-            <Text key={index}>{step}</Text>
-          ))}
-          <Text style={styles.subHeader}>Items</Text>
-          {selectedOrder.items.map((item, index) => (
-            <View key={index} style={styles.itemRow}>
-              <Text>
-                {item.name} x{item.quantity}
-              </Text>
+    <GestureHandlerRootView>
+      <SafeAreaView style={styles.container}>
+        <Stack.Screen
+          options={{
+            headerTransparent: true,
+            headerTitle: '',
+          }}
+        />
+        <ScrollView
+          contentContainerStyle={styles.scrollContent}
+          showsVerticalScrollIndicator={false}
+        >
+          <View style={styles.content}>
+            <View style={styles.rowContainer}>
+              <TouchableOpacity onPress={() => console.log('Menu pressed')}>
+                <Ionicons name="menu" size={20} color={colors.black.DEFAULT} style={{ marginLeft: 5 }} />
+              </TouchableOpacity>
+              <Text style={styles.heading}>Order Status</Text>
             </View>
-          ))}
-          <Text>Total: RM {selectedOrder.total.toFixed(2)}</Text>
-        </View>
-      )}
-    </View>
+            {!selectedOrder ? (
+              <View>
+                {orders.map((order) => (
+                  <TouchableOpacity
+                    key={order.id}
+                    style={styles.card}
+                    onPress={() => setSelectedOrder(order)}
+                  >
+                    <Text style={styles.cardTitle}>Order {order.id}</Text>
+                    <Text>Address: {order.address}</Text>
+                    <Text>Estimated Time: {order.estimatedTime}</Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            ) : (
+              <View>
+                <TouchableOpacity onPress={() => setSelectedOrder(null)}>
+                  <Text style={styles.backButton}>Back</Text>
+                </TouchableOpacity>
+                <Text style={styles.detailsHeading}>Order Details</Text>
+                <View style={styles.card}>
+                  <Text>Address: {selectedOrder.address}</Text>
+                  <Text>Estimated Time: {selectedOrder.estimatedTime}</Text>
+                </View>
+                <View style={styles.card}>
+                  <Text style={styles.cardTitle}>Status</Text>
+                  {selectedOrder.status.map((step, index) => (
+                    <Text key={index} className={renderStatusColor(index, selectedOrder.status.length)}>
+                      {step}
+                    </Text>
+                  ))}
+                </View>
+                <View style={styles.card}>
+                  <Text style={styles.cardTitle}>Items</Text>
+                  {selectedOrder.items.map((item, index) => (
+                    <Text key={index}>{item.name} x{item.quantity}</Text>
+                  ))}
+                </View>
+                <View style={styles.card}>
+                  <Text style={styles.cardTitle}>
+                    Total: RM {selectedOrder.total.toFixed(2)}
+                  </Text>
+                </View>
+              </View>
+            )}
+          </View>
+        </ScrollView>
+      </SafeAreaView>
+    </GestureHandlerRootView>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    padding: 16,
-  },
-  header: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    marginBottom: 16,
-  },
-  subHeader: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    marginTop: 16,
-  },
-  orderCard: {
+  container: { flex: 1, backgroundColor: '#f0f0f0' },
+  scrollContent: { paddingBottom: 20 },
+  content: { padding: 16 },
+  rowContainer: { flexDirection: 'row', alignItems: 'center' },
+  heading: { fontSize: 24, fontWeight: 'bold', marginLeft: 8 , color: colors.secondary.DEFAULT,},
+  card: {
     borderWidth: 1,
     borderColor: '#ccc',
-    borderRadius: 8,
+    backgroundColor: '#fff',
     padding: 16,
-    marginBottom: 16,
-  },
-  backButton: {
-    color: 'blue',
-    marginBottom: 16,
-  },
-  itemRow: {
+    borderRadius: 8,
     marginBottom: 8,
+    marginTop: 20,
   },
+  cardTitle: { fontWeight: 'bold', fontSize: 18, marginBottom: 4 },
+  backButton: { color: '#007bff', marginBottom: 16 },
+  detailsHeading: { fontSize: 20, fontWeight: 'bold', marginBottom: 8 },
 });
 
 export default Status;
