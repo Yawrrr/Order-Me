@@ -26,6 +26,12 @@ const TabLayout = () => {
           title: 'Message',
           tabBarIcon: ({ color }) => <AntDesign name="message1" size={22} color={color}  />
         }}/>
+        <Tabs.Screen name="status" options={{
+        headerShown: false,
+        title: 'Status',
+        tabBarIcon: ({ color }) => <FontAwesome5 name="star" size={24} color={color} />
+      }}/>
+
         <Tabs.Screen name="profile" options={{
           headerShown: false,
           title: 'Profile',
