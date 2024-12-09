@@ -65,6 +65,12 @@ const MainLayout = () => {
           headerShown: false,
         }}
       />
+      <Stack.Screen
+        name="components/EditVendor"
+        options={{
+          headerShown: false,
+        }}
+      />
     </Stack>
   );
 };
