@@ -42,7 +42,7 @@ const TabLayout = () => {
             headerShown: false,
             title: 'Message',
             tabBarIcon: ({ color }) => <AntDesign name="message1" size={22} color={color} />,
-            tabBarLabel: 'Message',  // Explicitly setting label
+            tabBarLabel: 'Message', 
           }} 
         />
 

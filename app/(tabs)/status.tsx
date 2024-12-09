@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, ScrollView } from 'react-native';
+import Ionicons from "@expo/vector-icons/Ionicons";
 
 // Define the types for the orders
 interface Order {
