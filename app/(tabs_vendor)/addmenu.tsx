@@ -1,78 +1,76 @@
 import React, { useState } from "react";
-import { SafeAreaView, TextInput, Button, StyleSheet, Text, View } from "react-native";
-import { ScrollView } from "react-native";
+import { View, TextInput, Button, StyleSheet, Alert, SafeAreaView, ScrollView, Text } from "react-native";
+import { addDoc } from "firebase/firestore";
+import { itemsRef } from '../../FirebaseConfig'; // Adjust the number of `../` based on your folder structure
 
 const AddMenu = () => {
-  const [productName, setProductName] = useState('');
-  const [price, setPrice] = useState('');
-  const [description, setDescription] = useState('');
-  const [imageUrl, setImageUrl] = useState('');
+  const [name, setName] = useState("");
+  const [description, setDescription] = useState("");
+  const [price, setPrice] = useState("");
+  const [imageUrl, setImageUrl] = useState(""); // New state for image URL
 
-  const handleSubmit = () => {
-    // Handle form submission (e.g., send data to API or save locally)
-    console.log({
-      productName,
-      price,
-      description,
-      imageUrl
-    });
-
-    // Optionally, clear the form after submission
-    setProductName('');
-    setPrice('');
-    setDescription('');
-    setImageUrl('');
+  const handleAddItem = async () => {
+    try {
+      if (!name || !description || !price || !imageUrl) { // Check if imageUrl is filled
+        Alert.alert("Error", "Please fill in all fields.");
+        return;
+      }
+      await addDoc(itemsRef, {
+        name,
+        description,
+        price: parseFloat(price), // Ensure price is stored as a number
+        imageUrl, // Add imageUrl to the document
+      });
+      Alert.alert("Success", "Item added successfully!");
+      setName("");
+      setDescription("");
+      setPrice("");
+      setImageUrl(""); // Reset imageUrl
+    } catch (error) {
+      console.error("Error adding item: ", error);
+      Alert.alert("Error", "Failed to add item.");
+    }
   };
 
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView contentContainerStyle={styles.form}>
         <View style={styles.header}>
-          <Text style={styles.title}>Add Menu</Text>
+          <Text style={styles.title}>Add Menu Item</Text>
         </View>
 
         <TextInput
           style={styles.input}
           placeholder="Enter Product Name"
-          value={productName}
-          onChangeText={setProductName}
+          value={name}
+          onChangeText={setName}
         />
-        
         <TextInput
           style={styles.input}
           placeholder="Enter Price"
-          keyboardType="numeric"
           value={price}
           onChangeText={setPrice}
+          keyboardType="numeric"
         />
-        
         <TextInput
-          style={[styles.input, styles.textArea]}
+          style={[styles.input, styles.descriptionInput]} // Apply both input and description styles
           placeholder="Enter Description"
-          multiline
-          numberOfLines={4}
           value={description}
           onChangeText={setDescription}
+          multiline
+          numberOfLines={5} // Set number of lines for description box
         />
-        
         <TextInput
           style={styles.input}
           placeholder="Enter Image URL"
           value={imageUrl}
-          onChangeText={setImageUrl}
+          onChangeText={setImageUrl} // Handle the image URL input
         />
-
-        <Button
-          title="Add Menu Item"
-          onPress={handleSubmit}
-          color="orange"
-        />
+        <Button title="ADD MENU LIST" onPress={handleAddItem} color="orange" />
       </ScrollView>
     </SafeAreaView>
   );
 };
-
-export default AddMenu;
 
 const styles = StyleSheet.create({
   container: {
@@ -91,19 +89,22 @@ const styles = StyleSheet.create({
   title: {
     fontFamily: "Poppins-Bold",
     fontSize: 30,
-    color: "orange",
+    color: "orange", // Title in orange color
   },
   input: {
     height: 50,
-    borderColor: '#ccc',
+    borderColor: '#ccc', // Orange border
     borderWidth: 1,
     borderRadius: 8,
     marginBottom: 15,
     paddingHorizontal: 10,
     fontSize: 16,
   },
-  textArea: {
-    height: 100,
-    textAlignVertical: 'top', // Makes the text start from the top of the input
+  // Additional styling for the description input
+  descriptionInput: {
+    height: 150, // Larger height for the description box
+    textAlignVertical: "top", // Ensures text starts from the top of the input
   },
 });
+
+export default AddMenu;

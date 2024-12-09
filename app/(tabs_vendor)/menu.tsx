@@ -1,106 +1,127 @@
-import React from "react";
-import { SafeAreaView, ScrollView, StyleSheet, Text, View, Image } from "react-native";
+import React, { useState, useEffect } from "react";
+import { View, Text, FlatList, Image, StyleSheet, ActivityIndicator } from "react-native";
+import { getDocs } from "firebase/firestore";
+import { itemsRef } from '../../FirebaseConfig'; // Adjust the number of `../` based on your folder structure
 
-const Menu = () => {
-  // Updated menu items
-  const menuItems = [
-    {
-      id: 1,
-      name: "Fried Rice",
-      price: "RM 12.00",
-      description: "A delicious stir-fried rice with vegetables, eggs, and a savory sauce.",
-      imageUrl: "https://via.placeholder.com/150?text=Fried+Rice"
-    },
-    {
-      id: 2,
-      name: "Fried Noodle",
-      price: "RM 13.50",
-      description: "A flavorful stir-fried noodle dish with vegetables, eggs, and your choice of protein.",
-      imageUrl: "https://via.placeholder.com/150?text=Fried+Noodle"
-    },
-    {
-      id: 3,
-      name: "Fried Beehoon",
-      price: "RM 11.50",
-      description: "Stir-fried rice vermicelli with vegetables, eggs, and a light soy-based sauce.",
-      imageUrl: "https://via.placeholder.com/150?text=Fried+Beehoon"
-    }
-  ];
+// Define the Item type
+interface Item {
+  id: string;
+  name: string;
+  description: string;
+  price: number;
+  imageUrl: string;
+}
+
+const MenuScreen = () => {
+  // Define the state with the correct type
+  const [items, setItems] = useState<Item[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
+
+  useEffect(() => {
+    const fetchItems = async () => {
+      try {
+        const querySnapshot = await getDocs(itemsRef);
+        const fetchedItems = querySnapshot.docs.map((doc) => ({
+          id: doc.id,
+          ...doc.data(),
+        })) as Item[];  // Type assertion to Item array
+        setItems(fetchedItems);
+      } catch (error) {
+        console.error("Error fetching items: ", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchItems();
+  }, []);
+
+  if (loading) {
+    return (
+      <View style={styles.loader}>
+        <ActivityIndicator size="large" color="orange" />
+      </View>
+    );
+  }
 
   return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.title}>Menu</Text>
-      </View>
+    <View style={styles.container}>
+      {/* Header */}
+      <Text style={styles.header}>Menu</Text>
 
-      <ScrollView contentContainerStyle={styles.menuContainer}>
-        {menuItems.map((item) => (
-          <View key={item.id} style={styles.menuItem}>
-            {/* Image comes first */}
-            <Image source={{ uri: item.imageUrl }} style={styles.menuImage} />
-            <View style={styles.menuDetails}>
-              <Text style={styles.menuName}>{item.name}</Text>
-              <Text style={styles.menuPrice}>{item.price}</Text>
-              <Text style={styles.menuDescription}>{item.description}</Text>
+      <FlatList
+        data={items}
+        keyExtractor={(item) => item.id}
+        renderItem={({ item }) => (
+          <View style={styles.card}>
+            {/* Left-side Image */}
+            <Image source={{ uri: item.imageUrl }} style={styles.image} />
+            
+            {/* Right-side content */}
+            <View style={styles.textContainer}>
+              <Text style={styles.name}>{item.name}</Text>
+              <Text style={styles.description}>{item.description}</Text>
+              <Text style={styles.price}>RM {item.price}</Text>
             </View>
           </View>
-        ))}
-      </ScrollView>
-    </SafeAreaView>
+        )}
+      />
+    </View>
   );
 };
 
-export default Menu;
-
 const styles = StyleSheet.create({
+  loader: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+  },
   container: {
     flex: 1,
-    paddingTop: 20,
-    paddingHorizontal: 15,
+    padding: 16,
     backgroundColor: "#fff",
   },
   header: {
-    marginBottom: 20,
-    alignItems: "center",
+    fontSize: 32,
+    fontWeight: "bold",
+    color: "orange", // Theme color for header
+    textAlign: "center",
+    marginBottom: 20, // Space below the header
   },
-  title: {
-    fontFamily: "Poppins-Bold",
-    fontSize: 30,
-    color: "orange",
-  },
-  menuContainer: {
-    paddingBottom: 20,
-  },
-  menuItem: {
-    flexDirection: "row", // Image and details are arranged horizontally
-    alignItems: "center",
-    borderBottomWidth: 1,
-    borderBottomColor: "#ddd",
-    paddingVertical: 10,
-  },
-  menuImage: {
-    width: 80,
-    height: 80,
+  card: {
+    marginBottom: 16,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: "#ddd",
     borderRadius: 8,
-    marginRight: 15,
+    backgroundColor: "#f9f9f9",
+    flexDirection: "row", // Align image and text horizontally
+    alignItems: "center", // Vertically center content
   },
-  menuDetails: {
-    flex: 1,
+  image: {
+    width: 100,
+    height: 100,
+    borderRadius: 8,
+    marginRight: 16, // Add space between image and text
   },
-  menuName: {
-    fontFamily: "Poppins-Bold",
+  textContainer: {
+    flex: 1, // Make the text container take up the remaining space
+  },
+  name: {
     fontSize: 18,
-    color: "#333",
+    fontWeight: "bold",
+    color: "black", // Theme color
+    marginBottom: 4,
   },
-  menuPrice: {
-    fontFamily: "Poppins-Regular",
-    fontSize: 16,
-    color: "orange",
-    marginVertical: 5,
-  },
-  menuDescription: {
-    fontFamily: "Poppins-Regular",
+  description: {
     fontSize: 14,
-    color: "#777",
+    color: "#555",
+    marginBottom: 8,
+  },
+  price: {
+    fontSize: 16,
+    color: "orange", // Use a bright orange/red color for the price
   },
 });
+
+export default MenuScreen;
