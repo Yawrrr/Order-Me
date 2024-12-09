@@ -7,7 +7,6 @@ interface Order {
   id: number;
   address: string;
   estimatedTime: string;
-  restaurantname: string;
   status: string[];
   items: { name: string; quantity: number }[];
   total: number;
@@ -21,23 +20,21 @@ const Status: React.FC = () => {
     const mockOrders: Order[] = [
       {
         id: 1,
-        address: 'MA7 Ktdi Utm',
+        address: '123 Main Street',
         estimatedTime: '1:00 PM',
-        restaurantname: 'Jojoe',
         status: [
           '10:00 AM - Order Placed',
           '11:30 AM - Kitchen Preparing',
           '12:30 PM - Out for Delivery',
           '1:00 PM - Delivered',
         ],
-        items: [{ name: 'Fried Rice', quantity: 1 }],
+        items: [{ name: 'Burger', quantity: 1 }],
         total: 15.0,
       },
       {
         id: 2,
-        address: 'L50 Utm',
+        address: '456 Elm Street',
         estimatedTime: '2:30 PM',
-        restaurantname: 'Umi Kitchen',
         status: [
           '11:00 AM - Order Placed',
           '12:45 PM - Kitchen Preparing',
@@ -45,8 +42,8 @@ const Status: React.FC = () => {
           '2:30 PM - Delivered',
         ],
         items: [
-          { name: 'Chicken Chop', quantity: 1 },
-          { name: 'Coke', quantity: 1 },
+          { name: 'Pizza', quantity: 1 },
+          { name: 'Soda', quantity: 1 },
         ],
         total: 25.0,
       },
@@ -65,38 +62,37 @@ const Status: React.FC = () => {
               style={styles.orderCard}
               onPress={() => setSelectedOrder(order)}
             >
-              <Text>Order {order.id}</Text>
-              <Text>Address: {order.address}</Text>
-              <Text>Restaurant: {order.restaurantname}</Text>
-              <Text>Estimated Time: {order.estimatedTime}</Text>
+              <Text style={styles.orderCardText}>Order {order.id}</Text>
+              <Text style={styles.orderCardText}>Address: {order.address}</Text>
+              <Text style={styles.orderCardText}>Estimated Time: {order.estimatedTime}</Text>
             </TouchableOpacity>
           ))}
         </ScrollView>
       ) : (
         <View>
-          <TouchableOpacity onPress={() => setSelectedOrder(null)} style={styles.backButtonContainer}>
+          <TouchableOpacity onPress={() => setSelectedOrder(null)}>
             <Text style={styles.backButton}>Back</Text>
           </TouchableOpacity>
           <Text style={styles.subHeader}>Order Details</Text>
-          <Text>Address: {selectedOrder.address}</Text>
-          <Text>Estimated Time: {selectedOrder.estimatedTime}</Text>
-          <Text>Restaurant: Jojoe</Text>
+          <Text style={styles.detailText}>Address: {selectedOrder.address}</Text>
+          <Text style={styles.detailText}>Estimated Time: {selectedOrder.estimatedTime}</Text>
           <Text style={styles.subHeader}>Status</Text>
           {selectedOrder.status.map((step, index) => (
-            <View key={index} style={styles.statusStepContainer}>
-              <View style={styles.statusIndicator} />
-              <Text style={styles.statusText}>{step}</Text>
+            <View key={index} style={styles.statusContainer}>
+              <View style={styles.statusDot} />
+              <View style={styles.statusLine} />
+              <Text style={styles.statusStep}>{step}</Text>
             </View>
           ))}
           <Text style={styles.subHeader}>Items</Text>
           {selectedOrder.items.map((item, index) => (
             <View key={index} style={styles.itemRow}>
-              <Text>
+              <Text style={styles.itemText}>
                 {item.name} x{item.quantity}
               </Text>
             </View>
           ))}
-          <Text>Total: RM {selectedOrder.total.toFixed(2)}</Text>
+          <Text style={styles.totalText}>Total: RM {selectedOrder.total.toFixed(2)}</Text>
         </View>
       )}
     </View>
@@ -106,62 +102,89 @@ const Status: React.FC = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-<<<<<<< HEAD
-=======
     backgroundColor: '#fff',
->>>>>>> main
     padding: 16,
-    backgroundColor: 'white',
   },
   header: {
-    fontSize: 24,
+    fontSize: 26,
     fontWeight: 'bold',
+    color: '#FF8C00',
     marginBottom: 16,
-    color: '#FF8000',
+    textAlign: 'center',
   },
   subHeader: {
-    fontSize: 18,
+    fontSize: 20,
     fontWeight: 'bold',
     marginTop: 16,
-    color: '#FF8000',
+    marginBottom: 8,
+    color: '#FF8C00',
   },
   orderCard: {
     borderWidth: 1,
-    borderColor: '#FF8000',
-    borderRadius: 8,
+    borderColor: '#FFCC99',
+    borderRadius: 12,
     padding: 16,
     marginBottom: 16,
-    backgroundColor: '#FFF4E0',
+    backgroundColor: '#FFF7E6',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
   },
-  backButtonContainer: {
-    alignSelf: 'flex-start',
-    marginBottom: 16,
-    padding: 8,
-    backgroundColor: '#FF8000',
-    borderRadius: 4,
+  orderCardText: {
+    fontSize: 16,
+    color: '#333',
   },
   backButton: {
-    color: '#FFFFFF',
+    color: '#FF4500',
     fontSize: 16,
-    fontWeight: 'bold',
+    marginBottom: 16,
+    textAlign: 'left',
+    fontWeight: '600',
+  },
+  detailText: {
+    fontSize: 16,
+    color: '#333',
+    marginVertical: 4,
   },
   itemRow: {
     marginBottom: 8,
+    backgroundColor: '#FFE5CC',
+    borderRadius: 8,
+    padding: 8,
   },
-  statusStepContainer: {
+  itemText: {
+    fontSize: 16,
+    color: '#333',
+  },
+  totalText: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#FF4500',
+    marginTop: 12,
+  },
+  statusContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 8,
+    marginVertical: 4,
   },
-  statusIndicator: {
+  statusDot: {
     width: 10,
     height: 10,
     borderRadius: 5,
-    backgroundColor: '#FF8000',
+    backgroundColor: '#FF8C00',
     marginRight: 8,
   },
-  statusText: {
+  statusLine: {
+    width: 2,
+    height: 20,
+    backgroundColor: '#FFCC99',
+    marginRight: 8,
+  },
+  statusStep: {
     fontSize: 16,
+    color: '#FF8C00',
   },
 });
 

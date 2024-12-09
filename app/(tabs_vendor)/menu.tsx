@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
-import { View, Text, FlatList, Image, StyleSheet, ActivityIndicator } from "react-native";
-import { getDocs } from "firebase/firestore";
-import { itemsRef } from '../../FirebaseConfig'; // Adjust the number of `../` based on your folder structure
+import { View, Text, FlatList, Image, StyleSheet, ActivityIndicator, TextInput, Button, Alert } from "react-native";
+import { getDocs, deleteDoc, doc, updateDoc } from "firebase/firestore";
+import { itemsRef } from '../../FirebaseConfig'; // Adjust the import based on your folder structure
 
 // Define the Item type
 interface Item {
@@ -13,9 +13,14 @@ interface Item {
 }
 
 const MenuScreen = () => {
-  // Define the state with the correct type
+  // Define the state
   const [items, setItems] = useState<Item[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
+  const [editingItem, setEditingItem] = useState<Item | null>(null);
+  const [editedName, setEditedName] = useState("");
+  const [editedDescription, setEditedDescription] = useState("");
+  const [editedPrice, setEditedPrice] = useState("");
+  const [editedImageUrl, setEditedImageUrl] = useState("");
 
   useEffect(() => {
     const fetchItems = async () => {
@@ -24,7 +29,7 @@ const MenuScreen = () => {
         const fetchedItems = querySnapshot.docs.map((doc) => ({
           id: doc.id,
           ...doc.data(),
-        })) as Item[];  // Type assertion to Item array
+        })) as Item[];
         setItems(fetchedItems);
       } catch (error) {
         console.error("Error fetching items: ", error);
@@ -36,10 +41,57 @@ const MenuScreen = () => {
     fetchItems();
   }, []);
 
+  // Handle deleting an item
+  const handleDeleteItem = async (id: string) => {
+    try {
+      await deleteDoc(doc(itemsRef, id));
+      setItems(items.filter(item => item.id !== id)); // Remove item from state after deletion
+      Alert.alert("Success", "Item deleted successfully!");
+    } catch (error) {
+      console.error("Error deleting item: ", error);
+      Alert.alert("Error", "Failed to delete item.");
+    }
+  };
+
+  // Handle editing an item
+  const handleEditItem = (item: Item) => {
+    setEditingItem(item);
+    setEditedName(item.name);
+    setEditedDescription(item.description);
+    setEditedPrice(item.price.toString());
+    setEditedImageUrl(item.imageUrl);
+  };
+
+  // Save edited item
+  const handleSaveChanges = async () => {
+    if (!editedName || !editedDescription || !editedPrice || !editedImageUrl) {
+      Alert.alert("Error", "Please fill in all fields.");
+      return;
+    }
+
+    try {
+      const itemDoc = doc(itemsRef, editingItem?.id || '');
+      await updateDoc(itemDoc, {
+        name: editedName,
+        description: editedDescription,
+        price: parseFloat(editedPrice),
+        imageUrl: editedImageUrl,
+      });
+      setItems(items.map(item =>
+        item.id === editingItem?.id ? { ...item, name: editedName, description: editedDescription, price: parseFloat(editedPrice), imageUrl: editedImageUrl } : item
+      ));
+      setEditingItem(null);
+      Alert.alert("Success", "Item updated successfully!");
+    } catch (error) {
+      console.error("Error updating item: ", error);
+      Alert.alert("Error", "Failed to update item.");
+    }
+  };
+
   if (loading) {
     return (
       <View style={styles.loader}>
-        <ActivityIndicator size="large" color="orange" />
+        <ActivityIndicator size="large" color="#0000ff" />
       </View>
     );
   }
@@ -49,23 +101,58 @@ const MenuScreen = () => {
       {/* Header */}
       <Text style={styles.header}>Menu</Text>
 
-      <FlatList
-        data={items}
-        keyExtractor={(item) => item.id}
-        renderItem={({ item }) => (
-          <View style={styles.card}>
-            {/* Left-side Image */}
-            <Image source={{ uri: item.imageUrl }} style={styles.image} />
-            
-            {/* Right-side content */}
-            <View style={styles.textContainer}>
-              <Text style={styles.name}>{item.name}</Text>
-              <Text style={styles.description}>{item.description}</Text>
-              <Text style={styles.price}>RM {item.price}</Text>
+      {editingItem ? (
+        <View style={styles.editForm}>
+          <TextInput
+            style={styles.input}
+            placeholder="Item Name"
+            value={editedName}
+            onChangeText={setEditedName}
+          />
+          <TextInput
+            style={styles.input}
+            placeholder="Description"
+            value={editedDescription}
+            onChangeText={setEditedDescription}
+          />
+          <TextInput
+            style={styles.input}
+            placeholder="Price"
+            value={editedPrice}
+            onChangeText={setEditedPrice}
+            keyboardType="numeric"
+          />
+          <TextInput
+            style={styles.input}
+            placeholder="Image URL"
+            value={editedImageUrl}
+            onChangeText={setEditedImageUrl}
+          />
+          <Button title="Save Changes" onPress={handleSaveChanges} color="orange" />
+        </View>
+      ) : (
+        <FlatList
+          data={items}
+          keyExtractor={(item) => item.id}
+          renderItem={({ item }) => (
+            <View style={styles.card}>
+              <View style={styles.cardContent}>
+                {/* Display image from the URL */}
+                <Image source={{ uri: item.imageUrl }} style={styles.image} />
+                <View style={styles.itemInfo}>
+                  <Text style={styles.name}>{item.name}</Text>
+                  <Text style={styles.description}>{item.description}</Text>
+                  <Text style={styles.price}>RM {item.price}</Text>
+                </View>
+              </View>
+              <View style={styles.actions}>
+                <Button title="Edit" onPress={() => handleEditItem(item)} color="green" />
+                <Button title="Delete" onPress={() => handleDeleteItem(item.id)} color="red" />
+              </View>
             </View>
-          </View>
-        )}
-      />
+          )}
+        />
+      )}
     </View>
   );
 };
@@ -82,11 +169,20 @@ const styles = StyleSheet.create({
     backgroundColor: "#fff",
   },
   header: {
-    fontSize: 32,
+    fontSize: 30,
     fontWeight: "bold",
-    color: "orange", // Theme color for header
+    color: "#FFA500",  // Orange color
     textAlign: "center",
-    marginBottom: 20, // Space below the header
+    marginVertical: 20,
+    
+  },
+  editForm: {
+    marginBottom: 16,
+    padding: 16,
+    backgroundColor: "#f9f9f9",
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: "#ddd",
   },
   card: {
     marginBottom: 16,
@@ -95,22 +191,22 @@ const styles = StyleSheet.create({
     borderColor: "#ddd",
     borderRadius: 8,
     backgroundColor: "#f9f9f9",
-    flexDirection: "row", // Align image and text horizontally
-    alignItems: "center", // Vertically center content
+  },
+  cardContent: {
+    flexDirection: "row",
   },
   image: {
     width: 100,
     height: 100,
     borderRadius: 8,
-    marginRight: 16, // Add space between image and text
+    marginRight: 16,
   },
-  textContainer: {
-    flex: 1, // Make the text container take up the remaining space
+  itemInfo: {
+    flex: 1,
   },
   name: {
     fontSize: 18,
     fontWeight: "bold",
-    color: "black", // Theme color
     marginBottom: 4,
   },
   description: {
@@ -120,8 +216,22 @@ const styles = StyleSheet.create({
   },
   price: {
     fontSize: 16,
-    color: "orange", // Use a bright orange/red color for the price
+    color: "#007BFF",
+  },
+  actions: {
+    marginTop: 8,
+    flexDirection: "row",
+    justifyContent: "flex-end", // Align buttons to the right
+    gap: 10, // Space between the buttons
+  },
+  input: {
+    marginBottom: 16,
+    padding: 8,
+    borderWidth: 1,
+    borderColor: "#ddd",
+    borderRadius: 8,
   },
 });
+
 
 export default MenuScreen;
