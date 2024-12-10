@@ -71,7 +71,15 @@ const MainLayout = () => {
           headerShown: false,
         }}
       />
+          <Stack.Screen
+        name="components/wishlist"
+        options={{
+          headerShown: false,
+        }}
+      />
+      
     </Stack>
+    
   );
 };
 
