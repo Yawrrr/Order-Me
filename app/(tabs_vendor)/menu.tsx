@@ -1,107 +1,319 @@
-import React from "react";
-import { SafeAreaView, ScrollView, StyleSheet, Text, View, Image } from "react-native";
+import React, { useState, useEffect } from "react";
+import {
+  View,
+  Text,
+  FlatList,
+  Image,
+  StyleSheet,
+  ActivityIndicator,
+  TextInput,
+  Button,
+  Alert,
+  TouchableOpacity,
+} from "react-native";
+import { getDocs, deleteDoc, doc, updateDoc } from "firebase/firestore";
+import * as ImagePicker from "expo-image-picker";
+import { itemsRef } from "../../FirebaseConfig"; // Adjust the import based on your folder structure
 
-const Menu = () => {
-  // Updated menu items
-  const menuItems = [
-    {
-      id: 1,
-      name: "Fried Rice",
-      price: "RM 12.00",
-      description: "A delicious stir-fried rice with vegetables, eggs, and a savory sauce.",
-      imageUrl: "https://via.placeholder.com/150?text=Fried+Rice"
-    },
-    {
-      id: 2,
-      name: "Fried Noodle",
-      price: "RM 13.50",
-      description: "A flavorful stir-fried noodle dish with vegetables, eggs, and your choice of protein.",
-      imageUrl: "https://via.placeholder.com/150?text=Fried+Noodle"
-    },
-    {
-      id: 3,
-      name: "Fried Beehoon",
-      price: "RM 11.50",
-      description: "Stir-fried rice vermicelli with vegetables, eggs, and a light soy-based sauce.",
-      imageUrl: "https://via.placeholder.com/150?text=Fried+Beehoon"
+interface Item {
+  id: string;
+  name: string;
+  description: string;
+  price: number;
+  imageUrl: string;
+}
+
+const MenuScreen = () => {
+  const [items, setItems] = useState<Item[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [editingItem, setEditingItem] = useState<Item | null>(null);
+  const [editedName, setEditedName] = useState("");
+  const [editedDescription, setEditedDescription] = useState("");
+  const [editedPrice, setEditedPrice] = useState("");
+  const [editedImageUrl, setEditedImageUrl] = useState(""); // Image URL for editing
+  const [editedImageUri, setEditedImageUri] = useState<string | null>(null); // For picked image
+
+  useEffect(() => {
+    const fetchItems = async () => {
+      try {
+        const querySnapshot = await getDocs(itemsRef);
+        const fetchedItems = querySnapshot.docs.map((doc) => ({
+          id: doc.id,
+          ...doc.data(),
+        })) as Item[];
+        setItems(fetchedItems);
+      } catch (error) {
+        console.error("Error fetching items: ", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchItems();
+  }, []);
+
+  const handleDeleteItem = async (id: string) => {
+    try {
+      await deleteDoc(doc(itemsRef, id));
+      setItems(items.filter((item) => item.id !== id));
+      Alert.alert("Success", "Item deleted successfully!");
+    } catch (error) {
+      console.error("Error deleting item: ", error);
+      Alert.alert("Error", "Failed to delete item.");
     }
-  ];
+  };
+
+  const handleEditItem = (item: Item) => {
+    setEditingItem(item);
+    setEditedName(item.name);
+    setEditedDescription(item.description);
+    setEditedPrice(item.price.toString());
+    setEditedImageUrl(item.imageUrl); // Set the current image URL for editing
+    setEditedImageUri(null); // Reset picked image if any
+  };
+
+  const pickImage = async () => {
+    try {
+      const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      if (!permissionResult.granted) {
+        Alert.alert("Permission Denied", "You need to allow access to your photos.");
+        return;
+      }
+
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        allowsEditing: true,
+        quality: 1,
+      });
+
+      if (!result.canceled && result.assets && result.assets.length > 0) {
+        setEditedImageUri(result.assets[0].uri); // Set the picked image URI
+      }
+    } catch (error) {
+      console.error("Error picking image: ", error);
+      Alert.alert("Error", "Failed to pick an image.");
+    }
+  };
+
+  const handleSaveChanges = async () => {
+    if (!editedName || !editedDescription || !editedPrice || (!editedImageUri && !editedImageUrl)) {
+      Alert.alert("Error", "Please fill in all fields.");
+      return;
+    }
+
+    try {
+      const itemDoc = doc(itemsRef, editingItem?.id || "");
+      await updateDoc(itemDoc, {
+        name: editedName,
+        description: editedDescription,
+        price: parseFloat(editedPrice),
+        imageUrl: editedImageUri || editedImageUrl, // Save the picked image URI or URL
+      });
+
+      setItems((prevItems) =>
+        prevItems.map((item) =>
+          item.id === editingItem?.id
+            ? {
+                ...item,
+                name: editedName,
+                description: editedDescription,
+                price: parseFloat(editedPrice),
+                imageUrl: editedImageUri || editedImageUrl, // Update the image field
+              }
+            : item
+        )
+      );
+
+      setEditingItem(null);
+      Alert.alert("Success", "Item updated successfully!");
+    } catch (error) {
+      console.error("Error updating item: ", error);
+      Alert.alert("Error", "Failed to update item.");
+    }
+  };
+
+  if (loading) {
+    return (
+      <View style={styles.loader}>
+        <ActivityIndicator size="large" color="#0000ff" />
+      </View>
+    );
+  }
 
   return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.title}>Menu</Text>
-      </View>
+    <View style={styles.container}>
+      <Text style={styles.header}>Menu</Text>
 
-      <ScrollView contentContainerStyle={styles.menuContainer}>
-        {menuItems.map((item) => (
-          <View key={item.id} style={styles.menuItem}>
-            {/* Image comes first */}
-            <Image source={{ uri: item.imageUrl }} style={styles.menuImage} />
-            <View style={styles.menuDetails}>
-              <Text style={styles.menuName}>{item.name}</Text>
-              <Text style={styles.menuPrice}>{item.price}</Text>
-              <Text style={styles.menuDescription}>{item.description}</Text>
+      {editingItem ? (
+        <View style={styles.editForm}>
+          <TextInput
+            style={styles.input}
+            placeholder="Item Name"
+            value={editedName}
+            onChangeText={setEditedName}
+          />
+          <TextInput
+            style={styles.input}
+            placeholder="Description"
+            value={editedDescription}
+            onChangeText={setEditedDescription}
+          />
+          <TextInput
+            style={styles.input}
+            placeholder="Price"
+            value={editedPrice}
+            onChangeText={setEditedPrice}
+            keyboardType="numeric"
+          />
+
+          {/* Enter Item Image URL input */}
+          <TextInput
+            style={styles.input}
+            placeholder="Enter Item Image URL"
+            value={editedImageUrl}
+            onChangeText={setEditedImageUrl}
+          />
+
+          {/* OR text */}
+          <Text style={styles.orText}>OR</Text>
+
+          {/* Pick an image button */}
+          <TouchableOpacity style={styles.imagePicker} onPress={pickImage}>
+            <Text style={styles.imagePickerText}>Pick an Image</Text>
+          </TouchableOpacity>
+
+          {/* Display the image preview */}
+          {(editedImageUri || editedImageUrl) && (
+            <Image
+              source={{ uri: editedImageUri || editedImageUrl }}
+              style={styles.previewImage}
+            />
+          )}
+
+          <Button title="Save Changes" onPress={handleSaveChanges} color="orange" />
+        </View>
+      ) : (
+        <FlatList
+          data={items}
+          keyExtractor={(item) => item.id}
+          renderItem={({ item }) => (
+            <View style={styles.card}>
+              <View style={styles.cardContent}>
+                <Image source={{ uri: item.imageUrl }} style={styles.image} />
+                <View style={styles.itemInfo}>
+                  <Text style={styles.name}>{item.name}</Text>
+                  <Text style={styles.description}>{item.description}</Text>
+                  <Text style={styles.price}>RM {item.price}</Text>
+                </View>
+              </View>
+              <View style={styles.actions}>
+                <Button title="Edit" onPress={() => handleEditItem(item)} color="green" />
+                <Button title="Delete" onPress={() => handleDeleteItem(item.id)} color="red" />
+              </View>
             </View>
-          </View>
-        ))}
-      </ScrollView>
-    </SafeAreaView>
+          )}
+        />
+      )}
+    </View>
   );
 };
 
-export default Menu;
-
 const styles = StyleSheet.create({
+  loader: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+  },
   container: {
     flex: 1,
-    paddingTop: 20,
-    paddingHorizontal: 15,
+    padding: 16,
     backgroundColor: "#fff",
   },
   header: {
-    marginBottom: 20,
-    alignItems: "center",
-  },
-  title: {
-    fontFamily: "Poppins-Bold",
     fontSize: 30,
-    color: "orange",
+    fontWeight: "bold",
+    color: "#FFA500",
+    textAlign: "center",
+    marginVertical: 20,
   },
-  menuContainer: {
-    paddingBottom: 20,
-  },
-  menuItem: {
-    flexDirection: "row", // Image and details are arranged horizontally
-    alignItems: "center",
-    borderBottomWidth: 1,
-    borderBottomColor: "#ddd",
-    paddingVertical: 10,
-  },
-  menuImage: {
-    width: 80,
-    height: 80,
+  editForm: {
+    marginBottom: 16,
+    padding: 16,
+    backgroundColor: "#f9f9f9",
     borderRadius: 8,
-    marginRight: 15,
+    borderWidth: 1,
+    borderColor: "#ddd",
   },
-  menuDetails: {
+  card: {
+    marginBottom: 16,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: "#ddd",
+    borderRadius: 8,
+    backgroundColor: "#f9f9f9",
+  },
+  cardContent: {
+    flexDirection: "row",
+  },
+  image: {
+    width: 100,
+    height: 100,
+    borderRadius: 8,
+    marginRight: 16,
+  },
+  itemInfo: {
     flex: 1,
   },
-  menuName: {
-    fontFamily: "Poppins-Bold",
+  name: {
     fontSize: 18,
-    color: "#333",
+    fontWeight: "bold",
+    marginBottom: 4,
   },
-  menuPrice: {
-    fontFamily: "Poppins-Regular",
-    fontSize: 16,
-    color: "orange",
-    marginVertical: 5,
-  },
-  menuDescription: {
-    fontFamily: "Poppins-Regular",
+  description: {
     fontSize: 14,
-    color: "#777",
+    color: "#555",
+    marginBottom: 8,
+  },
+  price: {
+    fontSize: 16,
+    color: "#007BFF",
+  },
+  actions: {
+    marginTop: 8,
+    flexDirection: "row", // Align buttons horizontally
+    justifyContent: "flex-end", // Align buttons to the right
+    gap: 10, // Space between buttons
+  },
+  input: {
+    marginBottom: 16,
+    padding: 8,
+    borderWidth: 1,
+    borderColor: "#ddd",
+    borderRadius: 8,
+  },
+  imagePicker: {
+    backgroundColor: "#f0f0f0",
+    padding: 10,
+    borderRadius: 8,
+    alignItems: "center",
+    marginBottom: 15,
+  },
+  imagePickerText: {
+    color: "blue",
+    fontSize: 16,
+  },
+  previewImage: {
+    width: "100%",
+    height: 200,
+    borderRadius: 8,
+    marginBottom: 15,
+  },
+  orText: {
+    textAlign: "center",
+    fontSize: 18,
+    marginVertical: 10,
+    color: "#888",
   },
 });
-/////
+
+export default MenuScreen;
