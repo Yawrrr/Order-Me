@@ -125,6 +125,7 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingTop: 20,
     paddingHorizontal: 10,
+
   },
   customHeader: {
     flexDirection: "row",
@@ -153,7 +154,9 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 3,
     elevation: 2,
-    position: "relative", // Make sure that the heart icon stays inside the card
+    position: "relative",
+    margin:20,
+   padding:10// Make sure that the heart icon stays inside the card
   },
   image: {
     width: 200,
