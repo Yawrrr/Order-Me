@@ -1,9 +1,20 @@
 import React, { useState, useEffect } from "react";
-import { View, Text, FlatList, Image, StyleSheet, ActivityIndicator, TextInput, Button, Alert } from "react-native";
+import {
+  View,
+  Text,
+  FlatList,
+  Image,
+  StyleSheet,
+  ActivityIndicator,
+  TextInput,
+  Button,
+  Alert,
+  TouchableOpacity,
+} from "react-native";
 import { getDocs, deleteDoc, doc, updateDoc } from "firebase/firestore";
-import { itemsRef } from '../../FirebaseConfig'; // Adjust the import based on your folder structure
+import * as ImagePicker from "expo-image-picker";
+import { itemsRef } from "../../FirebaseConfig"; // Adjust the import based on your folder structure
 
-// Define the Item type
 interface Item {
   id: string;
   name: string;
@@ -13,14 +24,14 @@ interface Item {
 }
 
 const MenuScreen = () => {
-  // Define the state
   const [items, setItems] = useState<Item[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [editingItem, setEditingItem] = useState<Item | null>(null);
   const [editedName, setEditedName] = useState("");
   const [editedDescription, setEditedDescription] = useState("");
   const [editedPrice, setEditedPrice] = useState("");
-  const [editedImageUrl, setEditedImageUrl] = useState("");
+  const [editedImageUrl, setEditedImageUrl] = useState(""); // Image URL for editing
+  const [editedImageUri, setEditedImageUri] = useState<string | null>(null); // For picked image
 
   useEffect(() => {
     const fetchItems = async () => {
@@ -41,11 +52,10 @@ const MenuScreen = () => {
     fetchItems();
   }, []);
 
-  // Handle deleting an item
   const handleDeleteItem = async (id: string) => {
     try {
       await deleteDoc(doc(itemsRef, id));
-      setItems(items.filter(item => item.id !== id)); // Remove item from state after deletion
+      setItems(items.filter((item) => item.id !== id));
       Alert.alert("Success", "Item deleted successfully!");
     } catch (error) {
       console.error("Error deleting item: ", error);
@@ -53,33 +63,67 @@ const MenuScreen = () => {
     }
   };
 
-  // Handle editing an item
   const handleEditItem = (item: Item) => {
     setEditingItem(item);
     setEditedName(item.name);
     setEditedDescription(item.description);
     setEditedPrice(item.price.toString());
-    setEditedImageUrl(item.imageUrl);
+    setEditedImageUrl(item.imageUrl); // Set the current image URL for editing
+    setEditedImageUri(null); // Reset picked image if any
   };
 
-  // Save edited item
+  const pickImage = async () => {
+    try {
+      const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      if (!permissionResult.granted) {
+        Alert.alert("Permission Denied", "You need to allow access to your photos.");
+        return;
+      }
+
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        allowsEditing: true,
+        quality: 1,
+      });
+
+      if (!result.canceled && result.assets && result.assets.length > 0) {
+        setEditedImageUri(result.assets[0].uri); // Set the picked image URI
+      }
+    } catch (error) {
+      console.error("Error picking image: ", error);
+      Alert.alert("Error", "Failed to pick an image.");
+    }
+  };
+
   const handleSaveChanges = async () => {
-    if (!editedName || !editedDescription || !editedPrice || !editedImageUrl) {
+    if (!editedName || !editedDescription || !editedPrice || (!editedImageUri && !editedImageUrl)) {
       Alert.alert("Error", "Please fill in all fields.");
       return;
     }
 
     try {
-      const itemDoc = doc(itemsRef, editingItem?.id || '');
+      const itemDoc = doc(itemsRef, editingItem?.id || "");
       await updateDoc(itemDoc, {
         name: editedName,
         description: editedDescription,
         price: parseFloat(editedPrice),
-        imageUrl: editedImageUrl,
+        imageUrl: editedImageUri || editedImageUrl, // Save the picked image URI or URL
       });
-      setItems(items.map(item =>
-        item.id === editingItem?.id ? { ...item, name: editedName, description: editedDescription, price: parseFloat(editedPrice), imageUrl: editedImageUrl } : item
-      ));
+
+      setItems((prevItems) =>
+        prevItems.map((item) =>
+          item.id === editingItem?.id
+            ? {
+                ...item,
+                name: editedName,
+                description: editedDescription,
+                price: parseFloat(editedPrice),
+                imageUrl: editedImageUri || editedImageUrl, // Update the image field
+              }
+            : item
+        )
+      );
+
       setEditingItem(null);
       Alert.alert("Success", "Item updated successfully!");
     } catch (error) {
@@ -98,7 +142,6 @@ const MenuScreen = () => {
 
   return (
     <View style={styles.container}>
-      {/* Header */}
       <Text style={styles.header}>Menu</Text>
 
       {editingItem ? (
@@ -122,12 +165,31 @@ const MenuScreen = () => {
             onChangeText={setEditedPrice}
             keyboardType="numeric"
           />
+
+          {/* Enter Item Image URL input */}
           <TextInput
             style={styles.input}
-            placeholder="Image URL"
+            placeholder="Enter Item Image URL"
             value={editedImageUrl}
             onChangeText={setEditedImageUrl}
           />
+
+          {/* OR text */}
+          <Text style={styles.orText}>OR</Text>
+
+          {/* Pick an image button */}
+          <TouchableOpacity style={styles.imagePicker} onPress={pickImage}>
+            <Text style={styles.imagePickerText}>Pick an Image</Text>
+          </TouchableOpacity>
+
+          {/* Display the image preview */}
+          {(editedImageUri || editedImageUrl) && (
+            <Image
+              source={{ uri: editedImageUri || editedImageUrl }}
+              style={styles.previewImage}
+            />
+          )}
+
           <Button title="Save Changes" onPress={handleSaveChanges} color="orange" />
         </View>
       ) : (
@@ -137,7 +199,6 @@ const MenuScreen = () => {
           renderItem={({ item }) => (
             <View style={styles.card}>
               <View style={styles.cardContent}>
-                {/* Display image from the URL */}
                 <Image source={{ uri: item.imageUrl }} style={styles.image} />
                 <View style={styles.itemInfo}>
                   <Text style={styles.name}>{item.name}</Text>
@@ -171,10 +232,9 @@ const styles = StyleSheet.create({
   header: {
     fontSize: 30,
     fontWeight: "bold",
-    color: "#FFA500",  // Orange color
+    color: "#FFA500",
     textAlign: "center",
     marginVertical: 20,
-    
   },
   editForm: {
     marginBottom: 16,
@@ -220,9 +280,9 @@ const styles = StyleSheet.create({
   },
   actions: {
     marginTop: 8,
-    flexDirection: "row",
+    flexDirection: "row", // Align buttons horizontally
     justifyContent: "flex-end", // Align buttons to the right
-    gap: 10, // Space between the buttons
+    gap: 10, // Space between buttons
   },
   input: {
     marginBottom: 16,
@@ -231,7 +291,29 @@ const styles = StyleSheet.create({
     borderColor: "#ddd",
     borderRadius: 8,
   },
+  imagePicker: {
+    backgroundColor: "#f0f0f0",
+    padding: 10,
+    borderRadius: 8,
+    alignItems: "center",
+    marginBottom: 15,
+  },
+  imagePickerText: {
+    color: "blue",
+    fontSize: 16,
+  },
+  previewImage: {
+    width: "100%",
+    height: 200,
+    borderRadius: 8,
+    marginBottom: 15,
+  },
+  orText: {
+    textAlign: "center",
+    fontSize: 18,
+    marginVertical: 10,
+    color: "#888",
+  },
 });
-
 
 export default MenuScreen;
