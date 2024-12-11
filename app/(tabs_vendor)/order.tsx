@@ -9,10 +9,10 @@ interface OrderStatus {
 
 const Order: React.FC = () => {
   const [statuses, setStatuses] = useState<OrderStatus[]>([
-    { label: 'Order Placed' },
-    { label: 'Kitchen Preparing' },
-    { label: 'Out for Delivery' },
-    { label: 'Delivered' },
+    { label: ' Order Placed' },
+    { label: ' Kitchen Preparing' },
+    { label: ' Out for Delivery' },
+    { label: ' Delivered' },
   ]);
 
   const handleStatusChange = (index: number) => {
