@@ -3,36 +3,43 @@ import React, { useState, useEffect } from 'react';
 import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
 import { useRouter } from "expo-router";
 import { FIREBASE_DB } from "@/FirebaseConfig";  // Import Firestore config
-import { doc, getDoc, collection,orderBy,query,onSnapshot } from 'firebase/firestore';  // Firestore methods for fetching data
-import { getRoomId } from '../../utils/common';
-
-export default function ChatItem({ item, router, noBoarder, currentUser }) {
-  // const [userData, setUserData] = useState(null);  // State to hold user profile data
-  const [lastMessage, setLastMessage] = useState(undefined);
-
+import { doc, getDoc } from 'firebase/firestore';  // Firestore methods for fetching data
+export default function ChatItem({ item, noBoarder }) {
+  const [userData, setUserData] = useState(null);  // State to hold user profile data
+  const [lastMessage, setLastMessage] = useState('');  // State to hold last message
+  const router = useRouter();
   useEffect(() => {
-
-    let roomId = getRoomId(currentUser?.email, item?.email);
-    const docRef = doc(FIREBASE_DB, "rooms", roomId);
-    const messagesRef = collection(docRef, 'messages'); //inside rooms collection
-    const q = query(messagesRef, orderBy('createdAt', 'desc'));
-
-    let unsub = onSnapshot(q, (snapshot) => {
-      let allMessages = snapshot.docs.map(doc =>{
-        return doc.data();
-      });
-      setLastMessage(allMessages[0]? allMessages[0]: null);
-    });
-
-    return unsub;
-  }, []);
-
-  // console.log('last',lastMessage);
-
+    // Fetch user data from Firestore using user ID
+    const fetchUserData = async () => {
+      try {
+        const userDocRef = doc(FIREBASE_DB, 'users', item.id);  // Reference to the user document
+        const userDoc = await getDoc(userDocRef);
+        
+        if (userDoc.exists()) {
+          setUserData(userDoc.data());  // Set user data from Firestore
+        } else {
+          console.log('No such user!');
+        }
+      } catch (error) {
+        console.error("Error fetching user data:", error);
+      }
+    };
+    // Fetch last message from messages collection
+    const fetchLastMessage = async () => {
+      try {
+        // Example: Replace with your logic to get the last message for each chat
+        const lastMessageText = "Example: Display last message";  // Placeholder for now
+        setLastMessage(lastMessageText);
+      } catch (error) {
+        console.error("Error fetching last message:", error);
+      }
+    };
+    fetchUserData();
+    fetchLastMessage();
+  }, [item.id]);  // Fetch data when item.id changes
   const openChatRoom = () => {
-    router.push({ pathname: '/ChatRoom', params: item });
+    router.push({ pathname: '/components/ChatRoom', params: item });
   };
-
   return (
     <TouchableOpacity
       onPress={openChatRoom}
@@ -42,26 +49,25 @@ export default function ChatItem({ item, router, noBoarder, currentUser }) {
       ]}
     >
       <Image
-        source={item?.profileUrl ? { uri: item.profileUrl } : require('../../assets/images/profile.jpeg')} // Use profile URL or fallback image
+        source={userData?.profileUrl ? { uri: userData.profileUrl } : require('../../assets/images/profile.jpeg')} // Use profile URL or fallback image
         style={styles.profileImage}
       />
       <View style={styles.textContainer}>
         <View style={styles.headerContainer}>
           <Text style={styles.usernameText}>
-            {item?.username || 'Name'}
+            {userData?.username || 'Name'}
           </Text>
           <Text style={styles.timeText}>
-            {renderTime()}
+            {item?.lastMessageTime || 'Time'}
           </Text>
         </View>
         <Text style={styles.lastMessageText}>
-          {renderLastMessage()}
+          {lastMessage || 'Example: Display last message'}
         </Text>
       </View>
     </TouchableOpacity>
   );
 }
-
 const styles = {
   chatItemContainer: {
     flexDirection: 'row',

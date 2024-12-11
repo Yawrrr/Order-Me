@@ -4,7 +4,6 @@ import { Stack } from 'expo-router';
 import { Entypo } from '@expo/vector-icons';
 import { heightPercentageToDP as hp } from 'react-native-responsive-screen';
 import Ionicons from '@expo/vector-icons/Ionicons';
-
 export default function ChatRoomHeader({ user, router }) {
   return (
     <Stack.Screen
