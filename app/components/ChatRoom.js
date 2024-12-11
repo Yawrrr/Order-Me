@@ -22,7 +22,7 @@ export default function ChatRoom() {
 
   // useEffect(() => {
   //   createRoomIfNotExists();
-  //   let roomId = getRoomId(user?.userEmail, item?.userEmail);
+  //   let roomId = getRoomId(user?.email, item?.email);
   //   const docRef = doc(FIREBASE_DB, "rooms", roomId);
   //   const messagesRef = collection(docRef, 'messages');
   //   const q = query(messagesRef, orderBy('createdAt', 'asc'));
@@ -40,41 +40,41 @@ export default function ChatRoom() {
   // }, []);
 
     
-  // useEffect(() => {
-  //   createRoomIfNotExists();
-  //   let roomId = getRoomId(user?.userEmail, item?.userEmail);
-  //   const docRef = doc(FIREBASE_DB, "rooms", roomId);
-  //   const messagesRef = collection(docRef, 'messages'); //inside rooms collection
-  //   const q = query(messagesRef, orderBy('createdAt', 'asc'));
-
-  //   let unsub = onSnapshot(q, (snapshot) => {
-  //     let allMessages = snapshot.docs.map(doc =>{
-  //       return doc.data();
-  //     });
-  //     setMessages([...allMessages]);
-  //   });
-
-  //   return unsub;
-  // }, []);
   useEffect(() => {
     createRoomIfNotExists();
     let roomId = getRoomId(user?.email, item?.email);
-    const docRef = doc(FIREBASE_DB, 'rooms', roomId);
-    const messagesRef = collection(docRef, 'messages');
+    const docRef = doc(FIREBASE_DB, "rooms", roomId);
+    const messagesRef = collection(docRef, 'messages'); //inside rooms collection
     const q = query(messagesRef, orderBy('createdAt', 'asc'));
-  
-    const fetchMessages = async () => {
-      try {
-        const querySnapshot = await getDocs(q);
-        let allMessages = querySnapshot.docs.map(doc => doc.data());
-        setMessages(allMessages);
-      } catch (error) {
-        console.error("Error fetching messages:", error);
-      }
-    };
-  
-    fetchMessages();
+
+    let unsub = onSnapshot(q, (snapshot) => {
+      let allMessages = snapshot.docs.map(doc =>{
+        return doc.data();
+      });
+      setMessages([...allMessages]);
+    });
+
+    return unsub;
   }, []);
+  // useEffect(() => {
+  //   createRoomIfNotExists();
+  //   let roomId = getRoomId(user?.email, item?.email);
+  //   const docRef = doc(FIREBASE_DB, 'rooms', roomId);
+  //   const messagesRef = collection(docRef, 'messages');
+  //   const q = query(messagesRef, orderBy('createdAt', 'asc'));
+  
+  //   const fetchMessages = async () => {
+  //     try {
+  //       const querySnapshot = await getDocs(q);
+  //       let allMessages = querySnapshot.docs.map(doc => doc.data());
+  //       setMessages(allMessages);
+  //     } catch (error) {
+  //       console.error("Error fetching messages:", error);
+  //     }
+  //   };
+  
+  //   fetchMessages();
+  // }, []);
 
   const createRoomIfNotExists = async () => {
     const roomId = getRoomId(user?.email, item?.email);
