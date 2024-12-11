@@ -1,8 +1,6 @@
 import { View, Text, StyleSheet } from 'react-native';
 import React from 'react';
 import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
-
-
 export default function MessageItem({ message, currentUser }) {
   if (currentUser?.email === message?.email) {
     return (
@@ -24,8 +22,6 @@ export default function MessageItem({ message, currentUser }) {
     );
   }
 }
-
-
 const styles = StyleSheet.create({
   // Container for the sent message (user's own message)
   sentMessageContainer: {
@@ -50,8 +46,6 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.2,
     shadowRadius: 3,
   },
-
-
   // Container for the received message (other user's message)
   receivedMessageContainer: {
     width: wp(80),
@@ -63,16 +57,14 @@ const styles = StyleSheet.create({
     alignSelf: 'flex-start',
     padding: hp(1.5),
     borderRadius: 20,
-    backgroundColor: '#FFDBBC',  // Light
+    backgroundColor: '#FFDBBC',  // Light 
     borderWidth: 1,
-    borderColor: '#FFBD84',      // Slightly darker
+    borderColor: '#FFBD84',      // Slightly darker 
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.1,
     shadowRadius: 3,
   },
-
-
   // Message text style
   messageText: {
     fontSize: hp(2),

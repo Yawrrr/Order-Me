@@ -7,8 +7,6 @@ import ChatList from '../components/ChatList';
 import {widthPercentageToDP as wp, heightPercentageToDP as hp} from 'react-native-responsive-screen'
 import { userRef } from "@/FirebaseConfig";
 import { doc, updateDoc, query, where, getDocs, collection, QuerySnapshot } from "firebase/firestore";
-
-
 const message = () => {
   const { logout, user } = useAuth();
   const [users, setUsers] = useState([]);
@@ -19,8 +17,6 @@ const message = () => {
   const getUsers = async ()=>{
     //fetch users
     const q =query(userRef, where('email', '!=', user?.email));
-
-
     const querySnapshot = await getDocs(q);
     let data = [];
     querySnapshot.forEach(doc=>{
@@ -36,9 +32,7 @@ const message = () => {
       </Text>
     </View>
     {users.length >0?(
-      <ChatList currentUser={user} users={user} />
-
-
+      <ChatList users={user} />
     ) : (
       <View className="flex items-center" style={{top: hp(30)}}></View>
     )
@@ -46,19 +40,13 @@ const message = () => {
   </SafeAreaView>
   );
 };
-
-
 export default message;
-
-
 const styles = StyleSheet.create({
   header: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
   },
-
-
   title: {
     fontFamily: "Poppins-Bold",
     fontSize: 30,
