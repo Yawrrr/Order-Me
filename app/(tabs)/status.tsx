@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { SafeAreaView } from "react-native-safe-area-context";
 import { View, Text, TouchableOpacity, StyleSheet, ScrollView } from 'react-native';
 import Ionicons from "@expo/vector-icons/Ionicons";
 import MapView, { Marker } from 'react-native-maps';
@@ -59,7 +60,7 @@ const Status: React.FC = () => {
   }, []);
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
       <Text style={styles.header}>Order Status</Text>
       {!selectedOrder ? (
         <ScrollView>
@@ -129,7 +130,7 @@ const Status: React.FC = () => {
           <Text style={{ color: '#666' }}>Map</Text>
         </TouchableOpacity>
       </View>
-    </View>
+    </SafeAreaView>
   );
 };
 
