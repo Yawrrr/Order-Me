@@ -34,7 +34,7 @@ const message = () => {
       </Text>
     </View>
     {users.length >0?(
-      <ChatList users={user} />
+      <ChatList currentUser={user} users={user} />
 
     ) : (
       <View className="flex items-center" style={{top: hp(30)}}></View>

@@ -5,39 +5,10 @@ import { FIREBASE_DB } from "@/FirebaseConfig";  // Import Firestore configurati
 import { collection, getDocs } from 'firebase/firestore';
 import ChatItem from '../components/ChatItem';
 
-export default function ChatList() {
+export default function ChatList({users, currentUser}) {
   const router = useRouter();
   const [users, setUsers] = useState([]);  // State to hold the users data
   const [loading, setLoading] = useState(true);  // State to handle loading indicator
-
-  useEffect(() => {
-    // Function to fetch users from Firestore
-    const fetchUsers = async () => {
-      try {
-        const usersCollection = collection(FIREBASE_DB, 'users');  // Access 'users' collection
-        const querySnapshot = await getDocs(usersCollection);
-        const usersData = querySnapshot.docs.map(doc => ({
-          id: doc.id,
-          ...doc.data(),
-        }));
-        setUsers(usersData);  // Update the state with fetched users
-      } catch (error) {
-        console.error("Error fetching users:", error);
-      } finally {
-        setLoading(false);  // Hide the loading indicator after fetch
-      }
-    };
-
-    fetchUsers();  // Call the fetch function
-  }, []);
-
-  if (loading) {
-    return (
-      <View className="flex-1 justify-center items-center">
-        <ActivityIndicator size="large" color="#0000ff" />  {/* Show a loading spinner */}
-      </View>
-    );
-  }
 
   return (
     <View className="flex-1">
@@ -50,6 +21,7 @@ export default function ChatList() {
           <ChatItem
             noBoarder={index + 1 === users.length}
             router={router}
+            currentUser={currentUser}
             item={item}
             index={index}
           />

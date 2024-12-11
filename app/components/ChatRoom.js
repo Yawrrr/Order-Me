@@ -19,26 +19,6 @@ export default function ChatRoom() {
   const [messages, setMessages] = useState([]);
   const textRef = useRef('');
   const inputRef = useRef(null);
-
-  // useEffect(() => {
-  //   createRoomIfNotExists();
-  //   let roomId = getRoomId(user?.email, item?.email);
-  //   const docRef = doc(FIREBASE_DB, "rooms", roomId);
-  //   const messagesRef = collection(docRef, 'messages');
-  //   const q = query(messagesRef, orderBy('createdAt', 'asc'));
-  
-  //   const unsub = onSnapshot(q, (snapshot) => {
-  //     let allMessages = [];
-  //     snapshot.forEach((doc) => {
-  //       allMessages.push(doc.data()); // Push the entire message data
-  //     });
-  //     console.log("Message",messages);
-  //     setMessages(allMessages); // Update the state with the full message data
-  //   });
-  
-  //   return unsub;
-  // }, []);
-
     
   useEffect(() => {
     createRoomIfNotExists();
@@ -56,25 +36,7 @@ export default function ChatRoom() {
 
     return unsub;
   }, []);
-  // useEffect(() => {
-  //   createRoomIfNotExists();
-  //   let roomId = getRoomId(user?.email, item?.email);
-  //   const docRef = doc(FIREBASE_DB, 'rooms', roomId);
-  //   const messagesRef = collection(docRef, 'messages');
-  //   const q = query(messagesRef, orderBy('createdAt', 'asc'));
-  
-  //   const fetchMessages = async () => {
-  //     try {
-  //       const querySnapshot = await getDocs(q);
-  //       let allMessages = querySnapshot.docs.map(doc => doc.data());
-  //       setMessages(allMessages);
-  //     } catch (error) {
-  //       console.error("Error fetching messages:", error);
-  //     }
-  //   };
-  
-  //   fetchMessages();
-  // }, []);
+
 
   const createRoomIfNotExists = async () => {
     const roomId = getRoomId(user?.email, item?.email);
