@@ -3,43 +3,62 @@ import React, { useState, useEffect } from 'react';
 import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
 import { useRouter } from "expo-router";
 import { FIREBASE_DB } from "@/FirebaseConfig";  // Import Firestore config
-import { doc, getDoc } from 'firebase/firestore';  // Firestore methods for fetching data
-export default function ChatItem({ item, noBoarder }) {
-  const [userData, setUserData] = useState(null);  // State to hold user profile data
+import { doc, getDoc, collection,orderBy,query,onSnapshot, limit } from 'firebase/firestore';  // Firestore methods for fetching data
+import { formatDate, getRoomId } from '../../utils/common';
+
+export default function ChatItem({ item, router, noBoarder,currentUser  }) {
   const [lastMessage, setLastMessage] = useState('');  // State to hold last message
-  const router = useRouter();
+  
   useEffect(() => {
     // Fetch user data from Firestore using user ID
-    const fetchUserData = async () => {
-      try {
-        const userDocRef = doc(FIREBASE_DB, 'users', item.id);  // Reference to the user document
-        const userDoc = await getDoc(userDocRef);
-        
-        if (userDoc.exists()) {
-          setUserData(userDoc.data());  // Set user data from Firestore
-        } else {
-          console.log('No such user!');
-        }
-      } catch (error) {
-        console.error("Error fetching user data:", error);
+    let roomId = getRoomId(currentUser?.email, item?.email);
+    const docRef = doc(FIREBASE_DB, "rooms", roomId);
+    const messagesRef = collection(docRef, 'messages'); //inside rooms collection
+    const q = query(messagesRef, orderBy('createdAt', 'desc'));
+
+
+    let unsub = onSnapshot(q, (snapshot) => {
+      if (!snapshot.empty) {
+        let allMessages = snapshot.docs.map(doc =>{
+          return doc.data();
+        });
+        setLastMessage(allMessages[0]? allMessages[0]: null);
       }
-    };
-    // Fetch last message from messages collection
-    const fetchLastMessage = async () => {
-      try {
-        // Example: Replace with your logic to get the last message for each chat
-        const lastMessageText = "Example: Display last message";  // Placeholder for now
-        setLastMessage(lastMessageText);
-      } catch (error) {
-        console.error("Error fetching last message:", error);
-      }
-    };
-    fetchUserData();
-    fetchLastMessage();
-  }, [item.id]);  // Fetch data when item.id changes
+      
+    });
+    return unsub;
+  }, []);
+
+  
+  
+  
   const openChatRoom = () => {
     router.push({ pathname: '/components/ChatRoom', params: item });
   };
+
+  const renderTime =()=>{
+    if(lastMessage){
+      console.log("last msg: ", lastMessage?.createdAt);
+      let date =lastMessage?.createdAt;
+      return formatDate(new Date(date?.seconds * 1000));
+    }
+    return 'Time';
+  }
+
+  
+  
+
+  const renderLastMessage =()=>{
+    if(typeof lastMessage == 'undefined') return 'Loading...';
+    if(lastMessage){
+      if(currentUser?.email == lastMessage?.email) return "You: " +lastMessage?.text;
+      return lastMessage?.text;
+    }else{
+      return 'Say Hi 👋';
+    }
+  }
+
+
   return (
     <TouchableOpacity
       onPress={openChatRoom}
@@ -49,25 +68,26 @@ export default function ChatItem({ item, noBoarder }) {
       ]}
     >
       <Image
-        source={userData?.profileUrl ? { uri: userData.profileUrl } : require('../../assets/images/profile.jpeg')} // Use profile URL or fallback image
+        source={item?.profileUrl ? { uri: item.profileUrl } : require('../../assets/images/profile.jpeg')} // Use profile URL or fallback image
         style={styles.profileImage}
       />
       <View style={styles.textContainer}>
         <View style={styles.headerContainer}>
           <Text style={styles.usernameText}>
-            {userData?.username || 'Name'}
+            {item?.username || 'Name'}
           </Text>
           <Text style={styles.timeText}>
-            {item?.lastMessageTime || 'Time'}
+            {renderTime()}
           </Text>
         </View>
         <Text style={styles.lastMessageText}>
-          {lastMessage || 'Example: Display last message'}
+          {renderLastMessage()}
         </Text>
       </View>
     </TouchableOpacity>
   );
 }
+
 const styles = {
   chatItemContainer: {
     flexDirection: 'row',
@@ -79,7 +99,7 @@ const styles = {
     borderBottomColor: '#E2E8F0',  // Light border color for separation
   },
   noBorder: {
-    borderBottomWidth: 0,  // Remove border if `noBoarder` is true
+    borderBottomWidth: 0,  // Remove border if noBoarder is true
   },
   profileImage: {
     width: hp(6),
