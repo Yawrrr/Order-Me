@@ -33,7 +33,7 @@ export default function ChatItem({ item, router, noBoarder,currentUser  }) {
     router.push({ pathname: '/components/ChatRoom', params: item });
   };
 
-  tutorial
+  //tutorial
   const renderTime =()=>{
     if(lastMessage){
       
