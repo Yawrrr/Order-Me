@@ -13,7 +13,7 @@ export default function ChatItem({ item, router, noBoarder,currentUser  }) {
     // Fetch user data from Firestore using user ID
     let roomId = getRoomId(currentUser?.email, item?.email);
     const docRef = doc(FIREBASE_DB, "rooms", roomId);
-    const messagesRef = collection(docRef, 'messages'); //inside rooms collection
+    const messagesRef = collection(docRef, 'messages');
     const q = query(messagesRef, orderBy('createdAt', 'desc'));
 
 
@@ -28,17 +28,15 @@ export default function ChatItem({ item, router, noBoarder,currentUser  }) {
     });
     return unsub;
   }, []);
-
-  
-  
   
   const openChatRoom = () => {
     router.push({ pathname: '/components/ChatRoom', params: item });
   };
 
+  tutorial
   const renderTime =()=>{
     if(lastMessage){
-      console.log("last msg: ", lastMessage?.createdAt);
+      
       let date =lastMessage?.createdAt;
       return formatDate(new Date(date?.seconds * 1000));
     }
@@ -46,8 +44,7 @@ export default function ChatItem({ item, router, noBoarder,currentUser  }) {
   }
 
   
-  
-
+//tutorial video
   const renderLastMessage =()=>{
     if(typeof lastMessage == 'undefined') return 'Loading...';
     if(lastMessage){

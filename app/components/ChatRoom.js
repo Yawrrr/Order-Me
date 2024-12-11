@@ -86,6 +86,7 @@ export default function ChatRoom() {
         text: message,
         senderName: user?.username,
         createdAt: Timestamp.fromDate(new Date()),
+        
       });
       console.log("Message sent", newDoc.id);
       console.log("Message sent Time", newDoc.createdAt);
