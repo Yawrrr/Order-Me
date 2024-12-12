@@ -7,6 +7,7 @@ import ChatList from '../components/ChatList';
 import {widthPercentageToDP as wp, heightPercentageToDP as hp} from 'react-native-responsive-screen'
 import { userRef } from "@/FirebaseConfig";
 import { doc, updateDoc, query, where, getDocs, collection, QuerySnapshot } from "firebase/firestore";
+
 const message = () => {
   const { logout, user } = useAuth();
   const [users, setUsers] = useState([]);
@@ -32,7 +33,7 @@ const message = () => {
       </Text>
     </View>
     {users.length >0?(
-      <ChatList users={user} />
+      <ChatList currentUser={user} users={users} />
     ) : (
       <View className="flex items-center" style={{top: hp(30)}}></View>
     )

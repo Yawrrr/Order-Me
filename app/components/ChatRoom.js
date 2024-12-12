@@ -1,4 +1,4 @@
-import { View, Text, TouchableOpacity, TextInput, Alert, StyleSheet, Image } from 'react-native'; 
+import { View, Text, TouchableOpacity, TextInput, Alert, StyleSheet, Image, Keyboard } from 'react-native'; 
 import React, { useState, useEffect, useRef } from 'react';
 import { useLocalSearchParams } from 'expo-router';
 import { FIREBASE_DB } from "@/FirebaseConfig";
@@ -11,6 +11,7 @@ import { useAuth } from "@/context/AuthContext";
 import { Entypo, Ionicons } from '@expo/vector-icons';
 import { heightPercentageToDP as hp, widthPercentageToDP as wp } from 'react-native-responsive-screen';
 import MessageList from './MessageList';
+
 export default function ChatRoom() {
   const item = useLocalSearchParams();
   const { user } = useAuth();
@@ -18,6 +19,7 @@ export default function ChatRoom() {
   const [messages, setMessages] = useState([]);
   const textRef = useRef('');
   const inputRef = useRef(null);
+  const scrollViewRef =useRef(null);
 
     
   useEffect(() => {
@@ -32,8 +34,28 @@ export default function ChatRoom() {
       });
       setMessages([...allMessages]);
     });
-    return unsub;
+    const KeyboardDidShowListner = Keyboard.addListener(
+      'keyboardDidShow', updateScrollView
+    )
+    return()=>{
+      unsub();
+      KeyboardDidShowListner.remove();
+    }
   }, []);
+
+  
+
+  useEffect(()=>{
+    updateScrollView();
+
+  },[messages])
+  
+  const updateScrollView= () =>{
+    setTimeout(()=>{
+      scrollViewRef?.current?.scrollToEnd({animated: true})
+    },100)
+  }
+
   
   const createRoomIfNotExists = async () => {
     const roomId = getRoomId(user?.email, item?.email);
@@ -71,7 +93,7 @@ console.log("Message:",messages);
       <ChatRoomHeader user={item} router={router} />
       
       <View style={styles.messageContainer}>
-        <MessageList messages={messages} currentUser={user} />
+        <MessageList scrollViewRef={scrollViewRef} messages={messages} currentUser={user} />
       </View>
       {/* Message Input Section */}
       <View style={styles.inputWrapper}>
