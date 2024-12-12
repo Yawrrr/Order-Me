@@ -8,7 +8,7 @@ import Feather from '@expo/vector-icons/Feather';
 import { getRoomId } from '../../utils/common';
 import { doc, setDoc, getDocs, Timestamp, collection, addDoc, query, onSnapshot, orderBy } from 'firebase/firestore'; 
 import { useAuth } from "@/context/AuthContext";
-import { Entypo, Ionicons } from '@expo/vector-icons';
+import { Entypo } from '@expo/vector-icons';
 import { heightPercentageToDP as hp, widthPercentageToDP as wp } from 'react-native-responsive-screen';
 import MessageList from './MessageList';
 
@@ -125,9 +125,7 @@ const ChatRoomHeader = ({ user, router }) => (
       /> */}
       <Text style={styles.username}>{user?.username}</Text>
     </View>
-    <TouchableOpacity style={styles.rightHeader}>
-      <Ionicons name="call" size={hp(3)} color="#737373" />
-    </TouchableOpacity>
+    
   </View>
 );
 const styles = StyleSheet.create({
