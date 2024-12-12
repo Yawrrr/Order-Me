@@ -13,6 +13,7 @@ import {
 } from "react-native";
 import { getDocs, deleteDoc, doc, updateDoc } from "firebase/firestore";
 import * as ImagePicker from "expo-image-picker";
+import * as FileSystem from "expo-file-system"; // Import for converting to base64
 import { itemsRef } from "../../FirebaseConfig"; // Adjust the import based on your folder structure
 
 interface Item {
@@ -87,7 +88,10 @@ const MenuScreen = () => {
       });
 
       if (!result.canceled && result.assets && result.assets.length > 0) {
-        setEditedImageUri(result.assets[0].uri); // Set the picked image URI
+        const imageUri = result.assets[0].uri;
+        setEditedImageUri(imageUri); // Set the picked image URI
+        const base64Image = await convertImageToBase64(imageUri); // Convert to base64
+        setEditedImageUrl(base64Image); // Set the base64 image for saving
       }
     } catch (error) {
       console.error("Error picking image: ", error);
@@ -95,8 +99,20 @@ const MenuScreen = () => {
     }
   };
 
+  const convertImageToBase64 = async (uri: string): Promise<string> => {
+    try {
+      const base64 = await FileSystem.readAsStringAsync(uri, {
+        encoding: FileSystem.EncodingType.Base64,
+      });
+      return `data:image/jpeg;base64,${base64}`; // You can change the type to png if the image is png
+    } catch (error) {
+      console.error("Error converting image to base64: ", error);
+      return "";
+    }
+  };
+
   const handleSaveChanges = async () => {
-    if (!editedName || !editedDescription || !editedPrice || (!editedImageUri && !editedImageUrl)) {
+    if (!editedName || !editedDescription || !editedPrice || !editedImageUrl) {
       Alert.alert("Error", "Please fill in all fields.");
       return;
     }
@@ -107,7 +123,7 @@ const MenuScreen = () => {
         name: editedName,
         description: editedDescription,
         price: parseFloat(editedPrice),
-        imageUrl: editedImageUri || editedImageUrl, // Save the picked image URI or URL
+        imageUrl: editedImageUrl, // Save the base64 string
       });
 
       setItems((prevItems) =>
@@ -118,7 +134,7 @@ const MenuScreen = () => {
                 name: editedName,
                 description: editedDescription,
                 price: parseFloat(editedPrice),
-                imageUrl: editedImageUri || editedImageUrl, // Update the image field
+                imageUrl: editedImageUrl, // Update the image field
               }
             : item
         )

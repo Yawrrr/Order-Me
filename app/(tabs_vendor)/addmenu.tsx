@@ -12,6 +12,7 @@ import {
   TouchableOpacity,
 } from "react-native";
 import * as ImagePicker from "expo-image-picker";
+import * as FileSystem from "expo-file-system"; // Import expo-file-system
 import { addDoc } from "firebase/firestore";
 import { itemsRef } from "../../FirebaseConfig"; // Adjust path if necessary
 
@@ -67,7 +68,16 @@ const AddMenu = () => {
 
       // Check if an image was selected
       if (!result.canceled && result.assets && result.assets.length > 0) {
-        setImageUri(result.assets[0].uri); // Use `assets` array to get the image URI
+        const uri = result.assets[0].uri;
+        setImageUri(uri);
+        
+        // Convert the image to Base64
+        const base64 = await FileSystem.readAsStringAsync(uri, {
+          encoding: FileSystem.EncodingType.Base64,
+        });
+
+        // Now save the Base64 string to Firebase
+        setImageUri(`data:image/jpeg;base64,${base64}`); // Prefix with appropriate MIME type
       } else {
         Alert.alert("Selection Cancelled", "No image was selected.");
       }
