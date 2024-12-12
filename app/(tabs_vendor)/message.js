@@ -3,11 +3,11 @@ import React, { useEffect, useState } from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useAuth } from "@/context/AuthContext";
 import { useRouter } from "expo-router";
-import ChatList from "../components/ChatList";
 import { widthPercentageToDP as wp, heightPercentageToDP as hp } from "react-native-responsive-screen";
 import { userRef } from "@/FirebaseConfig";
 import { query, where, getDocs, QuerySnapshot, DocumentData } from "firebase/firestore";
 import Ionicons from '@expo/vector-icons/Ionicons';
+import ChatList from "../components/vendor_msg/ChatList";
 
 const Message = () => {
   const { logout, user } = useAuth();
@@ -42,12 +42,15 @@ const Message = () => {
     if (text === "") {
       setFilteredUsers(users);
     } else {
-      const filtered = users.filter((user) =>
-        user.restaurantName?.toLowerCase().includes(text.toLowerCase())
-      );
+      const filtered = users.filter((user) => {
+        const usernameMatch = user.restaurantName?.toLowerCase().includes(text.toLowerCase());
+        const emailMatch = user.email?.toLowerCase().includes(text.toLowerCase());
+        return usernameMatch || emailMatch;
+      });
       setFilteredUsers(filtered);
     }
   };
+  
 
   return (
     <SafeAreaView style={{ height: "100%", padding: 25, paddingTop: 15 }}>
@@ -59,7 +62,7 @@ const Message = () => {
         <Ionicons name="search" size={20} color="#ccc" style={styles.searchIcon} />
         <TextInput
           style={styles.searchInput}
-          placeholder="Search by restaurant name..."
+          placeholder="Search by username..."
           value={searchText}
           onChangeText={handleSearch}
         />
@@ -69,7 +72,7 @@ const Message = () => {
         <ChatList currentUser={user} users={filteredUsers} />
       ) : (
         <View style={{ flex: 1, alignItems: "center", justifyContent: "center" }}>
-          <Text>No restaurant found</Text>
+          <Text>No users found</Text>
         </View>
       )}
     </SafeAreaView>

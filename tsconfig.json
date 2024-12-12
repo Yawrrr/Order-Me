@@ -14,5 +14,5 @@
     "expo-env.d.ts",
     "nativewind-env.d.ts",
     "context/AuthContext.tsx"
-, "app/components/ChatList.js", "app/(tabs)/message.js"  ]
+, "app/components/ChatList.js", "app/(tabs)/message.js", "app/(tabs_vendor)/message.js", "app/components/ChatItem.js"  ]
 }
