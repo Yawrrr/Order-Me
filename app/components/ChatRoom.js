@@ -5,7 +5,7 @@ import { FIREBASE_DB } from "@/FirebaseConfig";
 import { StatusBar } from "expo-status-bar";
 import { useRouter } from "expo-router";
 import Feather from '@expo/vector-icons/Feather';
-import { getRoomId } from '../../../utils/common';
+import { getRoomId } from '../../utils/common';
 import { doc, setDoc, getDocs, Timestamp, collection, addDoc, query, onSnapshot, orderBy } from 'firebase/firestore'; 
 import { useAuth } from "@/context/AuthContext";
 import { Entypo } from '@expo/vector-icons';
@@ -117,15 +117,11 @@ const ChatRoomHeader = ({ user, router }) => (
     <TouchableOpacity onPress={() => router.back()} style={styles.leftHeader}>
       <Entypo name='chevron-left' size={hp(4)} color="#737373" />
     </TouchableOpacity>
-    <View style={styles.userInfo}>
-      {/* Optional: Profile Image */}
-      {/* <Image
-        source={{ uri: user?.profileUrl }}
-        style={styles.profileImage}
-      /> */}
+    <View style={styles.centerHeader}>
       <Text style={styles.username}>{user?.username}</Text>
     </View>
-    
+    {/* Empty view to balance the layout */}
+    <View style={styles.rightHeader} />
   </View>
 );
 const styles = StyleSheet.create({
@@ -196,11 +192,5 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
- // Optional: Style for profile image if used
-  // profileImage: {
-  //   height: hp(5),
-  //   width: hp(5),
-  //   borderRadius: 50, // Circular profile image
-  //   marginLeft: hp(1),
-  // },
+
 });

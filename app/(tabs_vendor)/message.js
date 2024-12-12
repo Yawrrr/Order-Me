@@ -3,11 +3,11 @@ import React, { useEffect, useState } from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useAuth } from "@/context/AuthContext";
 import { useRouter } from "expo-router";
-import ChatList from "../components/vendor_msg/ChatList";
 import { widthPercentageToDP as wp, heightPercentageToDP as hp } from "react-native-responsive-screen";
 import { userRef } from "@/FirebaseConfig";
 import { query, where, getDocs, QuerySnapshot, DocumentData } from "firebase/firestore";
 import Ionicons from '@expo/vector-icons/Ionicons';
+import ChatList from "../components/vendor_msg/ChatList";
 
 const Message = () => {
   const { logout, user } = useAuth();

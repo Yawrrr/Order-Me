@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
 import { FIREBASE_DB } from "@/FirebaseConfig";  // Import Firestore config
 import { doc, collection, query, orderBy, onSnapshot} from 'firebase/firestore';  // Firestore methods for fetching data
-import { getRoomId, formatDate } from '../../../utils/common';
+import { getRoomId, formatDate } from '../../utils/common';
 
 export default function ChatItem({ item, router, noBoarder,currentUser }) {
   const [lastMessage, setLastMessage] = useState(undefined);
@@ -57,7 +57,7 @@ export default function ChatItem({ item, router, noBoarder,currentUser }) {
         style={styles.profileImage}
       /> */}
       <Image 
-            source={require('../../../assets/images/profile.jpeg')} 
+            source={require('../../assets/images/profile.jpeg')} 
             style={styles.profileImage} 
         />
       <View style={styles.textContainer}>
