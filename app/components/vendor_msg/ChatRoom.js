@@ -5,7 +5,7 @@ import { FIREBASE_DB } from "@/FirebaseConfig";
 import { StatusBar } from "expo-status-bar";
 import { useRouter } from "expo-router";
 import Feather from '@expo/vector-icons/Feather';
-import { getRoomId } from '../../utils/common';
+import { getRoomId } from '../../../utils/common';
 import { doc, setDoc, getDocs, Timestamp, collection, addDoc, query, onSnapshot, orderBy } from 'firebase/firestore'; 
 import { useAuth } from "@/context/AuthContext";
 import { Entypo } from '@expo/vector-icons';

@@ -3,7 +3,7 @@ import React, { useEffect, useState } from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useAuth } from "@/context/AuthContext";
 import { useRouter } from "expo-router";
-import ChatList from "../components/ChatList";
+import ChatList from "../components/cust_msg/ChatList";
 import { widthPercentageToDP as wp, heightPercentageToDP as hp } from "react-native-responsive-screen";
 import { userRef } from "@/FirebaseConfig";
 import { query, where, getDocs, QuerySnapshot, DocumentData } from "firebase/firestore";
@@ -69,7 +69,7 @@ const Message = () => {
         <ChatList currentUser={user} users={filteredUsers} />
       ) : (
         <View style={{ flex: 1, alignItems: "center", justifyContent: "center" }}>
-          <Text>No users found</Text>
+          <Text>No restaurant found</Text>
         </View>
       )}
     </SafeAreaView>
