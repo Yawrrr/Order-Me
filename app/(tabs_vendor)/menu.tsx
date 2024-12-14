@@ -11,10 +11,12 @@ import {
   Alert,
   TouchableOpacity,
 } from "react-native";
-import { getDocs, deleteDoc, doc, updateDoc } from "firebase/firestore";
+import { getDocs, query, where, deleteDoc, doc, updateDoc } from "firebase/firestore";
 import * as ImagePicker from "expo-image-picker";
 import * as FileSystem from "expo-file-system"; // Import for converting to base64
 import { itemsRef } from "../../FirebaseConfig"; // Adjust the import based on your folder structure
+import { useAuth } from "../../context/AuthContext";
+
 
 interface Item {
   id: string;
@@ -22,6 +24,8 @@ interface Item {
   description: string;
   price: number;
   imageUrl: string;
+  email: string; // Add email field
+  restaurantName: string; // Add restaurantName field
 }
 
 const MenuScreen = () => {
@@ -33,25 +37,59 @@ const MenuScreen = () => {
   const [editedPrice, setEditedPrice] = useState("");
   const [editedImageUrl, setEditedImageUrl] = useState(""); // Image URL for editing
   const [editedImageUri, setEditedImageUri] = useState<string | null>(null); // For picked image
-
+  const { user } = useAuth();  // Assuming useAuth gives the authenticated user object
+  const email = user?.email;   // Make sure it's not undefined
+  const restaurantName = user?.restaurantName; // Make sure it's not undefined
+  
   useEffect(() => {
+    if (!user) {
+      console.error("User is not authenticated.");
+      Alert.alert("Error", "User is not authenticated.");
+      setLoading(false);
+      return;
+    }
+
+    if (!email || !restaurantName) {
+      console.error("Missing email or restaurantName.");
+      Alert.alert("Error", "Email or Restaurant Name is missing.");
+      setLoading(false);
+      return;
+    }
+
     const fetchItems = async () => {
       try {
-        const querySnapshot = await getDocs(itemsRef);
+        console.log("Email:", email, "Restaurant Name:", restaurantName);
+
+        const querySnapshot = await getDocs(
+          query(
+            itemsRef,
+            where("email", "==", email),
+            where("restaurantName", "==", restaurantName)
+          )
+        );
+
         const fetchedItems = querySnapshot.docs.map((doc) => ({
           id: doc.id,
           ...doc.data(),
         })) as Item[];
+
         setItems(fetchedItems);
-      } catch (error) {
-        console.error("Error fetching items: ", error);
+      } catch (error: unknown) {
+        if (error instanceof Error) {
+          console.error("Error fetching items:", error.message);
+          Alert.alert("Error", error.message || "There was an issue fetching the items.");
+        } else {
+          console.error("An unexpected error occurred:", error);
+          Alert.alert("Error", "An unexpected error occurred.");
+        }
       } finally {
         setLoading(false);
       }
     };
 
     fetchItems();
-  }, []);
+  }, [user, email, restaurantName]);
+  
 
   const handleDeleteItem = async (id: string) => {
     try {
