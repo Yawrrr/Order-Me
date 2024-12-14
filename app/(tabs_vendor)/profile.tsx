@@ -72,6 +72,17 @@ const Profile = () => {
 
           <Text style={styles.label}>Category</Text>
           <Text style={styles.infoText}>{category}</Text>
+
+          {/* Restaurant Image */}
+          <Text style={styles.label}>Restaurant Image</Text>
+          <Image
+            source={
+              user?.restaurantImage
+                ? { uri: user.restaurantImage } // Use the restaurantImage if available
+                : images.defaultRestaurantImage // Fallback/default image
+            }
+            style={styles.restaurantImage}
+          />
         </View>
         <TouchableOpacity
           style={styles.editButton}
@@ -154,4 +165,15 @@ const styles = StyleSheet.create({
   iconSpacing: {
     marginRight: 20, // Space between the two icons
   },
+
+  restaurantImage: {
+    width: 150, // Full width of the parent container
+    height: 150,   // Adjust height for a rectangular shape
+    borderRadius: 10, // Slight rounding for better aesthetics
+    marginTop: 10,
+    resizeMode: "cover", // Ensure the image scales correctly
+    
+  },
+  
+  
 });
