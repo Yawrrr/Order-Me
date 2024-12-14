@@ -13,6 +13,7 @@ import {
 } from "react-native";
 import { getDocs, query, where, deleteDoc, doc, updateDoc } from "firebase/firestore";
 import * as ImagePicker from "expo-image-picker";
+import * as ImageManipulator from "expo-image-manipulator"; // Import image manipulator
 import * as FileSystem from "expo-file-system"; // Import for converting to base64
 import { itemsRef } from "../../FirebaseConfig"; // Adjust the import based on your folder structure
 import { useAuth } from "../../context/AuthContext";
@@ -111,6 +112,7 @@ const MenuScreen = () => {
     setEditedImageUri(null); // Reset picked image if any
   };
 
+
   const pickImage = async () => {
     try {
       const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -118,17 +120,25 @@ const MenuScreen = () => {
         Alert.alert("Permission Denied", "You need to allow access to your photos.");
         return;
       }
-
+  
       const result = await ImagePicker.launchImageLibraryAsync({
         mediaTypes: ImagePicker.MediaTypeOptions.Images,
         allowsEditing: true,
-        quality: 1,
+        quality: 1, // High-quality image
       });
-
+  
       if (!result.canceled && result.assets && result.assets.length > 0) {
         const imageUri = result.assets[0].uri;
         setEditedImageUri(imageUri); // Set the picked image URI
-        const base64Image = await convertImageToBase64(imageUri); // Convert to base64
+  
+        // Resize the image to a smaller resolution (e.g., 600px wide)
+        const resizedImage = await ImageManipulator.manipulateAsync(
+          imageUri,
+          [{ resize: { width: 600 } }], // Resize to a width of 600px (adjust as needed)
+          { compress: 0.7, format: ImageManipulator.SaveFormat.JPEG } // Compress the image to 70%
+        );
+  
+        const base64Image = await convertImageToBase64(resizedImage.uri); // Convert to base64
         setEditedImageUrl(base64Image); // Set the base64 image for saving
       }
     } catch (error) {
@@ -136,7 +146,8 @@ const MenuScreen = () => {
       Alert.alert("Error", "Failed to pick an image.");
     }
   };
-
+  
+  // Function to convert the image to Base64 after resizing and compressing
   const convertImageToBase64 = async (uri: string): Promise<string> => {
     try {
       const base64 = await FileSystem.readAsStringAsync(uri, {
@@ -148,13 +159,13 @@ const MenuScreen = () => {
       return "";
     }
   };
-
+  
   const handleSaveChanges = async () => {
     if (!editedName || !editedDescription || !editedPrice || !editedImageUrl) {
       Alert.alert("Error", "Please fill in all fields.");
       return;
     }
-
+  
     try {
       const itemDoc = doc(itemsRef, editingItem?.id || "");
       await updateDoc(itemDoc, {
@@ -163,7 +174,7 @@ const MenuScreen = () => {
         price: parseFloat(editedPrice),
         imageUrl: editedImageUrl, // Save the base64 string
       });
-
+  
       setItems((prevItems) =>
         prevItems.map((item) =>
           item.id === editingItem?.id
@@ -177,7 +188,7 @@ const MenuScreen = () => {
             : item
         )
       );
-
+  
       setEditingItem(null);
       Alert.alert("Success", "Item updated successfully!");
     } catch (error) {

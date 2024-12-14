@@ -13,6 +13,7 @@ import {
 } from "react-native";
 import * as ImagePicker from "expo-image-picker";
 import * as FileSystem from "expo-file-system"; // Import expo-file-system
+import * as ImageManipulator from "expo-image-manipulator"; // Import image manipulator
 import { addDoc } from "firebase/firestore";
 import { itemsRef } from "../../FirebaseConfig"; // Adjust path if necessary
 import { useAuth } from "../../context/AuthContext"; // Replace with your actual auth provider
@@ -73,23 +74,30 @@ const AddMenu = () => {
         Alert.alert("Permission Denied", "You need to allow access to your photos.");
         return;
       }
-
+  
       const result = await ImagePicker.launchImageLibraryAsync({
         mediaTypes: ImagePicker.MediaTypeOptions.Images,
         allowsEditing: true,
         quality: 1, // High-quality image
       });
-
+  
       if (!result.canceled && result.assets && result.assets.length > 0) {
         const uri = result.assets[0].uri;
         setImageUri(uri);
-
-        // Convert image to Base64
-        const base64 = await FileSystem.readAsStringAsync(uri, {
+  
+        // Resize the image to a smaller resolution (adjust width and height as needed)
+        const resizedImage = await ImageManipulator.manipulateAsync(
+          uri,
+          [{ resize: { width: 600 } }], // Resize to width of 600px (adjust as needed)
+          { compress: 0.7, format: ImageManipulator.SaveFormat.JPEG } // Compress the image to 70%
+        );
+  
+        // Convert resized image to Base64
+        const base64 = await FileSystem.readAsStringAsync(resizedImage.uri, {
           encoding: FileSystem.EncodingType.Base64,
         });
-
-        setImageUri(`data:image/jpeg;base64,${base64}`); // Save as Base64
+  
+        setImageUri(`data:image/jpeg;base64,${base64}`); // Save as Base64 encoded string
       } else {
         Alert.alert("Selection Cancelled", "No image was selected.");
       }
