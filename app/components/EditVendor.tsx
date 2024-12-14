@@ -32,7 +32,7 @@ const EditDetails: React.FC = () => {
   const [address, setAddress] = useState(user?.address || "");
   const [restaurantName, setRestaurantName] = useState(user?.restaurantName || "");
   const [category, setCategory] = useState(user?.category || "mix rice");
-  const [restaurantImage, setRestaurantImage] = useState<string | null>(user?.restaurantImage || null); // State for base64 image
+  const [restaurantImage, setRestaurantImage] = useState<string | null>(null); // State for base64 image
   const [loading, setLoading] = useState(false);
 
   // Fetch the restaurant image if available
@@ -218,15 +218,15 @@ const EditDetails: React.FC = () => {
           </View>
 
           <Text style={styles.label}>Restaurant Image</Text>
-          <TouchableOpacity onPress={pickImage}>
-            <View style={styles.imagePicker}>
-              {restaurantImage ? (
-                <Image source={{ uri: restaurantImage }} style={styles.image} />
-              ) : (
-                <Text>Pick an image</Text>
-              )}
-            </View>
-          </TouchableOpacity>
+<TouchableOpacity onPress={pickImage}>
+  <View style={styles.imagePicker}>
+    {restaurantImage ? (
+      <Image source={{ uri: restaurantImage }} style={styles.image} />
+    ) : (
+      <Text>Pick an image</Text>
+    )}
+  </View>
+</TouchableOpacity>
 
           {/* Save Button */}
           <TouchableOpacity style={styles.saveButton} onPress={handleSave} disabled={loading}>
