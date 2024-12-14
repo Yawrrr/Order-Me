@@ -141,8 +141,8 @@ const styles = StyleSheet.create({
     padding: 16,
   },
   header: {
-    fontSize: 26,
-    fontWeight: 'bold',
+    fontSize: 30,
+    fontFamily: 'Poppins-Bold',
     color: '#FF8C00',
     marginBottom: 16,
     textAlign: 'center',

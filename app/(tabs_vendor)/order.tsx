@@ -133,7 +133,7 @@ const styles = StyleSheet.create({
   title: {
     fontFamily: 'Poppins-Bold',
     fontSize: 30,
-    color: 'orange',
+    color: '#FF8C00',
     textAlign: 'center',
     marginBottom: 16,
   },
