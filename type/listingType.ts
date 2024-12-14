@@ -1,4 +1,4 @@
-interface ListingType{
+export interface ListingType{
   id: number;
   name: string;
   cuisine: string;
