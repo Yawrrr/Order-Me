@@ -1,6 +1,21 @@
 import React, { useState } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Switch } from 'react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  TouchableOpacity,
+  Switch,
+} from 'react-native';
+
+interface Order {
+  id: number;
+  address: string;
+  estimatedTime: string;
+  items: { name: string; quantity: number }[];
+  total: number;
+}
 
 interface OrderStatus {
   label: string;
@@ -8,7 +23,28 @@ interface OrderStatus {
 }
 
 const Order: React.FC = () => {
-  const [statuses, setStatuses] = useState<OrderStatus[]>([
+  const [orders, setOrders] = useState<Order[]>([
+    {
+      id: 1,
+      address: 'Taman Universiti, Skudai, Johor, Johor Bahru, Malaysia',
+      estimatedTime: '1:00 PM',
+      items: [{ name: 'Burger', quantity: 1 }],
+      total: 15.0,
+    },
+    {
+      id: 2,
+      address: 'Mount Austin, Skudai, Johor, Johor Bahru, Malaysia',
+      estimatedTime: '2:30 PM',
+      items: [
+        { name: 'Pizza', quantity: 1 },
+        { name: 'Soda', quantity: 1 },
+      ],
+      total: 25.0,
+    },
+  ]);
+
+  const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
+  const [statuses, setStatuses] = useState<OrderStatus[]>([  // Initialize statuses for each order
     { label: ' Order Placed' },
     { label: ' Kitchen Preparing' },
     { label: ' Out for Delivery' },
@@ -23,11 +59,10 @@ const Order: React.FC = () => {
         minute: '2-digit',
       });
 
-      // Update the timestamp for the selected status
       if (!newStatuses[index].timestamp) {
         newStatuses[index].timestamp = currentTime;
       } else {
-        newStatuses[index].timestamp = undefined; // Uncheck if already checked
+        newStatuses[index].timestamp = undefined;
       }
 
       return newStatuses;
@@ -36,11 +71,32 @@ const Order: React.FC = () => {
 
   return (
     <SafeAreaView style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.title}>Order Management</Text>
-      </View>
-      <ScrollView>
-        <View style={styles.section}>
+      <Text style={styles.title}>Order Management</Text>
+
+      {!selectedOrder ? (
+        <ScrollView>
+          {orders.map((order) => (
+            <TouchableOpacity
+              key={order.id}
+              style={styles.orderCard}
+              onPress={() => setSelectedOrder(order)}
+            >
+              <Text style={styles.orderCardText}>Order {order.id}</Text>
+              <Text style={styles.orderCardText}>Address: {order.address}</Text>
+              <Text style={styles.orderCardText}>Estimated Time: {order.estimatedTime}</Text>
+            </TouchableOpacity>
+          ))}
+        </ScrollView>
+      ) : (
+        <View>
+          <TouchableOpacity onPress={() => setSelectedOrder(null)}>
+            <Text style={styles.backButton}>Back</Text>
+          </TouchableOpacity>
+
+          <Text style={styles.subtitle}>Order Details</Text>
+          <Text style={styles.detailText}>Address: {selectedOrder.address}</Text>
+          <Text style={styles.detailText}>Estimated Time: {selectedOrder.estimatedTime}</Text>
+
           <Text style={styles.subtitle}>Order Status</Text>
           {statuses.map((status, index) => (
             <View key={index} style={styles.statusRow}>
@@ -49,16 +105,24 @@ const Order: React.FC = () => {
                 onValueChange={() => handleStatusChange(index)}
               />
               <Text style={styles.statusLabel}>{status.label}</Text>
-              {status.timestamp && <Text style={styles.timestamp}>({status.timestamp})</Text>}
+              {status.timestamp && (
+                <Text style={styles.timestamp}>({status.timestamp})</Text>
+              )}
             </View>
           ))}
+
+          <Text style={styles.subtitle}>Items</Text>
+          {selectedOrder.items.map((item, index) => (
+            <Text key={index} style={styles.detailText}>
+              {item.name} x{item.quantity}
+            </Text>
+          ))}
+          <Text style={styles.totalText}>Total: RM {selectedOrder.total.toFixed(2)}</Text>
         </View>
-      </ScrollView>
+      )}
     </SafeAreaView>
   );
 };
-
-export default Order;
 
 const styles = StyleSheet.create({
   container: {
@@ -66,38 +130,47 @@ const styles = StyleSheet.create({
     backgroundColor: '#f9f9f9',
     padding: 20,
   },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: 16,
-  },
   title: {
     fontFamily: 'Poppins-Bold',
     fontSize: 30,
     color: 'orange',
+    textAlign: 'center',
+    marginBottom: 16,
   },
-  section: {
-    marginTop: 16,
+  orderCard: {
+    borderWidth: 1,
+    borderColor: '#FFCC99',
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 16,
+    backgroundColor: '#FFF7E6',
+  },
+  orderCardText: {
+    fontSize: 16,
+    color: '#333',
+  },
+  backButton: {
+    fontSize: 16,
+    color: 'orange',
+    fontWeight: 'bold',
+    marginBottom: 16,
   },
   subtitle: {
     fontSize: 20,
     fontWeight: '600',
-    marginBottom: 8,
+    marginBottom: 10,
     color: '#FF8C00',
+    marginTop: 10,
+  },
+  detailText: {
+    fontSize: 16,
+    color: '#333',
+    marginBottom: 4,
   },
   statusRow: {
     flexDirection: 'row',
     alignItems: 'center',
     marginBottom: 10,
-    padding: 10,
-    backgroundColor: '#FFF7E6',
-    borderRadius: 8,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
   },
   statusLabel: {
     fontSize: 16,
@@ -108,4 +181,12 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#FF8C00',
   },
+  totalText: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#FF4500',
+    marginTop: 12,
+  },
 });
+
+export default Order;
