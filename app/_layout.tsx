@@ -71,7 +71,14 @@ const MainLayout = () => {
           headerShown: false,
         }}
       />
+      <Stack.Screen
+        name="components/ChatRoom"
+        options={{
+          headerShown: false,
+        }}
+      />
     </Stack>
+    
   );
 };
 
