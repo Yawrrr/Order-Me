@@ -11,9 +11,13 @@ import {
   Alert,
   TouchableOpacity,
 } from "react-native";
-import { getDocs, deleteDoc, doc, updateDoc } from "firebase/firestore";
+import { getDocs, query, where, deleteDoc, doc, updateDoc } from "firebase/firestore";
 import * as ImagePicker from "expo-image-picker";
+import * as ImageManipulator from "expo-image-manipulator"; // Import image manipulator
+import * as FileSystem from "expo-file-system"; // Import for converting to base64
 import { itemsRef } from "../../FirebaseConfig"; // Adjust the import based on your folder structure
+import { useAuth } from "../../context/AuthContext";
+
 
 interface Item {
   id: string;
@@ -21,6 +25,8 @@ interface Item {
   description: string;
   price: number;
   imageUrl: string;
+  email: string; // Add email field
+  restaurantName: string; // Add restaurantName field
 }
 
 const MenuScreen = () => {
@@ -32,25 +38,59 @@ const MenuScreen = () => {
   const [editedPrice, setEditedPrice] = useState("");
   const [editedImageUrl, setEditedImageUrl] = useState(""); // Image URL for editing
   const [editedImageUri, setEditedImageUri] = useState<string | null>(null); // For picked image
-
+  const { user } = useAuth();  // Assuming useAuth gives the authenticated user object
+  const email = user?.email;   // Make sure it's not undefined
+  const restaurantName = user?.restaurantName; // Make sure it's not undefined
+  
   useEffect(() => {
+    if (!user) {
+      console.error("User is not authenticated.");
+      Alert.alert("Error", "User is not authenticated.");
+      setLoading(false);
+      return;
+    }
+
+    if (!email || !restaurantName) {
+      console.error("Missing email or restaurantName.");
+      Alert.alert("Error", "Email or Restaurant Name is missing.");
+      setLoading(false);
+      return;
+    }
+
     const fetchItems = async () => {
       try {
-        const querySnapshot = await getDocs(itemsRef);
+        console.log("Email:", email, "Restaurant Name:", restaurantName);
+
+        const querySnapshot = await getDocs(
+          query(
+            itemsRef,
+            where("email", "==", email),
+            where("restaurantName", "==", restaurantName)
+          )
+        );
+
         const fetchedItems = querySnapshot.docs.map((doc) => ({
           id: doc.id,
           ...doc.data(),
         })) as Item[];
+
         setItems(fetchedItems);
-      } catch (error) {
-        console.error("Error fetching items: ", error);
+      } catch (error: unknown) {
+        if (error instanceof Error) {
+          console.error("Error fetching items:", error.message);
+          Alert.alert("Error", error.message || "There was an issue fetching the items.");
+        } else {
+          console.error("An unexpected error occurred:", error);
+          Alert.alert("Error", "An unexpected error occurred.");
+        }
       } finally {
         setLoading(false);
       }
     };
 
     fetchItems();
-  }, []);
+  }, [user, email, restaurantName]);
+  
 
   const handleDeleteItem = async (id: string) => {
     try {
@@ -72,6 +112,7 @@ const MenuScreen = () => {
     setEditedImageUri(null); // Reset picked image if any
   };
 
+
   const pickImage = async () => {
     try {
       const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -79,37 +120,61 @@ const MenuScreen = () => {
         Alert.alert("Permission Denied", "You need to allow access to your photos.");
         return;
       }
-
+  
       const result = await ImagePicker.launchImageLibraryAsync({
         mediaTypes: ImagePicker.MediaTypeOptions.Images,
         allowsEditing: true,
-        quality: 1,
+        quality: 1, // High-quality image
       });
-
+  
       if (!result.canceled && result.assets && result.assets.length > 0) {
-        setEditedImageUri(result.assets[0].uri); // Set the picked image URI
+        const imageUri = result.assets[0].uri;
+        setEditedImageUri(imageUri); // Set the picked image URI
+  
+        // Resize the image to a smaller resolution (e.g., 600px wide)
+        const resizedImage = await ImageManipulator.manipulateAsync(
+          imageUri,
+          [{ resize: { width: 600 } }], // Resize to a width of 600px (adjust as needed)
+          { compress: 0.7, format: ImageManipulator.SaveFormat.JPEG } // Compress the image to 70%
+        );
+  
+        const base64Image = await convertImageToBase64(resizedImage.uri); // Convert to base64
+        setEditedImageUrl(base64Image); // Set the base64 image for saving
       }
     } catch (error) {
       console.error("Error picking image: ", error);
       Alert.alert("Error", "Failed to pick an image.");
     }
   };
-
+  
+  // Function to convert the image to Base64 after resizing and compressing
+  const convertImageToBase64 = async (uri: string): Promise<string> => {
+    try {
+      const base64 = await FileSystem.readAsStringAsync(uri, {
+        encoding: FileSystem.EncodingType.Base64,
+      });
+      return `data:image/jpeg;base64,${base64}`; // You can change the type to png if the image is png
+    } catch (error) {
+      console.error("Error converting image to base64: ", error);
+      return "";
+    }
+  };
+  
   const handleSaveChanges = async () => {
-    if (!editedName || !editedDescription || !editedPrice || (!editedImageUri && !editedImageUrl)) {
+    if (!editedName || !editedDescription || !editedPrice || !editedImageUrl) {
       Alert.alert("Error", "Please fill in all fields.");
       return;
     }
-
+  
     try {
       const itemDoc = doc(itemsRef, editingItem?.id || "");
       await updateDoc(itemDoc, {
         name: editedName,
         description: editedDescription,
         price: parseFloat(editedPrice),
-        imageUrl: editedImageUri || editedImageUrl, // Save the picked image URI or URL
+        imageUrl: editedImageUrl, // Save the base64 string
       });
-
+  
       setItems((prevItems) =>
         prevItems.map((item) =>
           item.id === editingItem?.id
@@ -118,12 +183,12 @@ const MenuScreen = () => {
                 name: editedName,
                 description: editedDescription,
                 price: parseFloat(editedPrice),
-                imageUrl: editedImageUri || editedImageUrl, // Update the image field
+                imageUrl: editedImageUrl, // Update the image field
               }
             : item
         )
       );
-
+  
       setEditingItem(null);
       Alert.alert("Success", "Item updated successfully!");
     } catch (error) {

@@ -12,15 +12,22 @@ import {
   TouchableOpacity,
 } from "react-native";
 import * as ImagePicker from "expo-image-picker";
+import * as FileSystem from "expo-file-system"; // Import expo-file-system
+import * as ImageManipulator from "expo-image-manipulator"; // Import image manipulator
 import { addDoc } from "firebase/firestore";
 import { itemsRef } from "../../FirebaseConfig"; // Adjust path if necessary
+import { useAuth } from "../../context/AuthContext"; // Replace with your actual auth provider
 
 const AddMenu = () => {
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [price, setPrice] = useState("");
   const [imageUri, setImageUri] = useState<string | null>(null);
-  const [imageUrl, setImageUrl] = useState(""); // For URL input
+  const [imageUrl, setImageUrl] = useState("");
+
+  const { user } = useAuth(); // Get user details from AuthContext
+  const email = user?.email; // Vendor's email
+  const restaurantName = user?.restaurantName || "Default Restaurant"; // Vendor's restaurant name
 
   const handleAddItem = async () => {
     try {
@@ -29,22 +36,31 @@ const AddMenu = () => {
         return;
       }
 
-      // If no image URI is selected, use the image URL entered by the user
+      if (!email || !restaurantName) {
+        Alert.alert("Error", "Missing vendor details. Please log in again.");
+        return;
+      }
+
+      // Use selected image URI or the image URL entered
       const finalImageUrl = imageUri || imageUrl;
 
+      // Save the item to Firestore
       await addDoc(itemsRef, {
         name,
         description,
-        price: parseFloat(price), // Ensure price is stored as a number
-        imageUrl: finalImageUrl, // Use the selected or entered image URL
+        price: parseFloat(price),
+        imageUrl: finalImageUrl,
+        email, // Vendor's email
+        restaurantName, // Vendor's restaurant name
+        createdAt: new Date(), // Optional timestamp
       });
 
       Alert.alert("Success", "Item added successfully!");
       setName("");
       setDescription("");
       setPrice("");
-      setImageUri(null); // Reset image URI
-      setImageUrl(""); // Reset image URL input
+      setImageUri(null);
+      setImageUrl("");
     } catch (error) {
       console.error("Error adding item: ", error);
       Alert.alert("Error", "Failed to add item.");
@@ -58,16 +74,30 @@ const AddMenu = () => {
         Alert.alert("Permission Denied", "You need to allow access to your photos.");
         return;
       }
-
+  
       const result = await ImagePicker.launchImageLibraryAsync({
         mediaTypes: ImagePicker.MediaTypeOptions.Images,
         allowsEditing: true,
         quality: 1, // High-quality image
       });
-
-      // Check if an image was selected
+  
       if (!result.canceled && result.assets && result.assets.length > 0) {
-        setImageUri(result.assets[0].uri); // Use `assets` array to get the image URI
+        const uri = result.assets[0].uri;
+        setImageUri(uri);
+  
+        // Resize the image to a smaller resolution (adjust width and height as needed)
+        const resizedImage = await ImageManipulator.manipulateAsync(
+          uri,
+          [{ resize: { width: 600 } }], // Resize to width of 600px (adjust as needed)
+          { compress: 0.7, format: ImageManipulator.SaveFormat.JPEG } // Compress the image to 70%
+        );
+  
+        // Convert resized image to Base64
+        const base64 = await FileSystem.readAsStringAsync(resizedImage.uri, {
+          encoding: FileSystem.EncodingType.Base64,
+        });
+  
+        setImageUri(`data:image/jpeg;base64,${base64}`); // Save as Base64 encoded string
       } else {
         Alert.alert("Selection Cancelled", "No image was selected.");
       }
@@ -106,7 +136,6 @@ const AddMenu = () => {
           numberOfLines={5}
         />
 
-        {/* New input for Image URL */}
         <TextInput
           style={styles.input}
           placeholder="Enter Item Image URL"
@@ -114,15 +143,12 @@ const AddMenu = () => {
           onChangeText={setImageUrl}
         />
 
-        {/* Add "OR" text between the two options */}
         <Text style={styles.orText}>OR</Text>
 
-        {/* Option to pick an image from the gallery */}
         <TouchableOpacity style={styles.imagePicker} onPress={pickImage}>
           <Text style={styles.imagePickerText}>Pick Image From Gallery</Text>
         </TouchableOpacity>
 
-        {/* Display selected image */}
         {imageUri && <Image source={{ uri: imageUri }} style={styles.previewImage} />}
 
         <Button title="ADD MENU ITEM" onPress={handleAddItem} color="orange" />
