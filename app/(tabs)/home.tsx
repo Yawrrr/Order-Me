@@ -1,7 +1,7 @@
 import { Image, StyleSheet, Text, View, TextInput, ScrollView, TouchableOpacity } from "react-native";
 import React, { useRef, useState } from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { Stack } from 'expo-router';
+import { router, Stack } from 'expo-router';
 import favicon from '../../assets/images/profile.jpeg';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { colors } from "@/constants/colors";
@@ -10,6 +10,7 @@ import RestaurantListing from "../../components/RestaurantListing";
 import restaurantData from '@/data/restaurants.json';
 import groupData from '@/data/groups.json';
 import GroupListings from "@/components/GroupListings";
+
 
 type Category = {
   title: string;
@@ -50,15 +51,14 @@ const Home = () => {
             {/* Row container for Image and Menu icon */}
             <View style={styles.rowContainer}>
               <TouchableOpacity onPress={() => {}}>
-                <Ionicons name="menu" size={20} color={colors.black.DEFAULT} style={styles.menuIcon} />
+                <Ionicons name="menu" size={25} color={colors.black.DEFAULT} style={styles.menuIcon} />
               </TouchableOpacity>
-
-              <TouchableOpacity onPress={() => {}}>
-                <Image
-                  source={favicon}
+              <TouchableOpacity onPress={() => router.push("/components/wishlist")}>
+                <Ionicons
+                  name="heart"
+                  size={30}
+                  color='red'
                   style={styles.testImage}
-                  onError={(error) => console.error('Test image error:', error.nativeEvent.error)}
-                  onLoad={() => console.log('Test image loaded')}
                 />
               </TouchableOpacity>
             </View>
@@ -163,12 +163,23 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 10,
-    backgroundColor: '#e1e1e1',
-    marginLeft: 280, // Adjust based on your layout needs
+    backgroundColor:'white',
+    padding:5,
+   marginTop:20,
+    marginLeft: 270, // Adjust based on your layout needs
     marginRight: 10,
   },
   menuIcon: {
-    marginLeft: 5,
+    
+    backgroundColor:'white',
+    width: 40,
+    height: 40,
+    borderRadius: 10,
+   
+    padding:8,
+   marginTop:20,
+   // Adjust based on your layout needs
+ 
   },
   heading: {
     fontSize: 40,
