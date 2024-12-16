@@ -1,8 +1,3 @@
-<<<<<<< HEAD
-
-import { StyleSheet, View, Text, Image, ListRenderItem } from "react-native";
-=======
->>>>>>> sc
 import React, { useEffect, useState } from "react";
 import {
   StyleSheet,

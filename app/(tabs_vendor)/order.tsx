@@ -69,10 +69,6 @@ const Order: React.FC = () => {
     });
   };
 
-<<<<<<< HEAD
-const order = () => {
-=======
->>>>>>> main
   return (
     <SafeAreaView style={styles.container}>
       <Text style={styles.title}>Order Management</Text>
@@ -128,10 +124,6 @@ const order = () => {
   );
 };
 
-<<<<<<< HEAD
-export default order;
-=======
->>>>>>> main
 const styles = StyleSheet.create({
   container: {
     flex: 1,
