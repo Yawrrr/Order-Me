@@ -14,6 +14,10 @@ import { Ionicons, FontAwesome5 } from "@expo/vector-icons";
 import { colors } from "@/constants/colors";
 import { Link } from "expo-router";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
+import { FIREBASE_DB } from "@/FirebaseConfig";
+import { collection, getDocs, query, where } from "firebase/firestore";
+
+
 
 type Props = {
   listings: ListingType[];
@@ -34,17 +38,47 @@ const RestaurantListing = ({ listings, category }: Props) => {
     loadWishlist();
   }, []);
 
-  // Filter listings by category
+  // Fetch data from Firestore when component mounts
   useEffect(() => {
-    setLoading(true);
-    if (category === "All") {
-      setFilteredListings(listings);
-    } else {
-      const filtered = listings.filter((item) => item.category === category);
-      setFilteredListings(filtered);
-    }
-    setTimeout(() => setLoading(false), 200);
-  }, [category, listings]);
+    const fetchRestaurants = async () => {
+      setLoading(true); // Start loading
+      try {
+        const restaurantsRef = collection(FIREBASE_DB, "restaurants"); // Access 'restaurants' collection
+        let q = query(restaurantsRef);
+
+        // Filter by category if specified
+        if (category !== "All") {
+          q = query(restaurantsRef, where("category", "==", category)); // Use 'where' filter
+        }
+
+        const snapshot = await getDocs(q); // Get documents based on query
+        const restaurantsData = snapshot.docs.map((doc) => {
+          const data = doc.data();
+          return {
+            id: doc.id,
+            name: data.restaurantName,
+            imageUrl: data.restaurantImage,
+            category: data.category,
+            location: data.location || "Unknown", // Provide default value for location
+            rating: data.rating || "No ratings",           // Provide default value for rating
+            cuisine: data.cuisine || "Unknown",   // Provide default value for cuisine
+            priceRange: data.priceRange || "Unknown", // Provide default value for price range
+            isOpen: data.isOpen || true,          // Provide default value for isOpen
+            description: data.description || "No description available", // Provide default value for description
+          };
+        });
+        
+
+        setFilteredListings(restaurantsData);
+      } catch (error) {
+        console.error("Error fetching restaurants: ", error);
+      } finally {
+        setLoading(false); // Stop loading
+      }
+    };
+
+    fetchRestaurants();
+  }, [category]);
 
   // Toggle wishlist
   const handleWishlistToggle = async (item: ListingType) => {
@@ -137,7 +171,9 @@ const styles = StyleSheet.create({
     width: 200,
     height: 200,
     borderRadius: 10,
-    marginBottom: 30,
+    marginBottom: 20,
+    marginLeft: 10,
+    marginTop: 10,
   },
   favorite: {
     position: "absolute",
@@ -154,11 +190,15 @@ const styles = StyleSheet.create({
     fontWeight: "600",
     color: colors.secondary[200],
     marginBottom: 10,
+    marginLeft: 10,
   },
   locationContainer: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between", // Ensures space between location and rating
+    marginBottom: 10,
+    marginLeft: 10,
+    marginRight: 10,
   },
   location: {
     flexDirection: "row",

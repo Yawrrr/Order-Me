@@ -1,12 +1,12 @@
-export interface ListingType{
-  id: number;
+export interface ListingType {
+  id: string;
   name: string;
-  cuisine: string;
+  imageUrl: string;
+  category: string;
   location: string;
   rating: number;
-  priceRange: string;
-  isOpen: boolean;
-  imageUrl: string;
-  description: string;
-  category: string;
+  cuisine?: string;        // Optional field
+  priceRange: string;     
+  isOpen?: boolean;        // Optional field
+  description: string;    
 }
