@@ -16,7 +16,6 @@ import { doc, updateDoc, collection, query, where, getDocs, setDoc } from "fireb
 import { FIREBASE_DB } from "@/FirebaseConfig";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { router } from "expo-router";
-import { launchImageLibrary } from 'react-native-image-picker';
 import * as FileSystem from "expo-file-system";
 import * as ImageManipulator from "expo-image-manipulator";
 import * as ImagePicker from "expo-image-picker";
@@ -32,13 +31,24 @@ const EditDetails: React.FC = () => {
   const [address, setAddress] = useState(user?.address || "");
   const [restaurantName, setRestaurantName] = useState(user?.restaurantName || "");
   const [category, setCategory] = useState(user?.category || "mix rice");
-  const [restaurantImage, setRestaurantImage] = useState<string | null>(null); // State for base64 image
+  const [restaurantImage, setRestaurantImage] = useState<string | null>(null); // State for restaurant image
+  const [profileImage, setProfileImage] = useState<string | null>(null); // State for profile image
   const [loading, setLoading] = useState(false);
 
-  // Fetch the restaurant image if available
+  // Fetch the profile and restaurant images if available
   useEffect(() => {
-    const fetchRestaurantImage = async () => {
+    const fetchUserData = async () => {
       if (user?.email) {
+        const usersCollection = collection(FIREBASE_DB, "users");
+        const userQuery = query(usersCollection, where("email", "==", user.email));
+        const userSnapshot = await getDocs(userQuery);
+
+        if (!userSnapshot.empty) {
+          const userDoc = userSnapshot.docs[0];
+          const userData = userDoc.data();
+          setProfileImage(userData.profileImage || null);
+        }
+
         const restaurantsCollection = collection(FIREBASE_DB, "restaurants");
         const restaurantQuery = query(restaurantsCollection, where("owner", "==", user.email));
         const restaurantSnapshot = await getDocs(restaurantQuery);
@@ -46,12 +56,12 @@ const EditDetails: React.FC = () => {
         if (!restaurantSnapshot.empty) {
           const restaurantDoc = restaurantSnapshot.docs[0];
           const restaurantData = restaurantDoc.data();
-          setRestaurantImage(restaurantData.restaurantImage || null); // Set the image if exists
+          setRestaurantImage(restaurantData.restaurantImage || null);
         }
       }
     };
 
-    fetchRestaurantImage();
+    fetchUserData();
   }, [user?.email]);
 
   const handleSave = async () => {
@@ -81,7 +91,7 @@ const EditDetails: React.FC = () => {
       const userDoc = userSnapshot.docs[0];
       const userDocRef = doc(FIREBASE_DB, "users", userDoc.id);
 
-      const updatedUser = { username, phoneNumber, address, restaurantName, category, restaurantImage };
+      const updatedUser = { username, phoneNumber, address, profileImage: profileImage || "" };
       await updateDoc(userDocRef, updatedUser);
       setUser({ ...user, ...updatedUser });
 
@@ -100,7 +110,7 @@ const EditDetails: React.FC = () => {
       }
 
       Alert.alert("Profile", "Details updated successfully.", [
-        { text: "OK", onPress: () => router.push("../(tabs_vendor)/profile") }, // Navigate to profile
+        { text: "OK", onPress: () => router.push("../(tabs_vendor)/profile") },
       ]);
     } catch (error) {
       console.error("Failed to update details:", error);
@@ -110,7 +120,7 @@ const EditDetails: React.FC = () => {
     }
   };
 
-  const pickImage = async () => {
+  const pickImage = async (setImage: React.Dispatch<React.SetStateAction<string | null>>) => {
     try {
       // Request permission for media library
       const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -123,19 +133,17 @@ const EditDetails: React.FC = () => {
       const result = await ImagePicker.launchImageLibraryAsync({
         mediaTypes: ImagePicker.MediaTypeOptions.Images,
         allowsEditing: true,
-        quality: 1, // High-quality image
+        quality: 1,
       });
 
-      // Check if image selection was canceled
       if (!result.canceled && result.assets && result.assets.length > 0) {
         const uri = result.assets[0].uri;
-        setRestaurantImage(uri);
 
-        // Resize the image (if needed)
+        // Resize the image
         const resizedImage = await ImageManipulator.manipulateAsync(
           uri,
-          [{ resize: { width: 600 } }], // Resize to width of 600px (adjust as needed)
-          { compress: 0.7, format: ImageManipulator.SaveFormat.JPEG } // Compress the image
+          [{ resize: { width: 600 } }],
+          { compress: 0.7, format: ImageManipulator.SaveFormat.JPEG }
         );
 
         // Convert resized image to Base64
@@ -144,7 +152,7 @@ const EditDetails: React.FC = () => {
         });
 
         // Set the image as Base64 encoded string
-        setRestaurantImage(`data:image/jpeg;base64,${base64}`);
+        setImage(`data:image/jpeg;base64,${base64}`);
       } else {
         Alert.alert("Selection Cancelled", "No image was selected.");
       }
@@ -170,7 +178,17 @@ const EditDetails: React.FC = () => {
         <SafeAreaView style={styles.container}>
           {/* Personal Details */}
           <Text style={styles.sectionTitle}>Personal Details</Text>
-
+          
+          <Text style={styles.label}>Profile Image</Text>
+          <TouchableOpacity onPress={() => pickImage(setProfileImage)}>
+            <View style={styles.imagePicker1}>
+              {profileImage ? (
+                <Image source={{ uri: profileImage }} style={styles.image1} />
+              ) : (
+                <Text>Pick a profile image</Text>
+              )}
+            </View>
+          </TouchableOpacity>
           <Text style={styles.label}>Username</Text>
           <TextInput
             style={styles.input}
@@ -192,8 +210,10 @@ const EditDetails: React.FC = () => {
             onChangeText={setAddress}
           />
 
+          
+
           {/* Vendor Details */}
-          <Text style={styles.sectionTitle}>Vendor Details</Text>
+          <Text style={styles.sectionTitle2}>Vendor Details</Text>
 
           <Text style={styles.label}>Restaurant Name</Text>
           <TextInput
@@ -218,19 +238,19 @@ const EditDetails: React.FC = () => {
           </View>
 
           <Text style={styles.label}>Restaurant Image</Text>
-<TouchableOpacity onPress={pickImage}>
-  <View style={styles.imagePicker}>
-    {restaurantImage ? (
-      <Image source={{ uri: restaurantImage }} style={styles.image} />
-    ) : (
-      <Text>Pick an image</Text>
-    )}
-  </View>
-</TouchableOpacity>
+          <TouchableOpacity onPress={() => pickImage(setRestaurantImage)}>
+            <View style={styles.imagePicker}>
+              {restaurantImage ? (
+                <Image source={{ uri: restaurantImage }} style={styles.image} />
+              ) : (
+                <Text>Pick a restaurant image</Text>
+              )}
+            </View>
+          </TouchableOpacity>
 
           {/* Save Button */}
           <TouchableOpacity style={styles.saveButton} onPress={handleSave} disabled={loading}>
-            <Text style={styles.buttonText}>{loading ? "Saving..." : "Save"}</Text>
+            <Text style={styles.buttonText}>              {loading ? "Saving..." : "Save Changes"}</Text>
           </TouchableOpacity>
         </SafeAreaView>
       </SafeAreaView>
@@ -238,82 +258,101 @@ const EditDetails: React.FC = () => {
   );
 };
 
-export default EditDetails;
-
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    padding: 20,
-    backgroundColor: "#f5f5f5",
-  },
   header: {
     flexDirection: "row",
     alignItems: "center",
+    marginBottom: 20,
   },
   headerText: {
-    fontSize: 24,
-    fontWeight: "bold",
-    marginLeft: 10,
-    color: "orange",
-  },
-  sectionTitle: {
     fontSize: 20,
     fontWeight: "bold",
-    color: "orange",
-    marginBottom: 10,
+    marginLeft: 10,
+  },
+  container: {
+    flex: 1,
+    padding: 10,
+  },
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: "bold",
+  },
+  sectionTitle2: {
+    fontSize: 18,
+    fontWeight: "bold",
     marginTop: 20,
   },
   label: {
     fontSize: 16,
     color: "#888",
-    marginTop: 5,
+    marginTop: 15,
   },
   input: {
-    height: 40,
-    borderColor: "#ccc",
     borderWidth: 1,
-    borderRadius: 8,
+    borderColor: "#ccc",
+    borderRadius: 5,
     padding: 10,
-    marginBottom: 20,
+    marginTop: 5,
     fontSize: 16,
   },
   pickerContainer: {
     borderWidth: 1,
     borderColor: "#ccc",
-    borderRadius: 8,
-    marginBottom: 20,
+    borderRadius: 5,
+    marginTop: 5,
   },
   picker: {
-    height: 40,
-    fontSize: 16,
+    height: 50,
+    width: "100%",
+  },
+  imagePicker1: {
+    marginTop: 10,
+    height: 150,
+    width: 150,
+    justifyContent: "center",
+    alignItems: "center",
+    borderWidth: 1,
+    borderColor: "#ccc",
+    borderRadius: 5,
+    backgroundColor: "#f9f9f9",
+    alignSelf: "center",
+  },
+  image1: {
+    height: "100%",
+    width: "100%",
+    borderRadius: 5,
+    resizeMode: "cover",
+  },
+  imagePicker: {
+    marginTop: 10,
+    height: 150,
+    width: "100%",
+    justifyContent: "center",
+    alignItems: "center",
+    borderWidth: 1,
+    borderColor: "#ccc",
+    borderRadius: 5,
+    backgroundColor: "#f9f9f9",
+  },
+  image: {
+    height: "100%",
+    width: "100%",
+    borderRadius: 5,
+    resizeMode: "cover",
   },
   saveButton: {
-    paddingVertical: 15,
     backgroundColor: "orange",
+    paddingVertical: 12,
     borderRadius: 8,
+    marginTop: 20,
     alignItems: "center",
   },
   buttonText: {
-    fontSize: 18,
-    color: "#fff",
+    color: "white",
     fontWeight: "bold",
+    fontSize: 16,
+    textAlign: "center",
   },
-  imagePicker: {
-    width: 150, // Square width
-    height: 150, // Square height (same as width)
-    borderWidth: 1,
-    borderColor: "#ccc",
-    borderRadius: 8,
-    justifyContent: "center",
-    alignItems: "center",
-    marginBottom: 20,
-    overflow: "hidden", // Ensure content fits within the border
-  },
-  image: {
-    width: "100%",
-    height: "100%", // Ensures it fills the square container
-    resizeMode: "cover", // Maintains the aspect ratio while filling the container
-  },
-  
-  
 });
+
+export default EditDetails;

@@ -11,6 +11,7 @@ interface User {
   email: string;
   phoneNumber?: string;
   address?: string;
+  profileImage?: string;
   restaurantName?: string;
   category?: string;
   restaurantImage?: string;
@@ -32,6 +33,7 @@ const Profile = () => {
   const email = user?.email;
   const phoneNumber = user?.phoneNumber;
   const address = user?.address;
+  const profileImage = user?.profileImage;
   const restaurantName = user?.restaurantName;
   const restaurantImage = user?.restaurantImage;
   const category = user?.category;
@@ -61,7 +63,14 @@ const Profile = () => {
           </View>
         </View>
         <View className="items-center" style={styles.profileImageContainer}>
-          <Image source={images.defaultProfile} style={styles.profileImage} />
+          <Image
+            source={
+              profileImage
+                ? { uri: profileImage }
+                 : require('../../assets/images/defaultProfile.png') // Use a placeholder URL
+            }
+            style={styles.profileImage}
+            />
           <Text className="mt-4" style={styles.infoText}>{username}</Text>
         </View>
         <View style={styles.infoContainer}>

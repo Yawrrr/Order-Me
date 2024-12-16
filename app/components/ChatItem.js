@@ -60,13 +60,12 @@ export default function ChatItem({ item, router, noBoarder,currentUser }) {
       }
     style={styles.profileImage}
     />
- 
       
       <View style={styles.textContainer}>
         <View style={styles.headerContainer}>
           <Text style={styles.usernameText}>
             {item?.restaurantName}  
-            {/* item?.username */}
+            
           </Text>
           <Text style={styles.timeText}>
             {renderTime()}

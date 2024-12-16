@@ -82,7 +82,7 @@ const MainLayout = () => {
         options={{
           headerShown: false,
         }}
-      />
+      />    
     </Stack>
     
   );
