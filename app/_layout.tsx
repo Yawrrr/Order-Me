@@ -77,6 +77,12 @@ const MainLayout = () => {
           headerShown: false,
         }}
       />
+          <Stack.Screen
+        name="components/search"
+        options={{
+          headerShown: false,
+        }}
+      />
       <Stack.Screen
         name="components/ChatRoom"
         options={{

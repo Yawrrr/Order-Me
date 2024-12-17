@@ -27,11 +27,17 @@ const Categories: Category[] = [
 
 const Home = () => {
   const [category, setCategory] = useState('All');
+  const [searchQuery, setSearchQuery] = useState('');
   const onCatChanged = (category: string) => {
     console.log("Category:", category);
     setCategory(category);
   };
 
+  const handleSearchNavigate = () => {
+    if (searchQuery.trim()) {
+      router.push({ pathname: "../components/search", params: { query: searchQuery } });
+    }
+  };
   return (
     <GestureHandlerRootView>
       <SafeAreaView style={styles.container}>
@@ -48,7 +54,6 @@ const Home = () => {
         />
         <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
           <View style={styles.content}>
-            {/* Row container for Image and Menu icon */}
             <View style={styles.rowContainer}>
               <TouchableOpacity onPress={() => {}}>
                 <Ionicons name="menu" size={25} color={colors.black.DEFAULT} style={styles.menuIcon} />
@@ -65,18 +70,20 @@ const Home = () => {
             
             <Text style={styles.heading}>Order Me</Text>
             
-            {/* Wrapper for search input and filter icon */}
             <View style={styles.searchWrapper}>
               <View style={styles.searchContainer}>
-                <Ionicons name="search" size={20} color={colors.black.DEFAULT} style={styles.searchIcon} />
+                
                 <TextInput
-                  placeholder="Search..."
-                  style={styles.searchInput}
-                />
-              </View>
-              <TouchableOpacity onPress={() => {}}>
-                <Ionicons name="filter" size={20} color='white' style={styles.filterIcon} />
-              </TouchableOpacity>
+      placeholder="Search..."
+      value={searchQuery}               
+      onChangeText={setSearchQuery}    
+      style={styles.searchInput}
+      onSubmitEditing={handleSearchNavigate}
+    />
+    <TouchableOpacity onPress={handleSearchNavigate}>
+      <Ionicons name="search" size={20} color={colors.black.DEFAULT} style={styles.searchIcon} />
+    </TouchableOpacity>
+    </View>
             </View>
             <CategoryButtons onCategoryChanged={onCatChanged} />
             <RestaurantListing listings={restaurantData} category={category} />
@@ -149,15 +156,15 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     paddingBottom: 20,
-     // Extra padding at the bottom for better scrolling experience
+    
   },
   content: {
     flex: 1,
     padding: 16,
   },
   rowContainer: {
-    flexDirection: 'row', // Arrange items in a row
-    alignItems: 'center', // Center items vertically in the row
+    flexDirection: 'row', 
+    alignItems: 'center', 
   },
   testImage: {
     width: 40,
@@ -166,19 +173,17 @@ const styles = StyleSheet.create({
     backgroundColor:'white',
     padding:5,
    marginTop:20,
-    marginLeft: 270, // Adjust based on your layout needs
+    marginLeft: 270, 
     marginRight: 10,
   },
   menuIcon: {
-    
     backgroundColor:'white',
     width: 40,
     height: 40,
     borderRadius: 10,
-   
     padding:8,
    marginTop:20,
-   // Adjust based on your layout needs
+   
  
   },
   heading: {
@@ -189,35 +194,30 @@ const styles = StyleSheet.create({
     marginLeft: 5,
   },
   searchWrapper: {
-    flexDirection: 'row', // Align searchContainer and filter icon in a row
+    flexDirection: 'row', 
     alignItems: 'center',
     marginTop: 15,
   },
   searchContainer: {
-    flexDirection: 'row', // Align icon and input horizontally
+    flexDirection: 'row', 
     alignItems: 'center',
-    backgroundColor: 'white', // Light gray background for input field
+    backgroundColor: 'white', 
     borderRadius: 8,
     paddingHorizontal: 10,
     paddingVertical: 8,
-    width: 300, // Adjust as needed
+    width: 350,
+    marginLeft:5, 
   },
   searchIcon: {
-    marginRight: 8, // Space between icon and input
+    marginRight: 8, 
   },
   searchInput: {
-    flex: 1, // Take up remaining space
+    flex: 1, 
     fontSize: 16,
     color: colors.black.DEFAULT,
   },
-  filterIcon: {
-    marginLeft: 15,
-    backgroundColor: colors.secondary.DEFAULT,
-    padding: 12,
-    borderRadius: 10,
-    // Add space between searchContainer and filter icon
-  },
   title: {
+    marginTop:10,
     fontSize: 22,
     fontWeight: 'bold',
     color: colors.black.DEFAULT,
