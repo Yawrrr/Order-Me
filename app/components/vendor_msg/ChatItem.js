@@ -52,14 +52,14 @@ export default function ChatItem({ item, router, noBoarder,currentUser }) {
       ]}
     >
       
-      {/* <Image
-        source={item?.profileUrl} 
-        style={styles.profileImage}
-      /> */}
-      <Image 
-            source={require('../../../assets/images/profile.jpeg')} 
-            style={styles.profileImage} 
-        />
+      <Image
+            source={
+              item?.profileImage
+              ? { uri: item.profileImage } // Dynamically fetch the image from the database
+              : require('../../../assets/images/defaultProfile.png') // Fallback to the default image
+            }
+          style={styles.profileImage}
+      />
       <View style={styles.textContainer}>
         <View style={styles.headerContainer}>
           <Text style={styles.usernameText}>
