@@ -50,9 +50,7 @@ const Home = () => {
           <View style={styles.content}>
             {/* Row container for Image and Menu icon */}
             <View style={styles.rowContainer}>
-              <TouchableOpacity onPress={() => {}}>
-                <Ionicons name="menu" size={25} color={colors.black.DEFAULT} style={styles.menuIcon} />
-              </TouchableOpacity>
+            <Text style={styles.heading}>Order Me</Text>
               <TouchableOpacity onPress={() => router.push("/components/wishlist")}>
                 <Ionicons
                   name="heart"
@@ -62,8 +60,6 @@ const Home = () => {
                 />
               </TouchableOpacity>
             </View>
-            
-            <Text style={styles.heading}>Order Me</Text>
             
             {/* Wrapper for search input and filter icon */}
             <View style={styles.searchWrapper}>
@@ -160,27 +156,14 @@ const styles = StyleSheet.create({
     alignItems: 'center', // Center items vertically in the row
   },
   testImage: {
-    width: 40,
-    height: 40,
-    borderRadius: 10,
-    backgroundColor:'white',
-    padding:5,
-   marginTop:20,
-    marginLeft: 270, // Adjust based on your layout needs
-    marginRight: 10,
-  },
-  menuIcon: {
-    
-    backgroundColor:'white',
-    width: 40,
-    height: 40,
-    borderRadius: 10,
-   
-    padding:8,
-   marginTop:20,
-   // Adjust based on your layout needs
- 
-  },
+  width: 40,
+  height: 40,
+  borderRadius: 10,
+  backgroundColor: 'white',
+  padding: 5,
+  marginTop: 20,
+  marginLeft: 120,
+},
   heading: {
     fontSize: 40,
     fontWeight: 'bold',

@@ -50,7 +50,7 @@ const Message = () => {
   };
 
   return (
-    <SafeAreaView style={{ height: "100%", padding: 25, paddingTop: 15 }}>
+    <SafeAreaView style={{ height: "100%", padding: 25, paddingTop: 15, backgroundColor: "#fff" }}>
       <View style={styles.header}>
         <Text style={styles.title}>Message</Text>
       </View>
@@ -97,6 +97,7 @@ const styles = StyleSheet.create({
     borderRadius: 15,
     paddingHorizontal: 10,
     marginVertical: 10,
+    backgroundColor: "white",
   },
   searchIcon: {
     marginRight: 10,
