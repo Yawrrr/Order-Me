@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
+import { SafeAreaView } from "react-native-safe-area-context";
 import { View, Text, TouchableOpacity, StyleSheet, ScrollView } from 'react-native';
 import Ionicons from "@expo/vector-icons/Ionicons";
+import MapView, { Marker } from 'react-native-maps';
 
 // Define the types for the orders
 interface Order {
@@ -10,6 +12,8 @@ interface Order {
   status: string[];
   items: { name: string; quantity: number }[];
   total: number;
+  latitude: number; 
+  longitude: number ; // Add location coordinates
 }
 
 const Status: React.FC = () => {
@@ -20,7 +24,7 @@ const Status: React.FC = () => {
     const mockOrders: Order[] = [
       {
         id: 1,
-        address: '123 Main Street',
+        address: 'Taman Universiti, Skudai, Johor, Johor Bahru, Malaysia',
         estimatedTime: '1:00 PM',
         status: [
           '10:00 AM - Order Placed',
@@ -30,10 +34,12 @@ const Status: React.FC = () => {
         ],
         items: [{ name: 'Burger', quantity: 1 }],
         total: 15.0,
+        latitude: 1.5371, 
+        longitude: 103.6290,
       },
       {
         id: 2,
-        address: '456 Elm Street',
+        address: 'Mount Austin, Skudai, Johor, Johor Bahru, Malaysia',
         estimatedTime: '2:30 PM',
         status: [
           '11:00 AM - Order Placed',
@@ -46,13 +52,15 @@ const Status: React.FC = () => {
           { name: 'Soda', quantity: 1 },
         ],
         total: 25.0,
+        latitude: 1.5371, 
+        longitude: 103.6290, // Taman Universiti, Malaysia
       },
     ];
     setOrders(mockOrders);
   }, []);
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
       <Text style={styles.header}>Order Status</Text>
       {!selectedOrder ? (
         <ScrollView>
@@ -93,9 +101,36 @@ const Status: React.FC = () => {
             </View>
           ))}
           <Text style={styles.totalText}>Total: RM {selectedOrder.total.toFixed(2)}</Text>
+
+          {/* Map Section */}
+          <Text style={styles.subHeader}>Delivery Location</Text>
+          <MapView
+            style={styles.map}
+            region={{
+              latitude: selectedOrder.latitude,
+              longitude: selectedOrder.longitude,
+              latitudeDelta: 0.05,
+              longitudeDelta: 0.05,
+            }}
+          >
+            <Marker
+              coordinate={{
+                latitude: selectedOrder.latitude,
+                longitude: selectedOrder.longitude,
+              }}
+              title={selectedOrder.address}
+            />
+          </MapView>
         </View>
       )}
-    </View>
+
+      <View style={styles.floatButton}>
+        <TouchableOpacity onPress={() => console.log('Map button pressed')}>
+          <Ionicons name="map-outline" size={32} color="orange" />
+          <Text style={{ color: '#666' }}>Map</Text>
+        </TouchableOpacity>
+      </View>
+    </SafeAreaView>
   );
 };
 
@@ -106,8 +141,8 @@ const styles = StyleSheet.create({
     padding: 16,
   },
   header: {
-    fontSize: 26,
-    fontWeight: 'bold',
+    fontSize: 30,
+    fontFamily: 'Poppins-Bold',
     color: '#FF8C00',
     marginBottom: 16,
     textAlign: 'center',
@@ -185,6 +220,23 @@ const styles = StyleSheet.create({
   statusStep: {
     fontSize: 16,
     color: '#FF8C00',
+  },
+  map: {
+    height: 200,
+    borderRadius: 8,
+    marginTop: 16,
+  },
+  floatButton: {
+    position: 'absolute',
+    bottom: 10,
+    right: 10,
+    backgroundColor: '#fff',
+    elevation: 10,
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
 });
 

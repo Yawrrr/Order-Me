@@ -71,13 +71,18 @@ const MainLayout = () => {
           headerShown: false,
         }}
       />
-          <Stack.Screen
+      <Stack.Screen
         name="components/wishlist"
         options={{
           headerShown: false,
         }}
       />
-      
+      <Stack.Screen
+        name="components/ChatRoom"
+        options={{
+          headerShown: false,
+        }}
+      />    
     </Stack>
     
   );

@@ -4,6 +4,7 @@ import { Tabs } from "expo-router";
 import { FontAwesome } from "@expo/vector-icons";
 import Feather from '@expo/vector-icons/Feather';
 import Ionicons from '@expo/vector-icons/Ionicons';
+import AntDesign from '@expo/vector-icons/AntDesign';
 
 const TabLayout = () => {
   return (
@@ -36,7 +37,11 @@ const TabLayout = () => {
             tabBarLabel: 'Orders',  // Explicitly setting label
           }} 
         />
-        
+        <Tabs.Screen name="message" options={{
+          headerShown: false,
+          title: 'Message',
+          tabBarIcon: ({ color }) => <AntDesign name="message1" size={22} color={color}  />
+        }}/>
         <Tabs.Screen 
           name="profile" 
           options={{
@@ -46,6 +51,7 @@ const TabLayout = () => {
             tabBarLabel: 'Profile', 
           }} 
         />
+        
 
       </Tabs>
     </>
