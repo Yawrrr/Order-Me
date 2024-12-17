@@ -25,18 +25,18 @@ const Profile = () => {
   const address = user?.address;
 
   return (
-    <SafeAreaView style={{ height: "100%", padding: 25, paddingTop: 15 }}>
+    <SafeAreaView style={{ height: "100%", padding: 25, paddingTop: 15, }}>
       <View style={styles.header}>
         <Text style={styles.title}>Profile</Text>
         <View style={styles.headerActions}>
         
-<MaterialIcons
-  name="store" // Shop icon
-  size={30}
-  color="orange"
-  style={styles.iconSpacing}
-  onPress={navigateToVendor}
-/>
+      <MaterialIcons
+        name="store" // Shop icon
+        size={30}
+        color="orange"
+        style={styles.iconSpacing}
+        onPress={navigateToVendor}
+      />
           {/* Logout Icon */}
           <MaterialIcons
             name="logout"
