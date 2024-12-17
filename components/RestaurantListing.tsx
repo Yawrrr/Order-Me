@@ -138,7 +138,7 @@ const RestaurantListing = ({ listings, category }: Props) => {
           style={styles.card}
           onPress={() => fetchMenuItems(item.name)} // Fetch menu when clicked
         >
-          <Image source={{ uri: item.imageUrl }} style={styles.image} />
+          <Image source={{ uri: item.imageUrl }} style={styles.restaurantImage} />
           <Text style={styles.itemTxt} numberOfLines={1}>
             {item.name}
           </Text>
@@ -196,13 +196,13 @@ const RestaurantListing = ({ listings, category }: Props) => {
             data={menuItems}
             keyExtractor={(item) => item.id}
             renderItem={({ item }) => (
-              <View style={styles.card}>
+              <View style={styles.menuItemCard}>
                 <Image source={{ uri: item.imageUrl }} style={styles.image} />
-                <View style={styles.itemInfo}>
-                  <Text style={styles.name}>{item.name}</Text>
-                  <Text style={styles.description}>{item.description}</Text>
-                  <Text style={styles.price}>RM {item.price}</Text>
-                </View>
+                <View style={styles.menuItemInfo}>
+            <Text style={styles.menuItemName}>{item.name}</Text>
+            <Text style={styles.menuItemDescription}>{item.description}</Text>
+            <Text style={styles.menuItemPrice}>RM {item.price}</Text>
+          </View>
               </View>
             )}
           />
@@ -234,18 +234,30 @@ const styles = StyleSheet.create({
   card: {
     backgroundColor: "white",
     borderRadius: 10,
+    marginRight: 20,
     marginBottom: 20,
-    padding: 16,
+    width: 220,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 3,
     elevation: 2,
   },
-  image: {
-    width: "100%",
+  // Restaurant Listing Image Style
+  restaurantImage: {
+    width: 200,
     height: 200,
     borderRadius: 10,
+    marginBottom: 20,
+    marginLeft: 10,
+    marginTop: 10,
+  },
+  // Menu Item Image Style (different from restaurant image)
+  image: {
+    width: 100,
+    height: 100, // Adjusted height for a smaller image
+    borderRadius: 10, // Different border radius for menu items
+    marginBottom: 15, // Add some margin for separation
   },
   itemInfo: {
     marginTop: 10,
@@ -262,5 +274,80 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: "#007BFF",
   },
+  favorite: {
+    position: "absolute",
+    top: 185,
+    right: 30,
+    backgroundColor: colors.secondary[100],
+    padding: 10,
+    borderRadius: 30,
+    borderColor: "white",
+    borderWidth: 2,
+  },
+  itemTxt: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: colors.secondary[200],
+    marginBottom: 10,
+    marginLeft: 10,
+  },
+  locationContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between", // Ensures space between location and rating
+    marginBottom: 10,
+    marginLeft: 10,
+    marginRight: 10,
+  },
+  location: {
+    flexDirection: "row",
+    alignItems: "center",
+    flex: 1, // Take available space in the row
+  },
+  itemLocationTxt: {
+    fontSize: 12,
+    marginLeft: 5,
+    flexShrink: 1,
+    fontWeight: "bold", // Allows the text to shrink if needed
+  },
+  ratingContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  ratingText: {
+    fontSize: 12,
+    marginRight: 5,
+    fontWeight: "bold",
+  },
+  menuItemCard: {
+    marginBottom: 16,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: "#ddd",
+    borderRadius: 8,
+    backgroundColor: "#f9f9f9",
+    flexDirection: "row", // Align image and text horizontally
+    alignItems: "center", // Align items vertically in the center
+  },
+  menuItemInfo: {
+    flex: 1, // Take remaining space after image
+    justifyContent: "flex-start", // Distribute space between name, description, and price
+  },
+  menuItemName: {
+    fontSize: 18,
+    fontWeight: "bold",
+    marginBottom: 4,
+    marginLeft: 10, // Add some left margin to prevent text from sticking to the edge
+  },
+  menuItemDescription: {
+    fontSize: 14,
+    color: "#555",
+    marginBottom: 4,
+    marginLeft: 10, // Add left margin
+  },
+  menuItemPrice: {
+    fontSize: 16,
+    color: "#007BFF",
+    marginLeft: 10, // Add left margin
+  },
 });
-
