@@ -33,50 +33,20 @@ const Login = () => {
   };
 
   return (
-    <SafeAreaView className="h-full">
-      <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-        <ScrollView>
-          <View className="p-4 h-full">
-            <View style={styles.info}>
-              <Image source={images.logo} className="max-h-[267px]" style={{ resizeMode: "contain" }} />
-              <Text>Let's sign in to continue order me</Text>
-            </View>
-            <View style={styles.form}>
-              <CustomTextInput
-                placeholder="Email"
-                onChangeText={(email) => (emailRef.current = email)}
-              />
-              <CustomTextInput
-                secureTextEntry
-                placeholder="Password"
-                onChangeText={(password) => (passwordRef.current = password)}
-              />
-              <CustomButton
-                title="Sign In"
-                handleOnPress={handleSignIn} // Disables button when loading
-              />
-            </View>
-            <View style={styles.line} />
-            <View style={styles.signUp}>
-              <Text>Don't have an account? </Text>
-              <Link href="/sign-up">Sign Up</Link>
-            </View>
-          </View>
-        </ScrollView>
-      </TouchableWithoutFeedback>
+    <SafeAreaView className="h-full align-center justify-center">
       <KeyboardAvoidingView>
         <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
           <ScrollView>
             <View className="p-4 h-full">
-              <View className="mt-6 max-h-[360px] items-center">
+              <View style={styles.info}>
                 <Image
-                  source={images.man}
+                  source={images.logo}
                   className="max-h-[267px]"
                   style={{ resizeMode: "contain" }}
                 />
                 <Text>Let's sign in to continue order me</Text>
               </View>
-              <View className="gap-4">
+              <View style={styles.form}>
                 <CustomTextInput
                   placeholder="Email"
                   onChangeText={(email) => (emailRef.current = email)}
@@ -101,7 +71,6 @@ const Login = () => {
         </TouchableWithoutFeedback>
       </KeyboardAvoidingView>
     </SafeAreaView>
-
   );
 };
 
