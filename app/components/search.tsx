@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { View, Text, FlatList, StyleSheet, TextInput, TouchableOpacity, Image } from "react-native";
-import { Ionicons ,MaterialIcons} from "@expo/vector-icons";
+import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 import { colors } from "@/constants/colors";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { useLocalSearchParams, router } from "expo-router";
@@ -8,12 +8,12 @@ import restaurantData from "@/data/restaurants.json";
 import { ListingType } from "@/type/listingType";
 import { useRouter } from "expo-router";
 
-
 const search = () => {
   const { query } = useLocalSearchParams<{ query: string }>();
   const [searchResults, setSearchResults] = useState<ListingType[]>([]);
   const [inputQuery, setInputQuery] = useState<string>(query || "");
-const { back } = useRouter(); 
+  const { back } = useRouter(); 
+
   useEffect(() => {
     performSearch();
   }, [inputQuery]);
@@ -21,7 +21,7 @@ const { back } = useRouter();
   const performSearch = () => {
     if (inputQuery) {
       const filteredResults = restaurantData.filter((restaurant) =>
-        restaurant.name.toLowerCase().includes(inputQuery.toLowerCase())
+        restaurant.name.charAt(0).toLowerCase() === inputQuery.charAt(0).toLowerCase()
       );
       setSearchResults(filteredResults);
     } else {

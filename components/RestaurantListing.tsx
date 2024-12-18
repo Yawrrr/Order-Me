@@ -23,7 +23,6 @@ const RestaurantListing = ({ listings, category }: Props) => {
   const [wishlist, setWishlist] = useState<ListingType[]>([]);
   const [loading, setLoading] = useState(false);
 
-  // Load wishlist on mount
   useEffect(() => {
     const loadWishlist = async () => {
       const savedWishlist = await getWishlist();
@@ -32,7 +31,6 @@ const RestaurantListing = ({ listings, category }: Props) => {
     loadWishlist();
   }, []);
 
-  // Filter listings by category
   useEffect(() => {
     setLoading(true);
     if (category === "All") {
@@ -44,23 +42,21 @@ const RestaurantListing = ({ listings, category }: Props) => {
     setTimeout(() => setLoading(false), 200);
   }, [category, listings]);
 
-  // Toggle wishlist
+
   const handleWishlistToggle = async (item: ListingType) => {
     const isAlreadyInWishlist = wishlist.some((wishlistItem) => wishlistItem.id === item.id);
     let updatedWishlist;
   
     if (isAlreadyInWishlist) {
-      // Remove the item from the wishlist
       updatedWishlist = wishlist.filter((wishlistItem) => wishlistItem.id !== item.id);
       Alert.alert("Removed", `${item.name} has been removed from your wishlist.`);
     } else {
-      // Add the item to the wishlist
       updatedWishlist = [...wishlist, item];
       Alert.alert("Added", `${item.name} has been added to your wishlist.`);
     }
   
     setWishlist(updatedWishlist);
-    await saveWishlist(updatedWishlist); // Persist wishlist to AsyncStorage
+    await saveWishlist(updatedWishlist); 
   };
   const renderItems = ({ item }: { item: ListingType }) => {
     const isInWishlist = wishlist.some((wishlistItem) => wishlistItem.id === item.id);
@@ -88,7 +84,6 @@ const RestaurantListing = ({ listings, category }: Props) => {
             </View>
           </TouchableOpacity>
         </Link>
-        {/* Make the heart icon clickable separately */}
         <TouchableOpacity
           style={styles.favorite}
           onPress={() => handleWishlistToggle(item)}
@@ -157,18 +152,18 @@ const styles = StyleSheet.create({
   locationContainer: {
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "space-between", // Ensures space between location and rating
+    justifyContent: "space-between",
   },
   location: {
     flexDirection: "row",
     alignItems: "center",
-    flex: 1, // Take available space in the row
+    flex: 1, 
   },
   itemLocationTxt: {
     fontSize: 12,
     marginLeft: 5,
     flexShrink: 1,
-    fontWeight: "bold", // Allows the text to shrink if needed
+    fontWeight: "bold", 
   },
   ratingContainer: {
     flexDirection: "row",
