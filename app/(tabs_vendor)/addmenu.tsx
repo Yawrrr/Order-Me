@@ -12,22 +12,17 @@ import {
   TouchableOpacity,
 } from "react-native";
 import * as ImagePicker from "expo-image-picker";
-<<<<<<< Updated upstream
 import * as FileSystem from "expo-file-system"; // Import expo-file-system
 import * as ImageManipulator from "expo-image-manipulator"; // Import image manipulator
-import { itemsRef } from "../../FirebaseConfig"; // Adjust the import based on your folder structure
-import { useAuth } from "../../context/AuthContext";
-=======
 import { addDoc } from "firebase/firestore";
 import { itemsRef } from "../../FirebaseConfig"; // Adjust path if necessary
->>>>>>> Stashed changes
+import { useAuth } from "../../context/AuthContext"; // Replace with your actual auth provider
 
 const AddMenu = () => {
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [price, setPrice] = useState("");
   const [imageUri, setImageUri] = useState<string | null>(null);
-<<<<<<< Updated upstream
   const [imageUrl, setImageUrl] = useState("");
 
   const { user } = useAuth(); // Get user details from AuthContext
@@ -37,17 +32,10 @@ const AddMenu = () => {
   const handleAddItem = async () => {
     try {
       if (!name || !description || !price || (!imageUri && !imageUrl)) {
-=======
-
-  const handleAddItem = async () => {
-    try {
-      if (!name || !description || !price || !imageUri) {
->>>>>>> Stashed changes
         Alert.alert("Error", "Please fill in all fields.");
         return;
       }
 
-<<<<<<< Updated upstream
       if (!email || !restaurantName) {
         Alert.alert("Error", "Missing vendor details. Please log in again.");
         return;
@@ -65,25 +53,14 @@ const AddMenu = () => {
         email, // Vendor's email
         restaurantName, // Vendor's restaurant name
         createdAt: new Date(), // Optional timestamp
-=======
-      await addDoc(itemsRef, {
-        name,
-        description,
-        price: parseFloat(price), // Ensure price is stored as a number
-        imageUrl: imageUri, // Use the selected image URI
->>>>>>> Stashed changes
       });
 
       Alert.alert("Success", "Item added successfully!");
       setName("");
       setDescription("");
       setPrice("");
-<<<<<<< Updated upstream
       setImageUri(null);
       setImageUrl("");
-=======
-      setImageUri(null); // Reset image URI
->>>>>>> Stashed changes
     } catch (error) {
       console.error("Error adding item: ", error);
       Alert.alert("Error", "Failed to add item.");
@@ -97,17 +74,12 @@ const AddMenu = () => {
         Alert.alert("Permission Denied", "You need to allow access to your photos.");
         return;
       }
-<<<<<<< Updated upstream
   
-=======
-
->>>>>>> Stashed changes
       const result = await ImagePicker.launchImageLibraryAsync({
         mediaTypes: ImagePicker.MediaTypeOptions.Images,
         allowsEditing: true,
         quality: 1, // High-quality image
       });
-<<<<<<< Updated upstream
   
       if (!result.canceled && result.assets && result.assets.length > 0) {
         const uri = result.assets[0].uri;
@@ -126,12 +98,6 @@ const AddMenu = () => {
         });
   
         setImageUri(`data:image/jpeg;base64,${base64}`); // Save as Base64 encoded string
-=======
-
-      // Check if an image was selected
-      if (!result.canceled && result.assets && result.assets.length > 0) {
-        setImageUri(result.assets[0].uri); // Use `assets` array to get the image URI
->>>>>>> Stashed changes
       } else {
         Alert.alert("Selection Cancelled", "No image was selected.");
       }
@@ -168,7 +134,6 @@ const AddMenu = () => {
           onChangeText={setDescription}
           multiline
           numberOfLines={5}
-<<<<<<< Updated upstream
         />
 
         <TextInput
@@ -187,16 +152,6 @@ const AddMenu = () => {
         {imageUri && <Image source={{ uri: imageUri }} style={styles.previewImage} />}
 
         <Button title="ADD MENU ITEM" onPress={handleAddItem} color="orange" />
-=======
-        />
-        <TouchableOpacity style={styles.imagePicker} onPress={pickImage}>
-          <Text style={styles.imagePickerText}>Pick an Image</Text>
-        </TouchableOpacity>
-        {imageUri && (
-          <Image source={{ uri: imageUri }} style={styles.previewImage} />
-        )}
-        <Button title="ADD MENU LIST" onPress={handleAddItem} color="orange" />
->>>>>>> Stashed changes
       </ScrollView>
     </SafeAreaView>
   );
@@ -242,11 +197,7 @@ const styles = StyleSheet.create({
     marginBottom: 15,
   },
   imagePickerText: {
-<<<<<<< Updated upstream
     color: "orange",
-=======
-    color: "blue",
->>>>>>> Stashed changes
     fontSize: 16,
   },
   previewImage: {
@@ -254,15 +205,12 @@ const styles = StyleSheet.create({
     height: 200,
     borderRadius: 8,
     marginBottom: 15,
-<<<<<<< Updated upstream
   },
   orText: {
     textAlign: "center",
     fontSize: 18,
     marginVertical: 10,
     color: "#888",
-=======
->>>>>>> Stashed changes
   },
 });
 
