@@ -242,14 +242,13 @@ const styles = StyleSheet.create({
     elevation: 2,
     padding:10
   },
-  // Restaurant Listing Image Style
   restaurantImage: {
-    width: 200,
-    height: 200,
+    width: 180, 
+    height: 180,
     borderRadius: 10,
-    marginBottom: 20,
-    marginLeft: 10,
-    marginTop: 10,
+    margin: 15, // Use a single margin property for uniform spacing.
+    alignSelf: 'center', 
+    resizeMode: 'cover', 
   },
   // Menu Item Image Style (different from restaurant image)
   image: {
