@@ -37,6 +37,9 @@ const RestaurantListing = ({ listings, category }: Props) => {
   const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
   const [currentRestaurantName, setCurrentRestaurantName] = useState<string>("");
 
+   // New state to track quantities
+   const [quantities, setQuantities] = useState<{ [key: string]: number }>({});
+
   // Load wishlist on mount
   useEffect(() => {
     const loadWishlist = async () => {
@@ -119,12 +122,40 @@ const RestaurantListing = ({ listings, category }: Props) => {
       })) as MenuItem[];
 
       setMenuItems(fetchedMenuItems);
+      // Initialize quantities for each menu item
+      const initialQuantities = fetchedMenuItems.reduce((acc, item) => {
+        acc[item.id] = 0;
+        return acc;
+      }, {} as { [key: string]: number });
+      setQuantities(initialQuantities);
+
       setMenuModalVisible(true);
     } catch (error) {
       console.error("Error fetching menu items: ", error);
     } finally {
       setLoading(false);
     }
+  };
+
+  // Increment quantity
+  const incrementQuantity = (id: string) => {
+    setQuantities((prev) => ({ ...prev, [id]: prev[id] + 1 }));
+  };
+
+  // Decrement quantity
+  const decrementQuantity = (id: string) => {
+    setQuantities((prev) => ({
+      ...prev,
+      [id]: prev[id] > 0 ? prev[id] - 1 : 0,
+    }));
+  };
+
+  // Handle Add to Cart
+  const handleAddToCart = () => {
+    const itemsToAdd = menuItems.filter((item) => quantities[item.id] > 0);
+    console.log("Items added to cart:", itemsToAdd);
+    Alert.alert("Cart Updated", `${itemsToAdd.length} item(s) added to your cart.`);
+    setMenuModalVisible(false); // Close the modal after adding
   };
 
   const renderItems = ({ item }: { item: ListingType }) => {
@@ -182,8 +213,8 @@ const RestaurantListing = ({ listings, category }: Props) => {
         horizontal
         showsHorizontalScrollIndicator={false}
       />
-      {/* Modal for Menu Items */}
-      <Modal
+       {/* Modal for Menu Items */}
+       <Modal
         visible={menuModalVisible}
         animationType="slide"
         onRequestClose={() => setMenuModalVisible(false)}
@@ -197,13 +228,25 @@ const RestaurantListing = ({ listings, category }: Props) => {
               <View style={styles.menuItemCard}>
                 <Image source={{ uri: item.imageUrl }} style={styles.image} />
                 <View style={styles.menuItemInfo}>
-            <Text style={styles.menuItemName}>{item.name}</Text>
-            <Text style={styles.menuItemDescription}>{item.description}</Text>
-            <Text style={styles.menuItemPrice}>RM {item.price}</Text>
-          </View>
+                  <Text style={styles.menuItemName}>{item.name}</Text>
+                  <Text style={styles.menuItemDescription}>{item.description}</Text>
+                  <Text style={styles.menuItemPrice}>RM {item.price}</Text>
+                </View>
+                <View style={styles.quantityContainer}>
+                  <TouchableOpacity onPress={() => decrementQuantity(item.id)}>
+                    <Text style={styles.quantityButton}>-</Text>
+                  </TouchableOpacity>
+                  <Text style={styles.quantityText}>{quantities[item.id]}</Text>
+                  <TouchableOpacity onPress={() => incrementQuantity(item.id)}>
+                    <Text style={styles.quantityButton}>+</Text>
+                  </TouchableOpacity>
+                </View>
               </View>
             )}
           />
+           <TouchableOpacity style={styles.addToCartButton} onPress={handleAddToCart}>
+            <Text style={styles.addToCartText}>Add To Cart</Text>
+          </TouchableOpacity>
         </View>
       </Modal>
     </GestureHandlerRootView>
@@ -348,4 +391,42 @@ const styles = StyleSheet.create({
     color: "#007BFF",
     marginLeft: 10, // Add left margin
   },
+  quantityContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginLeft: 10, // Align with other elements
+  },
+  
+  quantityButton: {
+    fontSize: 20,
+    fontWeight: "bold",
+    color: "#007BFF",
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderWidth: 1,
+    borderColor: "#ddd",
+    borderRadius: 4,
+  },
+  
+  quantityText: {
+    fontSize: 16,
+    fontWeight: "bold",
+    marginHorizontal: 8,
+  },
+  
+  addToCartButton: {
+    backgroundColor: "orange",
+    padding: 16,
+    borderRadius: 8,
+    alignItems: "center",
+    margin: 16,
+  },
+  
+  addToCartText: {
+    color: "#fff",
+    fontSize: 18,
+    fontWeight: "bold",
+  },
+  
 });
