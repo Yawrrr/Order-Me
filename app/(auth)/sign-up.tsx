@@ -59,7 +59,7 @@ const signUp = () => {
               />
               <CustomTextInput
                 placeholder="Phone Number"
-                onChangeText={(phoneNum) => (phoneNumRef.current = Number(phoneNum))}
+                onChangeText={(phoneNum) => (phoneNumRef.current = phoneNum)}
               />
               <CustomTextInput
                 placeholder="Address"
