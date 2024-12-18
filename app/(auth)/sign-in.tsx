@@ -36,11 +36,11 @@ const Login = () => {
       <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
         <ScrollView>
           <View className="p-4 h-full">
-            <View className="mt-6 max-h-[360px] items-center">
-              <Image source={images.man} className="max-h-[267px]" style={{resizeMode:"contain"}}  />
+            <View style={styles.info}>
+              <Image source={images.logo} className="max-h-[267px]" style={{ resizeMode: "contain" }} />
               <Text>Let's sign in to continue order me</Text>
             </View>
-            <View className="gap-4">
+            <View style={styles.form}>
               <CustomTextInput
                 placeholder="Email"
                 onChangeText={(email) => (emailRef.current = email)}
@@ -64,12 +64,23 @@ const Login = () => {
         </ScrollView>
       </TouchableWithoutFeedback>
     </SafeAreaView>
+
   );
 };
 
 export default Login;
 
 const styles = StyleSheet.create({
+  info: {
+    marginTop: 24, // Keeps some top spacing
+    marginBottom: 8, // Reduced bottom spacing
+    maxHeight: 360,
+    alignItems: "center",
+  },
+  form: {
+    gap: 16, // Reduced gap between input fields
+    marginTop: -10, // Moves the form closer to the text
+  },
   signUp: {
     marginTop: 8,
     flexDirection: "row",
