@@ -61,49 +61,50 @@ const Status: React.FC = () => {
 
   return (
     <SafeAreaView style={styles.container}>
-      <Text style={styles.header}>Order Status</Text>
-      {!selectedOrder ? (
-        <ScrollView>
-          {orders.map((order) => (
-            <TouchableOpacity
-              key={order.id}
-              style={styles.orderCard}
-              onPress={() => setSelectedOrder(order)}
-            >
-              <Text style={styles.orderCardText}>Order {order.id}</Text>
-              <Text style={styles.orderCardText}>Address: {order.address}</Text>
-              <Text style={styles.orderCardText}>Estimated Time: {order.estimatedTime}</Text>
-            </TouchableOpacity>
-          ))}
-        </ScrollView>
-      ) : (
-        <View>
-          <TouchableOpacity onPress={() => setSelectedOrder(null)}>
-            <Text style={styles.backButton}>Back</Text>
-          </TouchableOpacity>
-          <Text style={styles.subHeader}>Order Details</Text>
-          <Text style={styles.detailText}>Address: {selectedOrder.address}</Text>
-          <Text style={styles.detailText}>Estimated Time: {selectedOrder.estimatedTime}</Text>
-          <Text style={styles.subHeader}>Status</Text>
-          {selectedOrder.status.map((step, index) => (
-            <View key={index} style={styles.statusContainer}>
-              <View style={styles.statusDot} />
-              <View style={styles.statusLine} />
-              <Text style={styles.statusStep}>{step}</Text>
-            </View>
-          ))}
-          <Text style={styles.subHeader}>Items</Text>
-          {selectedOrder.items.map((item, index) => (
-            <View key={index} style={styles.itemRow}>
-              <Text style={styles.itemText}>
-                {item.name} x{item.quantity}
-              </Text>
-            </View>
-          ))}
-          <Text style={styles.totalText}>Total: RM {selectedOrder.total.toFixed(2)}</Text>
-
-          {/* Map Section */}
-          <Text style={styles.subHeader}>Delivery Location</Text>
+  {/* Fixed Header */}
+  <Text style={styles.header}>Order Status</Text>
+  
+  {/* Scrollable Content */}
+  <ScrollView contentContainerStyle={{ flexGrow: 1 }}>
+    {!selectedOrder ? (
+      orders.map((order) => (
+        <TouchableOpacity
+          key={order.id}
+          style={styles.orderCard}
+          onPress={() => setSelectedOrder(order)}
+        >
+          <Text style={styles.orderCardText}>Order {order.id}</Text>
+          <Text style={styles.orderCardText}>Address: {order.address}</Text>
+          <Text style={styles.orderCardText}>Estimated Time: {order.estimatedTime}</Text>
+        </TouchableOpacity>
+      ))
+    ) : (
+      <View>
+        <TouchableOpacity onPress={() => setSelectedOrder(null)}>
+          <Text style={styles.backButton}>Back</Text>
+        </TouchableOpacity>
+        <Text style={styles.subHeader}>Order Details</Text>
+        <Text style={styles.detailText}>Address: {selectedOrder.address}</Text>
+        <Text style={styles.detailText}>Estimated Time: {selectedOrder.estimatedTime}</Text>
+        <Text style={styles.subHeader}>Status</Text>
+        {selectedOrder.status.map((step, index) => (
+          <View key={index} style={styles.statusContainer}>
+            <View style={styles.statusDot} />
+            {index < selectedOrder.status.length - 1 && <View style={styles.statusLine} />}
+            <Text style={styles.statusStep}>{step}</Text>
+          </View>
+        ))}
+        <Text style={styles.subHeader}>Items</Text>
+        {selectedOrder.items.map((item, index) => (
+          <View key={index} style={styles.itemRow}>
+            <Text style={styles.itemText}>
+              {item.name} x{item.quantity}
+            </Text>
+          </View>
+        ))}
+        <Text style={styles.totalText}>Total: RM {selectedOrder.total.toFixed(2)}</Text>
+        <Text style={styles.subHeader}>Delivery Location</Text>
+        {selectedOrder.latitude && selectedOrder.longitude ? (
           <MapView
             style={styles.map}
             region={{
@@ -121,16 +122,23 @@ const Status: React.FC = () => {
               title={selectedOrder.address}
             />
           </MapView>
-        </View>
-      )}
-
-      <View style={styles.floatButton}>
-        <TouchableOpacity onPress={() => console.log('Map button pressed')}>
-          <Ionicons name="map-outline" size={32} color="orange" />
-          <Text style={{ color: '#666' }}>Map</Text>
-        </TouchableOpacity>
+        ) : (
+          <Text style={styles.detailText}>Map location unavailable for this order.</Text>
+        )}
       </View>
-    </SafeAreaView>
+    )}
+  </ScrollView>
+  
+  {/* Floating Button */}
+  <View style={styles.floatButton}>
+    <TouchableOpacity onPress={() => console.log('Map button pressed')}>
+      <Ionicons name="map-outline" size={32} color="orange" />
+      <Text style={{ color: '#666' }}>Map</Text>
+    </TouchableOpacity>
+  </View>
+</SafeAreaView>
+
+
   );
 };
 
