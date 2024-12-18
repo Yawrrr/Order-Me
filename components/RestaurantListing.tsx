@@ -37,8 +37,8 @@ const RestaurantListing = ({ listings, category }: Props) => {
   const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
   const [currentRestaurantName, setCurrentRestaurantName] = useState<string>("");
 
-  // New state to track quantities
-  const [quantities, setQuantities] = useState<{ [key: string]: number }>({});
+   // New state to track quantities
+   const [quantities, setQuantities] = useState<{ [key: string]: number }>({});
 
   // Load wishlist on mount
   useEffect(() => {
@@ -122,7 +122,7 @@ const RestaurantListing = ({ listings, category }: Props) => {
       })) as MenuItem[];
 
       setMenuItems(fetchedMenuItems);
-       // Initialize quantities for each menu item
+      // Initialize quantities for each menu item
       const initialQuantities = fetchedMenuItems.reduce((acc, item) => {
         acc[item.id] = 0;
         return acc;
@@ -213,8 +213,8 @@ const RestaurantListing = ({ listings, category }: Props) => {
         horizontal
         showsHorizontalScrollIndicator={false}
       />
-      {/* Modal for Menu Items */}
-      <Modal
+       {/* Modal for Menu Items */}
+       <Modal
         visible={menuModalVisible}
         animationType="slide"
         onRequestClose={() => setMenuModalVisible(false)}
@@ -244,7 +244,7 @@ const RestaurantListing = ({ listings, category }: Props) => {
               </View>
             )}
           />
-          <TouchableOpacity style={styles.addToCartButton} onPress={handleAddToCart}>
+           <TouchableOpacity style={styles.addToCartButton} onPress={handleAddToCart}>
             <Text style={styles.addToCartText}>Add To Cart</Text>
           </TouchableOpacity>
         </View>
@@ -428,4 +428,5 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: "bold",
   },
+  
 });

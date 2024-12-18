@@ -13,6 +13,7 @@ interface User {
   address?: string;
   profileImage?: string;
   restaurantName?: string;
+  restaurantAddress?: string;
   category?: string;
   restaurantImage?: string;
 }
@@ -35,6 +36,7 @@ const Profile = () => {
   const address = user?.address;
   const profileImage = user?.profileImage;
   const restaurantName = user?.restaurantName;
+  const restaurantAddress = user?.restaurantAddress;
   const restaurantImage = user?.restaurantImage;
   const category = user?.category;
 
@@ -85,6 +87,9 @@ const Profile = () => {
 
           <Text style={styles.label}>Restaurant Name</Text>
           <Text style={styles.infoText}>{restaurantName}</Text>
+
+          <Text style={styles.label}>Restaurant Address</Text>
+          <Text style={styles.infoText}>{restaurantAddress}</Text>
 
           <Text style={styles.label}>Category</Text>
           <Text style={styles.infoText}>{category}</Text>

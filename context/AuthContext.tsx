@@ -14,6 +14,7 @@ interface User {
   restaurantName: string;
   category: string;
   restaurantImage: string;
+  restaurantAddress: string
 }
 
 interface AuthContextType {
