@@ -14,9 +14,8 @@ import {
 import * as ImagePicker from "expo-image-picker";
 import * as FileSystem from "expo-file-system"; // Import expo-file-system
 import * as ImageManipulator from "expo-image-manipulator"; // Import image manipulator
-import { addDoc } from "firebase/firestore";
-import { itemsRef } from "../../FirebaseConfig"; // Adjust path if necessary
-import { useAuth } from "../../context/AuthContext"; // Replace with your actual auth provider
+import { itemsRef } from "../../FirebaseConfig"; // Adjust the import based on your folder structure
+import { useAuth } from "../../context/AuthContext";
 
 const AddMenu = () => {
   const [name, setName] = useState("");
