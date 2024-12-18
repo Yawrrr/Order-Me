@@ -17,9 +17,9 @@ interface User {
 }
 
 interface AuthContextType {
-  user: User | null;
-  isAuthenticated: boolean | undefined;
-  authInitialized: boolean;
+  user?: User | null;
+  isAuthenticated?: boolean | undefined;
+  role?: string | undefined;
   setUser: (user: User | null) => void;
   signIn: (email: string, password: string) => Promise<void>;
   signUp: (email: string, password: string, phoneNumber: string, address: string) => Promise<void>;
@@ -29,7 +29,7 @@ interface AuthContextType {
 const defaultAuthContext: AuthContextType = {
   user: null,
   isAuthenticated: undefined,
-  authInitialized: false,
+  role: undefined,
   setUser: () => {},
   signIn: async () => {},
   signUp: async () => {},
@@ -45,18 +45,20 @@ export const AuthContext = createContext<AuthContextType>(defaultAuthContext);
 export const AuthContextProvider = ({ children }: AuthContextProviderProps) => {
   const [user, setUser] = useState<User | null>(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [authInitialized, setAuthInitialized] = useState(false);
+  const [role, setRole] = useState<string>();
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(FIREBASE_AUTH, async (authUser) => {
       if (authUser) {
-        setIsAuthenticated(true);
         try {
           const userRef = doc(FIREBASE_DB, "users", authUser.uid);
           const userDoc = await getDoc(userRef);
           if (userDoc.exists()) {
             const userData = userDoc.data() as User;
             setUser(userData);
+            setRole(userData.role);
+            setIsAuthenticated(true);
+            // console.log("Your user role = "+role)
           }
         } catch (error: unknown) {
           if (error instanceof Error) {
@@ -68,8 +70,8 @@ export const AuthContextProvider = ({ children }: AuthContextProviderProps) => {
       } else {
         setIsAuthenticated(false);
         setUser(null);
+        setRole(undefined);
       }
-      setAuthInitialized(true);
     });
     return () => unsubscribe();
   }, []);
@@ -123,8 +125,8 @@ export const AuthContextProvider = ({ children }: AuthContextProviderProps) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, isAuthenticated, authInitialized, setUser, signIn, signUp, logout }}>
-      {authInitialized ? children : <Text>Loading...</Text>}
+    <AuthContext.Provider value={{ user, isAuthenticated, role, setUser, signIn, signUp, logout }}>
+      {children}
     </AuthContext.Provider>
   );
 };

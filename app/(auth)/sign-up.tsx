@@ -6,6 +6,7 @@ import {
   TouchableWithoutFeedback,
   View,
   Image,
+  KeyboardAvoidingView,
 } from "react-native";
 import React, { useRef, useState } from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -44,48 +45,50 @@ const signUp = () => {
 
   return (
     <SafeAreaView style={{ height: "100%" }}>
-      <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-        <ScrollView>
-          <View style={styles.container}>
-            <View style={styles.info}>
-              <Image source={images.man} style={styles.image}></Image>
-              <Text>Let's create an account to continue order me</Text>
+      <KeyboardAvoidingView>
+        <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+          <ScrollView>
+            <View style={styles.container}>
+              <View style={styles.info}>
+                <Image source={images.man} style={styles.image}></Image>
+                <Text>Let's create an account to continue order me</Text>
+              </View>
+              <View style={styles.form}>
+                <CustomTextInput
+                  placeholder="Email"
+                  onChangeText={(email) => (emailRef.current = email)}
+                />
+                <CustomTextInput
+                  placeholder="Phone Number"
+                  onChangeText={(phoneNum) => (phoneNumRef.current = phoneNum)}
+                />
+                <CustomTextInput
+                  placeholder="Address"
+                  onChangeText={(address) => (addressRef.current = address)}
+                />
+                <CustomTextInput
+                  placeholder="Password"
+                  onChangeText={(password) => (passwordRef.current = password)}
+                  secureTextEntry={true}
+                />
+                <CustomTextInput
+                  placeholder="Confirm Password"
+                  onChangeText={(cPassword) =>
+                    (confirmPasswordRef.current = cPassword)
+                  }
+                  secureTextEntry={true}
+                />
+                <CustomButton title="Sign Up" handleOnPress={handleSignUp} />
+              </View>
+              <View style={styles.line} />
+              <View style={styles.signUp}>
+                <Text>Already have an account? </Text>
+                <Link href="/sign-in">Sign In</Link>
+              </View>
             </View>
-            <View style={styles.form}>
-              <CustomTextInput
-                placeholder="Email"
-                onChangeText={(email) => (emailRef.current = email)}
-              />
-              <CustomTextInput
-                placeholder="Phone Number"
-                onChangeText={(phoneNum) => (phoneNumRef.current = Number(phoneNum))}
-              />
-              <CustomTextInput
-                placeholder="Address"
-                onChangeText={(address) => (addressRef.current = address)}
-              />
-              <CustomTextInput
-                placeholder="Password"
-                onChangeText={(password) => (passwordRef.current = password)}
-                secureTextEntry= {true}
-              />
-              <CustomTextInput
-                placeholder="Confirm Password"
-                onChangeText={(cPassword) =>
-                  (confirmPasswordRef.current = cPassword)
-                }
-                secureTextEntry={true}
-              />
-              <CustomButton title="Sign Up" handleOnPress={handleSignUp} />
-            </View>
-            <View style={styles.line} />
-            <View style={styles.signUp}>
-              <Text>Already have an account? </Text>
-              <Link href="/sign-in">Sign In</Link>
-            </View>
-          </View>
-        </ScrollView>
-      </TouchableWithoutFeedback>
+          </ScrollView>
+        </TouchableWithoutFeedback>
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 };

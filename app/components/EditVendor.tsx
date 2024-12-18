@@ -21,9 +21,8 @@ import * as ImageManipulator from "expo-image-manipulator";
 import * as ImagePicker from "expo-image-picker";
 
 const EditDetails: React.FC = () => {
-  const { user, setUser, authInitialized } = useAuth();
+  const { user, setUser } = useAuth();
 
-  if (!authInitialized) return <Text>Loading...</Text>;
 
   // States for both personal and vendor details
   const [username, setUsername] = useState(user?.username || "");

@@ -1,11 +1,6 @@
 import { StyleSheet, View, Text, Image, ListRenderItem } from "react-native";
 import React, { useEffect, useState } from "react";
-import {
-
-  FlatList,
-  TouchableOpacity,
-  Alert,
-} from "react-native";
+import { FlatList, TouchableOpacity, Alert } from "react-native";
 import { ListingType } from "@/type/listingType";
 import { saveWishlist, getWishlist } from "@/app/utility/storage";
 import { Ionicons, FontAwesome5 } from "@expo/vector-icons";
@@ -19,7 +14,8 @@ type Props = {
 };
 
 const RestaurantListing = ({ listings, category }: Props) => {
-  const [filteredListings, setFilteredListings] = useState<ListingType[]>(listings);
+  const [filteredListings, setFilteredListings] =
+    useState<ListingType[]>(listings);
   const [wishlist, setWishlist] = useState<ListingType[]>([]);
   const [loading, setLoading] = useState(false);
 
@@ -46,24 +42,33 @@ const RestaurantListing = ({ listings, category }: Props) => {
 
   // Toggle wishlist
   const handleWishlistToggle = async (item: ListingType) => {
-    const isAlreadyInWishlist = wishlist.some((wishlistItem) => wishlistItem.id === item.id);
+    const isAlreadyInWishlist = wishlist.some(
+      (wishlistItem) => wishlistItem.id === item.id
+    );
     let updatedWishlist;
-  
+
     if (isAlreadyInWishlist) {
       // Remove the item from the wishlist
-      updatedWishlist = wishlist.filter((wishlistItem) => wishlistItem.id !== item.id);
-      Alert.alert("Removed", `${item.name} has been removed from your wishlist.`);
+      updatedWishlist = wishlist.filter(
+        (wishlistItem) => wishlistItem.id !== item.id
+      );
+      Alert.alert(
+        "Removed",
+        `${item.name} has been removed from your wishlist.`
+      );
     } else {
       // Add the item to the wishlist
       updatedWishlist = [...wishlist, item];
       Alert.alert("Added", `${item.name} has been added to your wishlist.`);
     }
-  
+
     setWishlist(updatedWishlist);
     await saveWishlist(updatedWishlist); // Persist wishlist to AsyncStorage
   };
   const renderItems = ({ item }: { item: ListingType }) => {
-    const isInWishlist = wishlist.some((wishlistItem) => wishlistItem.id === item.id);
+    const isInWishlist = wishlist.some(
+      (wishlistItem) => wishlistItem.id === item.id
+    );
 
     return (
       <GestureHandlerRootView style={{ flex: 1 }}>
@@ -75,8 +80,16 @@ const RestaurantListing = ({ listings, category }: Props) => {
             </Text>
             <View style={styles.locationContainer}>
               <View style={styles.location}>
-                <FontAwesome5 name="map-marker-alt" size={18} color={colors.secondary[200]} />
-                <Text style={styles.itemLocationTxt} numberOfLines={1} ellipsizeMode="tail">
+                <FontAwesome5
+                  name="map-marker-alt"
+                  size={18}
+                  color={colors.secondary[200]}
+                />
+                <Text
+                  style={styles.itemLocationTxt}
+                  numberOfLines={1}
+                  ellipsizeMode="tail"
+                >
                   {item.location}
                 </Text>
               </View>
@@ -130,7 +143,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 3,
     elevation: 2,
-    padding:10
+    padding: 10,
   },
   image: {
     width: 200,

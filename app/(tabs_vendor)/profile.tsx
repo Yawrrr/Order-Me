@@ -18,7 +18,7 @@ interface User {
 }
 
 const Profile = () => {
-  const { logout, user }: { logout: () => Promise<void>; user: User | null } = useAuth();
+  const { logout, user }= useAuth();
 
   const handleLogout = async () => {
     await logout();

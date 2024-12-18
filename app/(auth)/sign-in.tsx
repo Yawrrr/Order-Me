@@ -6,6 +6,7 @@ import {
   Text,
   TouchableWithoutFeedback,
   View,
+  KeyboardAvoidingView,
 } from "react-native";
 import React, { useRef, useState } from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -33,36 +34,42 @@ const Login = () => {
 
   return (
     <SafeAreaView className="h-full">
-      <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-        <ScrollView>
-          <View className="p-4 h-full">
-            <View className="mt-6 max-h-[360px] items-center">
-              <Image source={images.man} className="max-h-[267px]" style={{resizeMode:"contain"}}  />
-              <Text>Let's sign in to continue order me</Text>
+      <KeyboardAvoidingView>
+        <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+          <ScrollView>
+            <View className="p-4 h-full">
+              <View className="mt-6 max-h-[360px] items-center">
+                <Image
+                  source={images.man}
+                  className="max-h-[267px]"
+                  style={{ resizeMode: "contain" }}
+                />
+                <Text>Let's sign in to continue order me</Text>
+              </View>
+              <View className="gap-4">
+                <CustomTextInput
+                  placeholder="Email"
+                  onChangeText={(email) => (emailRef.current = email)}
+                />
+                <CustomTextInput
+                  secureTextEntry
+                  placeholder="Password"
+                  onChangeText={(password) => (passwordRef.current = password)}
+                />
+                <CustomButton
+                  title="Sign In"
+                  handleOnPress={handleSignIn} // Disables button when loading
+                />
+              </View>
+              <View style={styles.line} />
+              <View style={styles.signUp}>
+                <Text>Don't have an account? </Text>
+                <Link href="/sign-up">Sign Up</Link>
+              </View>
             </View>
-            <View className="gap-4">
-              <CustomTextInput
-                placeholder="Email"
-                onChangeText={(email) => (emailRef.current = email)}
-              />
-              <CustomTextInput
-                secureTextEntry
-                placeholder="Password"
-                onChangeText={(password) => (passwordRef.current = password)}
-              />
-              <CustomButton
-                title="Sign In"
-                handleOnPress={handleSignIn} // Disables button when loading
-              />
-            </View>
-            <View style={styles.line} />
-            <View style={styles.signUp}>
-              <Text>Don't have an account? </Text>
-              <Link href="/sign-up">Sign Up</Link>
-            </View>
-          </View>
-        </ScrollView>
-      </TouchableWithoutFeedback>
+          </ScrollView>
+        </TouchableWithoutFeedback>
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 };
