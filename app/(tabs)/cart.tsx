@@ -10,7 +10,7 @@ export default function cart() {
   const auth = FIREBASE_AUTH;
 
   return (
-    <SafeAreaView style={{ height: "100%", padding: 25, paddingTop: 15 }}>
+    <SafeAreaView style={{ height: "100%", padding: 25, paddingTop: 15, backgroundColor: "#fff" }}>
       <View style={styles.header}>
         <Text style={styles.title}>My Carts</Text>
       </View>

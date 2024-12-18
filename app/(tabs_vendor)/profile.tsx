@@ -4,25 +4,38 @@ import { router } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useAuth } from "@/context/AuthContext";
 import images from "@/constants/images";
-import MaterialIcons from '@expo/vector-icons/MaterialIcons';// Import FontAwesome for the vendor icon
+import MaterialIcons from "@expo/vector-icons/MaterialIcons";
+
+interface User {
+  username?: string;
+  email: string;
+  phoneNumber?: string;
+  address?: string;
+  profileImage?: string;
+  restaurantName?: string;
+  category?: string;
+  restaurantImage?: string;
+}
 
 const Profile = () => {
-  const { logout, user } = useAuth();
+  const { logout, user }: { logout: () => Promise<void>; user: User | null } = useAuth();
 
   const handleLogout = async () => {
     await logout();
-    router.replace('/sign-in');
+    router.replace("/sign-in");
   };
 
   const navigateToCustomer = () => {
-    router.push('/home'); // Replace with the correct vendor-side route
+    router.push("/home");
   };
 
-  const username = user?.username ? user?.username : user?.email;
+  const username = user?.username ?? user?.email;
   const email = user?.email;
   const phoneNumber = user?.phoneNumber;
   const address = user?.address;
+  const profileImage = user?.profileImage;
   const restaurantName = user?.restaurantName;
+  const restaurantImage = user?.restaurantImage;
   const category = user?.category;
 
   return (
@@ -35,13 +48,12 @@ const Profile = () => {
           <Text style={styles.title}>Profile</Text>
           <View style={styles.headerActions}>
             <MaterialIcons
-              name="food-bank" // Shop icon
+              name="food-bank"
               size={36}
               color="orange"
               style={styles.iconSpacing}
               onPress={navigateToCustomer}
             />
-            {/* Logout Icon */}
             <MaterialIcons
               name="logout"
               size={30}
@@ -52,9 +64,13 @@ const Profile = () => {
         </View>
         <View className="items-center" style={styles.profileImageContainer}>
           <Image
-            source={images.defaultProfile}
+            source={
+              profileImage
+                ? { uri: profileImage }
+                 : require('../../assets/images/defaultProfile.png') // Use a placeholder URL
+            }
             style={styles.profileImage}
-          />
+            />
           <Text className="mt-4" style={styles.infoText}>{username}</Text>
         </View>
         <View style={styles.infoContainer}>
@@ -72,6 +88,16 @@ const Profile = () => {
 
           <Text style={styles.label}>Category</Text>
           <Text style={styles.infoText}>{category}</Text>
+
+          <Text style={styles.label}>Restaurant Image</Text>
+          <Image
+            source={
+              restaurantImage
+                ? { uri: restaurantImage }
+                 : { uri: "https://via.placeholder.com/150" } // Use a placeholder URL
+            }
+            style={styles.restaurantImage}
+          />
         </View>
         <TouchableOpacity
           style={styles.editButton}
@@ -83,7 +109,6 @@ const Profile = () => {
     </SafeAreaView>
   );
 };
-
 
 export default Profile;
 
@@ -148,10 +173,14 @@ const styles = StyleSheet.create({
     color: "white",
     fontWeight: "bold",
   },
-  headerIcon: {
-    marginLeft: 15,
-  },
   iconSpacing: {
-    marginRight: 20, // Space between the two icons
+    marginRight: 20,
+  },
+  restaurantImage: {
+    width: 150,
+    height: 150,
+    borderRadius: 10,
+    marginTop: 10,
+    resizeMode: "cover",
   },
 });

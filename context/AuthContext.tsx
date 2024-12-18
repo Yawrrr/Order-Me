@@ -5,13 +5,15 @@ import { onAuthStateChanged, signOut, signInWithEmailAndPassword, createUserWith
 import { doc, getDoc, setDoc } from "firebase/firestore";
 
 interface User {
-  address: string;
+  username: string;
   email: string;
   phoneNumber: string;
+  address: string;
+  profileImage: string;
   role: string;
-  username: string;
   restaurantName: string;
-  category:string;
+  category: string;
+  restaurantImage: string;
 }
 
 interface AuthContextType {

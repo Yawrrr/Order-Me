@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
+import { SafeAreaView } from "react-native-safe-area-context";
 import { View, Text, TouchableOpacity, StyleSheet, ScrollView } from 'react-native';
 import Ionicons from "@expo/vector-icons/Ionicons";
 import MapView, { Marker } from 'react-native-maps';
-import { SafeAreaView } from 'react-native-safe-area-context';
 
 // Define the types for the orders
 interface Order {

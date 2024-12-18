@@ -20,22 +20,23 @@ const Profile = () => {
 
   const username = user?.username ? user?.username : user?.email;
   const email = user?.email;
+  const profileImage = user?.profileImage;
   const phoneNumber = user?.phoneNumber;
   const address = user?.address;
 
   return (
-    <SafeAreaView style={{ height: "100%", padding: 25, paddingTop: 15 }}>
+    <SafeAreaView style={{ height: "100%", padding: 25, paddingTop: 15, }}>
       <View style={styles.header}>
         <Text style={styles.title}>Profile</Text>
         <View style={styles.headerActions}>
         
-<MaterialIcons
-  name="store" // Shop icon
-  size={30}
-  color="orange"
-  style={styles.iconSpacing}
-  onPress={navigateToVendor}
-/>
+      <MaterialIcons
+        name="store" // Shop icon
+        size={30}
+        color="orange"
+        style={styles.iconSpacing}
+        onPress={navigateToVendor}
+      />
           {/* Logout Icon */}
           <MaterialIcons
             name="logout"
@@ -47,9 +48,13 @@ const Profile = () => {
       </View>
       <View className="items-center" style={styles.profileImageContainer}>
         <Image
-          source={images.defaultProfile}
-          style={styles.profileImage}
-        />
+                    source={
+                      profileImage
+                        ? { uri: profileImage }
+                         : require('../../assets/images/defaultProfile.png') // Use a placeholder URL
+                    }
+                    style={styles.profileImage}
+                    />
         <Text className="mt-4" style={styles.infoText}>{username}</Text>
       </View>
       <View style={styles.infoContainer}>
