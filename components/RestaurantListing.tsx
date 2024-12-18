@@ -89,7 +89,7 @@ const RestaurantListing = ({ listings, category }: Props) => {
     fetchRestaurants();
   }, [category]);
 
-  // Toggle wishlist
+
   const handleWishlistToggle = async (item: ListingType) => {
     const isAlreadyInWishlist = wishlist.some((wishlistItem) => wishlistItem.id === item.id);
     let updatedWishlist;
@@ -343,13 +343,13 @@ const styles = StyleSheet.create({
   location: {
     flexDirection: "row",
     alignItems: "center",
-    flex: 1, // Take available space in the row
+    flex: 1, 
   },
   itemLocationTxt: {
     fontSize: 12,
     marginLeft: 5,
     flexShrink: 1,
-    fontWeight: "bold", // Allows the text to shrink if needed
+    fontWeight: "bold", 
   },
   ratingContainer: {
     flexDirection: "row",
