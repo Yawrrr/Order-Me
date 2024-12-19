@@ -44,7 +44,19 @@ const Home = () => {
           showsVerticalScrollIndicator={false}
         >
           <View style={styles.content}>
-            <Text style={styles.heading}>Order Me</Text>
+            <View style={styles.title}>
+              <Text style={styles.heading}>Order Me</Text>
+              <TouchableOpacity
+                onPress={() => router.push("/components/wishlist")}
+              >
+                <Ionicons
+                  name="heart"
+                  size={30}
+                  color="red"
+                  style={styles.testImage}
+                />
+              </TouchableOpacity>
+            </View>
             <View style={styles.searchWrapper}>
               <View style={styles.searchContainer}>
                 <TextInput
@@ -62,18 +74,6 @@ const Home = () => {
                     style={styles.searchIcon}
                   />
                 </TouchableOpacity>
-              </View>
-              <View>
-              <TouchableOpacity
-                onPress={() => router.push("/components/wishlist")}
-              >
-                <Ionicons
-                  name="heart"
-                  size={30}
-                  color="red"
-                  style={styles.testImage}
-                />
-              </TouchableOpacity>
               </View>
             </View>
             <CategoryButtons onCategoryChanged={onCatChanged} />
@@ -105,13 +105,13 @@ const styles = StyleSheet.create({
     justifyContent: "flex-end",
   },
   testImage: {
-    width: 60,
-    height: 60,
+    width: 45,
+    height: 45,
     borderRadius: 10,
     backgroundColor: "white",
-    padding: 15,
-    marginVertical : 10,
-    marginHorizontal : 10,
+    padding: 8,
+    marginVertical: 5,
+    marginHorizontal: 5,
   },
   menuIcon: {
     backgroundColor: "white",
@@ -140,7 +140,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     paddingHorizontal: 10,
     paddingVertical: 8,
-    maxWidth: "80%",
+    maxWidth: "100%",
   },
   searchIcon: {
     marginRight: 8,
@@ -151,10 +151,10 @@ const styles = StyleSheet.create({
     color: colors.black.DEFAULT,
   },
   title: {
-    marginTop: 10,
-    fontSize: 22,
-    fontWeight: "bold",
-    color: colors.black.DEFAULT,
+    flex: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between"
   },
   categoryBtn: {
     flexDirection: "row",
