@@ -8,14 +8,14 @@ import { router } from "expo-router";
 const App = () => {
   return (
     <SafeAreaView className="p-5 justify-center h-full gap-4">
-        <View className="items-center mb-16">
-          <Image source={icons.logo}></Image>
-          <Text>Welcome to Order Me!!!</Text>
-        </View>
-        <CustomButton
-          title="Continue with Email"
-          handleOnPress={() => router.replace("/sign-in")}
-        ></CustomButton>
+      <View className="items-center mb-16">
+        <Image source={icons.logo} style={{ resizeMode: "contain", maxHeight: 300 }}></Image>
+        <Text>Welcome to Order Me!!!</Text>
+      </View>
+      <CustomButton
+        title="Continue with Email"
+        handleOnPress={() => router.replace("/sign-in")}
+      ></CustomButton>
     </SafeAreaView>
   );
 };

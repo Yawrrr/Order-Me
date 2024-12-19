@@ -18,19 +18,7 @@ import RestaurantListing from "../../components/RestaurantListing";
 import restaurantData from "@/data/restaurants.json";
 import groupData from "@/data/groups.json";
 import GroupListings from "@/components/GroupListings";
-
-type Category = {
-  title: string;
-  iconName: string;
-};
-const Categories: Category[] = [
-  { title: "All", iconName: "food" },
-  { title: "Mix Rice", iconName: "rice" },
-  { title: "Indian Food", iconName: "food" },
-  { title: "Western Food", iconName: "food" },
-  { title: "Vegetarian", iconName: "food" },
-  { title: "Others", iconName: "fruit-watermelon" },
-];
+import { CategoryButtons } from "@/components/CategoryButton";
 
 const Home = () => {
   const [category, setCategory] = useState("All");
@@ -99,74 +87,6 @@ const Home = () => {
 };
 
 export default Home;
-
-type Props = {
-  onCategoryChanged: (category: string) => void;
-};
-const CategoryButtons = ({ onCategoryChanged }: Props) => {
-  const scrollRef = useRef<ScrollView>(null);
-  const itemRef = useRef<(typeof TouchableOpacity | null)[]>([]);
-  const [activeIndex, setActiveIndex] = useState(0);
-
-  const handleSelectCategory = (index: number) => {
-    setActiveIndex(index);
-    const selected = itemRef.current[index] as unknown as View;
-    selected?.measure(
-      (x: number, y: number, width: number, height: number, pageX: number) => {
-        scrollRef.current?.scrollTo({ x: pageX - 10, animated: true });
-      }
-    );
-    onCategoryChanged(Categories[index].title);
-  };
-
-  return (
-    <View>
-      <Text style={styles.title}>Categories</Text>
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        ref={scrollRef}
-        contentContainerStyle={{
-          gap: 20,
-          paddingVertical: 10,
-          marginBottom: 10,
-        }}
-      >
-        {Categories.map((item, index) => (
-          <TouchableOpacity
-            key={index}
-            ref={(el) => (itemRef.current[index] = el as any)}
-            onPress={() => handleSelectCategory(index)}
-            style={
-              activeIndex === index
-                ? styles.categoryBtnActive
-                : styles.categoryBtn
-            }
-          >
-            <MaterialCommunityIcons
-              name={item.iconName as any}
-              size={20}
-              color={
-                activeIndex === index
-                  ? colors.white.DEFAULT
-                  : colors.black.DEFAULT
-              }
-            />
-            <Text
-              style={
-                activeIndex === index
-                  ? styles.categoryBtnActiveText
-                  : styles.categoryBtnText
-              }
-            >
-              {item.title}
-            </Text>
-          </TouchableOpacity>
-        ))}
-      </ScrollView>
-    </View>
-  );
-};
 
 const styles = StyleSheet.create({
   container: {

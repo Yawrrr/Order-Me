@@ -1,5 +1,5 @@
 export interface ListingType {
-  id: number;
+  id: string;
   name: string;
   imageUrl: string;
   category: string;
