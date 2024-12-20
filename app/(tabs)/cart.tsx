@@ -4,9 +4,11 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { FIREBASE_AUTH, FIREBASE_DB } from "../../FirebaseConfig";
 import { collection, query, where, getDocs, getDoc, deleteDoc, doc, updateDoc, onSnapshot } from "firebase/firestore";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
+import StartNewCartCard from "../../components/MyCarts/StartNewCartCard";
 
 // Define types for cart items and quantities
 type CartItem = {
+  restaurantName: string;
   id: string;
   name: string;
   quantity: number;
@@ -18,9 +20,9 @@ type CartItem = {
 export default function Cart() {
   const [userCart, setUserCart] = useState<CartItem[]>([]);
   const [quantities, setQuantities] = useState<{ [key: string]: number }>({});
+  const [restaurantName, setRestaurantName] = useState<string>(""); // Track restaurant name
   const [loading, setLoading] = useState(false);
   const auth = FIREBASE_AUTH;
-  const currentRestaurantName = "Example Restaurant"; // Replace with actual restaurant name
 
   // Fetch cart data
   const fetchCartData = async () => {
@@ -51,37 +53,6 @@ export default function Cart() {
     }
   };
 
-  // // Update the updateCartItem function to handle price calculation
-  // const updateCartItem = async (itemId: string, quantity: number) => {
-  //   const userEmail = auth.currentUser?.email;
-  //   if (!userEmail) return;
-  
-  //   setLoading(true); // Indicate that Firestore is being updated
-  
-  //   try {
-  //     // Get the current cart item document
-  //     const cartDocRef = doc(FIREBASE_DB, "carts", itemId);
-  //     const cartDocSnap = await getDoc(cartDocRef);
-  
-  //     if (cartDocSnap.exists()) {
-  //       const cartItemData = cartDocSnap.data();
-  //       const oriPrice = cartItemData?.oriPrice || 0; // Assuming oriPrice exists in the document
-  
-  //       // Calculate the new total price
-  //       const newTotalPrice = oriPrice * quantity;
-  
-  //       // Update the quantity and totalPrice in Firestore
-  //       await updateDoc(cartDocRef, { quantity, totalPrice: newTotalPrice });
-  //     } else {
-  //       console.error("Cart item not found");
-  //     }
-  //   } catch (error) {
-  //     console.error("Error updating cart item: ", error);
-  //     Alert.alert("Error", "Failed to update item.");
-  //   } finally {
-  //     setLoading(false); // End loading state
-  //   }
-  // };
   const updateCartItem = async (itemId: string, quantity: number) => {
     const userEmail = auth.currentUser?.email;
     if (!userEmail) return;
@@ -89,21 +60,17 @@ export default function Cart() {
     setLoading(true); // Indicate that Firestore is being updated
   
     try {
-      // Get the current cart item document
       const cartDocRef = doc(FIREBASE_DB, "carts", itemId);
       const cartDocSnap = await getDoc(cartDocRef);
   
       if (cartDocSnap.exists()) {
         const cartItemData = cartDocSnap.data();
-        const oriPrice = cartItemData?.oriPrice || 0; // Assuming oriPrice exists in the document
+        const oriPrice = cartItemData?.oriPrice || 0;
   
-        // Calculate the new total price
         const newTotalPrice = oriPrice * quantity;
   
-        // Update the quantity and totalPrice in Firestore
         await updateDoc(cartDocRef, { quantity, totalPrice: newTotalPrice });
   
-        // Update the `userCart` state with the new totalPrice and quantity
         setUserCart((prev) =>
           prev.map((item) =>
             item.id === itemId ? { ...item, quantity, totalPrice: newTotalPrice } : item
@@ -116,22 +83,22 @@ export default function Cart() {
       console.error("Error updating cart item: ", error);
       Alert.alert("Error", "Failed to update item.");
     } finally {
-      setLoading(false); // End loading state
+      setLoading(false);
     }
   };
   
   const incrementQuantity = (id: string) => {
     setQuantities((prev) => {
       const newQuantities = { ...prev, [id]: prev[id] + 1 };
-      updateCartItem(id, newQuantities[id]); // Update Firestore and local state
+      updateCartItem(id, newQuantities[id]);
       return newQuantities;
     });
   };
   
   const decrementQuantity = (id: string) => {
     setQuantities((prev) => {
-      const newQuantities = { ...prev, [id]: Math.max(prev[id] - 1, 0) }; // Prevent negative quantities
-      updateCartItem(id, newQuantities[id]); // Update Firestore and local state
+      const newQuantities = { ...prev, [id]: Math.max(prev[id] - 1, 0) };
+      updateCartItem(id, newQuantities[id]);
       return newQuantities;
     });
   };
@@ -156,25 +123,22 @@ export default function Cart() {
   
       setQuantities(initialQuantities);
       setUserCart(cartItems);
+      if (cartItems.length > 0) {
+        setRestaurantName(cartItems[0].restaurantName);
+      } else {
+        setRestaurantName("");
+      }
     });
   
-    return unsubscribe; // Clean up listener on unmount
+    return unsubscribe;
   };
-  
-  useEffect(() => {
-    const unsubscribe = fetchCartDataRealTime();
-    return () => unsubscribe && unsubscribe();
-  }, []);
-  
+
   const deleteCartItem = async (itemId: string) => {
     Alert.alert(
       "Confirm Deletion",
       "Are you sure you want to remove this item from your cart?",
       [
-        {
-          text: "Cancel",
-          style: "cancel",
-        },
+        { text: "Cancel", style: "cancel" },
         {
           text: "Yes",
           onPress: async () => {
@@ -184,14 +148,8 @@ export default function Cart() {
             setLoading(true);
 
             try {
-              // Reference to the cart document using the itemId
               const cartDocRef = doc(FIREBASE_DB, "carts", itemId);
-              
-              // Delete the item from Firestore
               await deleteDoc(cartDocRef);
-              console.log("Item deleted successfully");
-
-              // Refresh the cart data
               fetchCartData();
               Alert.alert("Success", "Item deleted successfully!");
             } catch (error) {
@@ -207,13 +165,27 @@ export default function Cart() {
   };
 
   useEffect(() => {
+    const unsubscribe = fetchCartDataRealTime();
+    return () => unsubscribe && unsubscribe();
+  }, []);
+
+  useEffect(() => {
     fetchCartData();
   }, []);
+
+  // Calculate total price
+  const calculateTotalPrice = () => {
+    return userCart.reduce((sum, item) => sum + (item.totalPrice || 0), 0);
+  };
 
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.title}>My Cart</Text>
+        {userCart?.length == 0 ? <StartNewCartCard /> : null}
+        <Text style={styles.restaurantName}>{restaurantName}</Text>
+
+       
       </View>
 
       <FlatList
@@ -230,7 +202,6 @@ export default function Cart() {
               <Text style={styles.itemPrice}>
                   RM {(item.totalPrice || 0).toFixed(2)}
                 </Text>
-              
               <View style={styles.quantityContainer}>
                 <TouchableOpacity onPress={() => decrementQuantity(item.id)}>
                   <Text style={styles.quantityButton}>-</Text>
@@ -241,13 +212,19 @@ export default function Cart() {
                 </TouchableOpacity>
               </View>
             </View>
-            {/* Delete Icon */}
             <TouchableOpacity onPress={() => deleteCartItem(item.id)} style={styles.deleteIcon}>
               <MaterialIcons name="delete-forever" size={25} color="red" />
             </TouchableOpacity>
           </View>
         )}
       />
+
+      <View style={styles.footer}>
+        <Text style={styles.totalPrice}>Total: RM {calculateTotalPrice().toFixed(2)}</Text>
+        <TouchableOpacity style={styles.reviewButton} onPress={() => Alert.alert("Review Payment", "Proceed to payment and address review.")}>
+          <Text style={styles.checkOut}>Checkout</Text>
+        </TouchableOpacity>
+      </View>
     </SafeAreaView>
   );
 }
@@ -259,14 +236,15 @@ const styles = StyleSheet.create({
     backgroundColor: "#fff",
   },
   header: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
+    alignItems: "flex-start",
+    justifyContent: "center",
+    marginBottom: 10,
   },
   title: {
     fontFamily: "Poppins-Bold",
-    fontSize: 24,
+    fontSize: 30,
     color: "orange",
+    marginBottom: 5,
   },
   cartItem: {
     flexDirection: "row",
@@ -308,5 +286,35 @@ const styles = StyleSheet.create({
   },
   deleteIcon: {
     marginLeft: 10,
+  },
+  restaurantName: {
+    fontFamily: "Poppins-Bold",
+    fontSize: 16,
+    color: "gray",
+    paddingLeft:10,
+    marginBottom:-12,
+  },
+  footer: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    padding: 10,
+    borderTopWidth: 1,
+    borderColor: "#ddd",
+    backgroundColor: "#f9f9f9",
+  },
+  totalPrice: {
+    fontSize: 18,
+    fontWeight: "bold",
+    color: "black",
+  },
+  reviewButton: {
+    backgroundColor: "orange",
+    padding: 10,
+    borderRadius: 8,
+  },
+  checkOut: {
+    color: "white",
+    fontWeight: "bold",
   },
 });
