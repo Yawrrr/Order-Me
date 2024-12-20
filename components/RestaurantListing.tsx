@@ -14,7 +14,8 @@ import { Ionicons, FontAwesome5 } from "@expo/vector-icons";
 import { colors } from "@/constants/colors";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { FIREBASE_DB } from "@/FirebaseConfig";
-import { collection, getDocs, query, where } from "firebase/firestore";
+import { doc, setDoc, updateDoc, collection, getDocs, query, where, deleteDoc } from "firebase/firestore";
+import { getAuth } from "firebase/auth";
 
 type Props = {
   listings: ListingType[];
@@ -36,7 +37,7 @@ const RestaurantListing = ({ listings, category }: Props) => {
   const [menuModalVisible, setMenuModalVisible] = useState(false);
   const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
   const [currentRestaurantName, setCurrentRestaurantName] = useState<string>("");
-
+  const auth = getAuth();
    // New state to track quantities
    const [quantities, setQuantities] = useState<{ [key: string]: number }>({});
 
@@ -151,12 +152,69 @@ const RestaurantListing = ({ listings, category }: Props) => {
   };
 
   // Handle Add to Cart
-  const handleAddToCart = () => {
-    const itemsToAdd = menuItems.filter((item) => quantities[item.id] > 0);
-    console.log("Items added to cart:", itemsToAdd);
-    Alert.alert("Cart Updated", `${itemsToAdd.length} item(s) added to your cart.`);
-    setMenuModalVisible(false); // Close the modal after adding
+  const handleAddToCart = async () => {
+    const userEmail = auth.currentUser?.email; // Replace with actual user email retrieval
+    if (!userEmail) {
+      Alert.alert("Error", "Please log in to add items to the cart.");
+      return;
+    }
+  
+    setLoading(true);
+  
+    try {
+      // Loop through items added to the cart
+      for (const item of menuItems) {
+        const quantity = quantities[item.id];
+        if (quantity > 0) {
+          const cartRef = collection(FIREBASE_DB, "carts");
+          const cartQuery = query(
+            cartRef,
+            where("email", "==", userEmail),
+            where("restaurantName", "==", currentRestaurantName),
+            where("name", "==", item.name)
+          );
+  
+          const existingCartDocs = await getDocs(cartQuery);
+  
+          const totalPrice = item.price * quantity; // Calculate total price
+  
+          if (!existingCartDocs.empty) {
+            // If item exists in the cart, update its quantity and total price
+            const existingDoc = existingCartDocs.docs[0];
+            const newQuantity = existingDoc.data().quantity + quantity;
+            const newTotalPrice = item.price * newQuantity;
+  
+            await updateDoc(existingDoc.ref, { 
+              quantity: newQuantity,
+              totalPrice: newTotalPrice // Update total price as well
+            });
+          } else {
+            // Add a new document for the new item
+            const newCartItem = {
+              restaurantName: currentRestaurantName,
+              name: item.name,
+              price: item.price,
+              quantity: quantity,
+              totalPrice: totalPrice, // Save total price for this item
+              email: userEmail,
+              imageUrl: item.imageUrl,
+            };
+  
+            await setDoc(doc(cartRef), newCartItem);
+          }
+        }
+      }
+  
+      Alert.alert("Cart Updated", `${menuItems.length} item(s) added to your cart.`);
+    } catch (error) {
+      console.error("Error adding to cart: ", error);
+      Alert.alert("Error", "Could not update cart. Please try again.");
+    } finally {
+      setLoading(false);
+      setMenuModalVisible(false); // Close the modal after adding
+    }
   };
+  
 
   const renderItems = ({ item }: { item: ListingType }) => {
     const isInWishlist = wishlist.some((wishlistItem) => wishlistItem.id === item.id);
