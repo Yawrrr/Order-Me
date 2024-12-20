@@ -12,7 +12,7 @@ import { ListingType } from "@/type/listingType";
 import { saveWishlist, getWishlist } from "@/app/utility/storage";
 import { MaterialIcons, FontAwesome5, Ionicons } from "@expo/vector-icons"; 
 import { colors } from "@/constants/colors";
-import { Link } from "expo-router";  
+import { Link } from "expo-router"; 
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { useRouter } from "expo-router"; 
 import { getAuth } from "firebase/auth";
@@ -55,7 +55,10 @@ const Wishlist = () => {
       updatedWishlist = updatedWishlist.filter(
         (wishlistItem) => wishlistItem.id !== item.id
       );
-      Alert.alert("Removed", `${item.name} has been removed from your wishlist.`);
+      Alert.alert(
+        "Removed",
+        `${item.name} has been removed from your wishlist.`
+      );
     } else {
       updatedWishlist.push(item);  
       Alert.alert("Added", `${item.name} has been added to your wishlist.`);
@@ -77,8 +80,16 @@ const Wishlist = () => {
             </Text>
             <View style={styles.locationContainer}>
               <View style={styles.location}>
-                <FontAwesome5 name="map-marker-alt" size={18} color={colors.secondary[200]} />
-                <Text style={styles.itemLocationTxt} numberOfLines={1} ellipsizeMode="tail">
+                <FontAwesome5
+                  name="map-marker-alt"
+                  size={18}
+                  color={colors.secondary[200]}
+                />
+                <Text
+                  style={styles.itemLocationTxt}
+                  numberOfLines={1}
+                  ellipsizeMode="tail"
+                >
                   {item.location}
                 </Text>
               </View>
@@ -97,7 +108,8 @@ const Wishlist = () => {
     <View style={styles.container}>
       <View style={styles.customHeader}>
         <TouchableOpacity onPress={back}>
-          <MaterialIcons name="arrow-back-ios" size={28} color="black" />
+          <MaterialIcons name="arrow-back-ios" size={28} color="black" />{" "}
+         
         </TouchableOpacity>
         <Text style={styles.headerTitle}>My Wishlist</Text>
       </View>
@@ -125,7 +137,6 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingTop: 20,
     paddingHorizontal: 10,
-
   },
   customHeader: {
     flexDirection: "row",
@@ -141,8 +152,7 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     color: colors.secondary.DEFAULT,
     marginLeft: 20,
-    marginBottom:5
- 
+    marginBottom: 5,
   },
   card: {
     backgroundColor: "white",
@@ -155,8 +165,8 @@ const styles = StyleSheet.create({
     shadowRadius: 3,
     elevation: 2,
     position: "relative",
-    margin:20,
-   padding:10
+    margin: 20,
+    padding: 10, 
   },
   image: {
     width: 200,
@@ -197,7 +207,7 @@ const styles = StyleSheet.create({
   },
   emptyWishlistContainer: {
     flex: 1,
-   marginTop:100,
+    marginTop: 100,
     alignItems: "center",
     padding: 20,
   },
