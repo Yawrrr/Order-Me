@@ -4,7 +4,7 @@ import { FIREBASE_AUTH, FIREBASE_DB } from "@/FirebaseConfig";
 import { onAuthStateChanged, signOut, signInWithEmailAndPassword, createUserWithEmailAndPassword } from "firebase/auth";
 import { doc, getDoc, setDoc } from "firebase/firestore";
 
-interface User {
+export interface User {
   username: string;
   email: string;
   phoneNumber: string;
@@ -59,7 +59,8 @@ export const AuthContextProvider = ({ children }: AuthContextProviderProps) => {
             setUser(userData);
             setRole(userData.role);
             setIsAuthenticated(true);
-            // console.log("Your user role = "+role)
+            // console.log("Your user details : "+ JSON.stringify(userData, null, 2))
+            console.log("Your category: " + userData.category)
           }
         } catch (error: unknown) {
           if (error instanceof Error) {

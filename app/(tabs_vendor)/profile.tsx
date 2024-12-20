@@ -5,18 +5,19 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { useAuth } from "@/context/AuthContext";
 import images from "@/constants/images";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
+import { User } from "@/context/AuthContext";
 
-interface User {
-  username?: string;
-  email: string;
-  phoneNumber?: string;
-  address?: string;
-  profileImage?: string;
-  restaurantName?: string;
-  restaurantAddress?: string;
-  category?: string;
-  restaurantImage?: string;
-}
+// interface User {
+//   username?: string;
+//   email: string;
+//   phoneNumber?: string;
+//   address?: string;
+//   profileImage?: string;
+//   restaurantName?: string;
+//   restaurantAddress?: string;
+//   category?: string;
+//   restaurantImage?: string;
+// }
 
 const Profile = () => {
   const { logout, user }= useAuth();

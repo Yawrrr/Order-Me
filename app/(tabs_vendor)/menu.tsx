@@ -11,13 +11,23 @@ import {
   Alert,
   TouchableOpacity,
 } from "react-native";
-import { getDocs, query, where, deleteDoc, doc, updateDoc } from "firebase/firestore";
+import {
+  getDocs,
+  query,
+  where,
+  deleteDoc,
+  doc,
+  updateDoc,
+} from "firebase/firestore";
 import * as ImagePicker from "expo-image-picker";
 import * as ImageManipulator from "expo-image-manipulator"; // Import image manipulator
 import * as FileSystem from "expo-file-system"; // Import for converting to base64
 import { itemsRef } from "../../FirebaseConfig"; // Adjust the import based on your folder structure
 import { useAuth } from "../../context/AuthContext";
-
+import {
+  GestureHandlerRootView,
+  ScrollView,
+} from "react-native-gesture-handler";
 
 interface Item {
   id: string;
@@ -38,10 +48,10 @@ const MenuScreen = () => {
   const [editedPrice, setEditedPrice] = useState("");
   const [editedImageUrl, setEditedImageUrl] = useState(""); // Image URL for editing
   const [editedImageUri, setEditedImageUri] = useState<string | null>(null); // For picked image
-  const { user } = useAuth();  // Assuming useAuth gives the authenticated user object
-  const email = user?.email;   // Make sure it's not undefined
+  const { user } = useAuth(); // Assuming useAuth gives the authenticated user object
+  const email = user?.email; // Make sure it's not undefined
   const restaurantName = user?.restaurantName; // Make sure it's not undefined
-  
+
   useEffect(() => {
     if (!user) {
       console.error("User is not authenticated.");
@@ -78,7 +88,10 @@ const MenuScreen = () => {
       } catch (error: unknown) {
         if (error instanceof Error) {
           console.error("Error fetching items:", error.message);
-          Alert.alert("Error", error.message || "There was an issue fetching the items.");
+          Alert.alert(
+            "Error",
+            error.message || "There was an issue fetching the items."
+          );
         } else {
           console.error("An unexpected error occurred:", error);
           Alert.alert("Error", "An unexpected error occurred.");
@@ -90,7 +103,6 @@ const MenuScreen = () => {
 
     fetchItems();
   }, [user, email, restaurantName]);
-  
 
   const handleDeleteItem = async (id: string) => {
     try {
@@ -112,32 +124,35 @@ const MenuScreen = () => {
     setEditedImageUri(null); // Reset picked image if any
   };
 
-
   const pickImage = async () => {
     try {
-      const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      const permissionResult =
+        await ImagePicker.requestMediaLibraryPermissionsAsync();
       if (!permissionResult.granted) {
-        Alert.alert("Permission Denied", "You need to allow access to your photos.");
+        Alert.alert(
+          "Permission Denied",
+          "You need to allow access to your photos."
+        );
         return;
       }
-  
+
       const result = await ImagePicker.launchImageLibraryAsync({
         mediaTypes: ImagePicker.MediaTypeOptions.Images,
         allowsEditing: true,
         quality: 1, // High-quality image
       });
-  
+
       if (!result.canceled && result.assets && result.assets.length > 0) {
         const imageUri = result.assets[0].uri;
         setEditedImageUri(imageUri); // Set the picked image URI
-  
+
         // Resize the image to a smaller resolution (e.g., 600px wide)
         const resizedImage = await ImageManipulator.manipulateAsync(
           imageUri,
           [{ resize: { width: 600 } }], // Resize to a width of 600px (adjust as needed)
           { compress: 0.7, format: ImageManipulator.SaveFormat.JPEG } // Compress the image to 70%
         );
-  
+
         const base64Image = await convertImageToBase64(resizedImage.uri); // Convert to base64
         setEditedImageUrl(base64Image); // Set the base64 image for saving
       }
@@ -146,7 +161,7 @@ const MenuScreen = () => {
       Alert.alert("Error", "Failed to pick an image.");
     }
   };
-  
+
   // Function to convert the image to Base64 after resizing and compressing
   const convertImageToBase64 = async (uri: string): Promise<string> => {
     try {
@@ -159,13 +174,13 @@ const MenuScreen = () => {
       return "";
     }
   };
-  
+
   const handleSaveChanges = async () => {
     if (!editedName || !editedDescription || !editedPrice || !editedImageUrl) {
       Alert.alert("Error", "Please fill in all fields.");
       return;
     }
-  
+
     try {
       const itemDoc = doc(itemsRef, editingItem?.id || "");
       await updateDoc(itemDoc, {
@@ -174,7 +189,7 @@ const MenuScreen = () => {
         price: parseFloat(editedPrice),
         imageUrl: editedImageUrl, // Save the base64 string
       });
-  
+
       setItems((prevItems) =>
         prevItems.map((item) =>
           item.id === editingItem?.id
@@ -188,7 +203,7 @@ const MenuScreen = () => {
             : item
         )
       );
-  
+
       setEditingItem(null);
       Alert.alert("Success", "Item updated successfully!");
     } catch (error) {
@@ -206,80 +221,97 @@ const MenuScreen = () => {
   }
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.header}>Menu</Text>
+      <View style={styles.container}>
+        <Text style={styles.header}>Menu</Text>
+          {editingItem ? (
+            <View style={styles.editForm}>
+              <TextInput
+                style={styles.input}
+                placeholder="Item Name"
+                value={editedName}
+                onChangeText={setEditedName}
+              />
+              <TextInput
+                style={styles.input}
+                placeholder="Description"
+                value={editedDescription}
+                onChangeText={setEditedDescription}
+              />
+              <TextInput
+                style={styles.input}
+                placeholder="Price"
+                value={editedPrice}
+                onChangeText={setEditedPrice}
+                keyboardType="numeric"
+              />
 
-      {editingItem ? (
-        <View style={styles.editForm}>
-          <TextInput
-            style={styles.input}
-            placeholder="Item Name"
-            value={editedName}
-            onChangeText={setEditedName}
-          />
-          <TextInput
-            style={styles.input}
-            placeholder="Description"
-            value={editedDescription}
-            onChangeText={setEditedDescription}
-          />
-          <TextInput
-            style={styles.input}
-            placeholder="Price"
-            value={editedPrice}
-            onChangeText={setEditedPrice}
-            keyboardType="numeric"
-          />
+              {/* Enter Item Image URL input */}
+              <TextInput
+                style={styles.input}
+                placeholder="Enter Item Image URL"
+                value={editedImageUrl}
+                onChangeText={setEditedImageUrl}
+                numberOfLines={3}
+                multiline={true}
+                maxLength={500}
+              />
 
-          {/* Enter Item Image URL input */}
-          <TextInput
-            style={styles.input}
-            placeholder="Enter Item Image URL"
-            value={editedImageUrl}
-            onChangeText={setEditedImageUrl}
-          />
+              {/* OR text */}
+              <Text style={styles.orText}>OR</Text>
 
-          {/* OR text */}
-          <Text style={styles.orText}>OR</Text>
+              {/* Pick an image button */}
+              <TouchableOpacity style={styles.imagePicker} onPress={pickImage}>
+                <Text style={styles.imagePickerText}>Pick an Image</Text>
+              </TouchableOpacity>
 
-          {/* Pick an image button */}
-          <TouchableOpacity style={styles.imagePicker} onPress={pickImage}>
-            <Text style={styles.imagePickerText}>Pick an Image</Text>
-          </TouchableOpacity>
+              {/* Display the image preview */}
+              {(editedImageUri || editedImageUrl) && (
+                <Image
+                  source={{ uri: editedImageUri || editedImageUrl }}
+                  style={styles.previewImage}
+                />
+              )}
 
-          {/* Display the image preview */}
-          {(editedImageUri || editedImageUrl) && (
-            <Image
-              source={{ uri: editedImageUri || editedImageUrl }}
-              style={styles.previewImage}
+              <Button
+                title="Save Changes"
+                onPress={handleSaveChanges}
+                color="orange"
+              />
+            </View>
+          ) : (
+            <FlatList
+              data={items}
+              keyExtractor={(item) => item.id}
+              renderItem={({ item }) => (
+                <View style={styles.card}>
+                  <View style={styles.cardContent}>
+                    <Image
+                      source={{ uri: item.imageUrl }}
+                      style={styles.image}
+                    />
+                    <View style={styles.itemInfo}>
+                      <Text style={styles.name}>{item.name}</Text>
+                      <Text style={styles.description}>{item.description}</Text>
+                      <Text style={styles.price}>RM {item.price}</Text>
+                    </View>
+                  </View>
+                  <View style={styles.actions}>
+                    <Button
+                      title="Edit"
+                      onPress={() => handleEditItem(item)}
+                      color="green"
+                    />
+                    <Button
+                      title="Delete"
+                      onPress={() => handleDeleteItem(item.id)}
+                      color="red"
+                    />
+                  </View>
+                </View>
+              )}
             />
           )}
-
-          <Button title="Save Changes" onPress={handleSaveChanges} color="orange" />
-        </View>
-      ) : (
-        <FlatList
-          data={items}
-          keyExtractor={(item) => item.id}
-          renderItem={({ item }) => (
-            <View style={styles.card}>
-              <View style={styles.cardContent}>
-                <Image source={{ uri: item.imageUrl }} style={styles.image} />
-                <View style={styles.itemInfo}>
-                  <Text style={styles.name}>{item.name}</Text>
-                  <Text style={styles.description}>{item.description}</Text>
-                  <Text style={styles.price}>RM {item.price}</Text>
-                </View>
-              </View>
-              <View style={styles.actions}>
-                <Button title="Edit" onPress={() => handleEditItem(item)} color="green" />
-                <Button title="Delete" onPress={() => handleDeleteItem(item.id)} color="red" />
-              </View>
-            </View>
-          )}
-        />
-      )}
-    </View>
+      </View>
   );
 };
 

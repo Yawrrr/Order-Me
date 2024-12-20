@@ -22,8 +22,6 @@ import * as ImagePicker from "expo-image-picker";
 
 const EditDetails: React.FC = () => {
   const { user, setUser } = useAuth();
-
-
   // States for both personal and vendor details
   const [username, setUsername] = useState(user?.username || "");
   const [phoneNumber, setPhoneNumber] = useState(user?.phoneNumber || "");
@@ -91,7 +89,7 @@ const EditDetails: React.FC = () => {
       const userDoc = userSnapshot.docs[0];
       const userDocRef = doc(FIREBASE_DB, "users", userDoc.id);
 
-      const updatedUser = { username, phoneNumber, address, restaurantAddress, profileImage: profileImage || "" };
+      const updatedUser = { username, phoneNumber, address, restaurantName, category, restaurantAddress, profileImage: profileImage || "" };
       await updateDoc(userDocRef, updatedUser);
       setUser({ ...user, ...updatedUser });
 
@@ -257,7 +255,7 @@ const EditDetails: React.FC = () => {
 
           {/* Save Button */}
           <TouchableOpacity style={styles.saveButton} onPress={handleSave} disabled={loading}>
-            <Text style={styles.buttonText}>              {loading ? "Saving..." : "Save Changes"}</Text>
+            <Text style={styles.buttonText}>{loading ? "Saving..." : "Save Changes"}</Text>
           </TouchableOpacity>
         </SafeAreaView>
       </SafeAreaView>
