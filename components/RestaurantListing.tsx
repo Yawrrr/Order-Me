@@ -162,50 +162,53 @@ const RestaurantListing = ({ listings, category }: Props) => {
     setLoading(true);
   
     try {
-      // Loop through items added to the cart
-      for (const item of menuItems) {
-        const quantity = quantities[item.id];
-        if (quantity > 0) {
-          const cartRef = collection(FIREBASE_DB, "carts");
-          const cartQuery = query(
-            cartRef,
-            where("email", "==", userEmail),
-            where("restaurantName", "==", currentRestaurantName),
-            where("name", "==", item.name)
-          );
+      // Step 1: Check if there are existing cart items from a different restaurant
+      const cartRef = collection(FIREBASE_DB, "carts");
+      const cartQuery = query(cartRef, where("email", "==", userEmail));
+      const existingCartDocs = await getDocs(cartQuery);
   
-          const existingCartDocs = await getDocs(cartQuery);
+      let differentRestaurantInCart = false;
+      let existingRestaurantName = "";
   
-          const totalPrice = item.price * quantity; // Calculate total price
-  
-          if (!existingCartDocs.empty) {
-            // If item exists in the cart, update its quantity and total price
-            const existingDoc = existingCartDocs.docs[0];
-            const newQuantity = existingDoc.data().quantity + quantity;
-            const newTotalPrice = item.price * newQuantity;
-  
-            await updateDoc(existingDoc.ref, { 
-              quantity: newQuantity,
-              totalPrice: newTotalPrice // Update total price as well
-            });
-          } else {
-            // Add a new document for the new item
-            const newCartItem = {
-              restaurantName: currentRestaurantName,
-              name: item.name,
-              oriPrice: item.price,
-              quantity: quantity,
-              totalPrice: totalPrice, // Save total price for this item
-              email: userEmail,
-              imageUrl: item.imageUrl,
-            };
-  
-            await setDoc(doc(cartRef), newCartItem);
-          }
+      // Check if there are any items from a different restaurant
+      existingCartDocs.forEach((doc) => {
+        if (doc.data().restaurantName !== currentRestaurantName) {
+          differentRestaurantInCart = true;
+          existingRestaurantName = doc.data().restaurantName;
         }
-      }
+      });
   
-      Alert.alert("Cart Updated", `${menuItems.length} item(s) added to your cart.`);
+      if (differentRestaurantInCart) {
+        // Step 2: Show alert to confirm clearing the cart
+        Alert.alert(
+          "Adding this item will clear your cart. Add anyway?",
+          `You already have items from ${existingRestaurantName} in your cart.`,
+          [
+            {
+              text: "Don't Add",
+              style: "cancel",
+            },
+            {
+              text: "Add Item",
+              onPress: async () => {
+                // Step 3: Clear the existing cart
+                existingCartDocs.forEach(async (doc) => {
+                  await deleteDoc(doc.ref); // Delete all documents in the cart
+                });
+  
+                // Step 4: Add the new items to the cart
+                await addItemsToCart(userEmail);
+  
+                Alert.alert("Cart Updated", `${menuItems.length} item(s) added to your cart.`);
+              },
+            },
+          ]
+        );
+      } else {
+        // Step 4: If no conflicting restaurant in the cart, simply add the items
+        await addItemsToCart(userEmail);
+        Alert.alert("Cart Updated", `${menuItems.length} item(s) added to your cart.`);
+      }
     } catch (error) {
       console.error("Error adding to cart: ", error);
       Alert.alert("Error", "Could not update cart. Please try again.");
@@ -214,6 +217,52 @@ const RestaurantListing = ({ listings, category }: Props) => {
       setMenuModalVisible(false); // Close the modal after adding
     }
   };
+  
+  // Helper function to add items to the cart
+  const addItemsToCart = async (userEmail: string) => {
+    for (const item of menuItems) {
+      const quantity = quantities[item.id];
+      if (quantity > 0) {
+        const cartRef = collection(FIREBASE_DB, "carts");
+        const cartQuery = query(
+          cartRef,
+          where("email", "==", userEmail),
+          where("restaurantName", "==", currentRestaurantName),
+          where("name", "==", item.name)
+        );
+  
+        const existingCartDocs = await getDocs(cartQuery);
+  
+        const totalPrice = item.price * quantity; // Calculate total price
+  
+        if (!existingCartDocs.empty) {
+          // If item exists in the cart, update its quantity and total price
+          const existingDoc = existingCartDocs.docs[0];
+          const newQuantity = existingDoc.data().quantity + quantity;
+          const newTotalPrice = item.price * newQuantity;
+  
+          await updateDoc(existingDoc.ref, { 
+            quantity: newQuantity,
+            totalPrice: newTotalPrice // Update total price as well
+          });
+        } else {
+          // Add a new document for the new item
+          const newCartItem = {
+            restaurantName: currentRestaurantName,
+            name: item.name,
+            oriPrice: item.price,
+            quantity: quantity,
+            totalPrice: totalPrice, // Save total price for this item
+            email: userEmail,
+            imageUrl: item.imageUrl,
+          };
+  
+          await setDoc(doc(cartRef), newCartItem);
+        }
+      }
+    }
+  };
+  
   
 
   const renderItems = ({ item }: { item: ListingType }) => {
