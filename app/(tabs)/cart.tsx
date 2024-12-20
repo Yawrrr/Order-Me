@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { StyleSheet, Text, View, FlatList, TouchableOpacity, Image, Alert } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { FIREBASE_AUTH, FIREBASE_DB } from "../../FirebaseConfig";
-import { collection, query, where, getDocs, getDoc, deleteDoc, doc, updateDoc } from "firebase/firestore";
+import { collection, query, where, getDocs, getDoc, deleteDoc, doc, updateDoc, onSnapshot } from "firebase/firestore";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 
 // Define types for cart items and quantities
@@ -51,7 +51,37 @@ export default function Cart() {
     }
   };
 
-  // Update the updateCartItem function to handle price calculation
+  // // Update the updateCartItem function to handle price calculation
+  // const updateCartItem = async (itemId: string, quantity: number) => {
+  //   const userEmail = auth.currentUser?.email;
+  //   if (!userEmail) return;
+  
+  //   setLoading(true); // Indicate that Firestore is being updated
+  
+  //   try {
+  //     // Get the current cart item document
+  //     const cartDocRef = doc(FIREBASE_DB, "carts", itemId);
+  //     const cartDocSnap = await getDoc(cartDocRef);
+  
+  //     if (cartDocSnap.exists()) {
+  //       const cartItemData = cartDocSnap.data();
+  //       const oriPrice = cartItemData?.oriPrice || 0; // Assuming oriPrice exists in the document
+  
+  //       // Calculate the new total price
+  //       const newTotalPrice = oriPrice * quantity;
+  
+  //       // Update the quantity and totalPrice in Firestore
+  //       await updateDoc(cartDocRef, { quantity, totalPrice: newTotalPrice });
+  //     } else {
+  //       console.error("Cart item not found");
+  //     }
+  //   } catch (error) {
+  //     console.error("Error updating cart item: ", error);
+  //     Alert.alert("Error", "Failed to update item.");
+  //   } finally {
+  //     setLoading(false); // End loading state
+  //   }
+  // };
   const updateCartItem = async (itemId: string, quantity: number) => {
     const userEmail = auth.currentUser?.email;
     if (!userEmail) return;
@@ -72,6 +102,13 @@ export default function Cart() {
   
         // Update the quantity and totalPrice in Firestore
         await updateDoc(cartDocRef, { quantity, totalPrice: newTotalPrice });
+  
+        // Update the `userCart` state with the new totalPrice and quantity
+        setUserCart((prev) =>
+          prev.map((item) =>
+            item.id === itemId ? { ...item, quantity, totalPrice: newTotalPrice } : item
+          )
+        );
       } else {
         console.error("Cart item not found");
       }
@@ -86,7 +123,7 @@ export default function Cart() {
   const incrementQuantity = (id: string) => {
     setQuantities((prev) => {
       const newQuantities = { ...prev, [id]: prev[id] + 1 };
-      updateCartItem(id, newQuantities[id]); // Update Firestore with the new quantity and totalPrice
+      updateCartItem(id, newQuantities[id]); // Update Firestore and local state
       return newQuantities;
     });
   };
@@ -94,13 +131,41 @@ export default function Cart() {
   const decrementQuantity = (id: string) => {
     setQuantities((prev) => {
       const newQuantities = { ...prev, [id]: Math.max(prev[id] - 1, 0) }; // Prevent negative quantities
-      updateCartItem(id, newQuantities[id]); // Update Firestore with the new quantity and totalPrice
+      updateCartItem(id, newQuantities[id]); // Update Firestore and local state
       return newQuantities;
     });
   };
+
+  const fetchCartDataRealTime = () => {
+    const userEmail = auth.currentUser?.email;
+    if (!userEmail) return;
   
-
-
+    const cartRef = collection(FIREBASE_DB, "carts");
+    const cartQuery = query(cartRef, where("email", "==", userEmail));
+  
+    const unsubscribe = onSnapshot(cartQuery, (snapshot) => {
+      const cartItems: CartItem[] = snapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...(doc.data() as Omit<CartItem, "id">),
+      }));
+  
+      const initialQuantities = cartItems.reduce((acc, item) => {
+        acc[item.id] = item.quantity;
+        return acc;
+      }, {} as { [key: string]: number });
+  
+      setQuantities(initialQuantities);
+      setUserCart(cartItems);
+    });
+  
+    return unsubscribe; // Clean up listener on unmount
+  };
+  
+  useEffect(() => {
+    const unsubscribe = fetchCartDataRealTime();
+    return () => unsubscribe && unsubscribe();
+  }, []);
+  
   const deleteCartItem = async (itemId: string) => {
     Alert.alert(
       "Confirm Deletion",
