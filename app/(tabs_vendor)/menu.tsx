@@ -10,6 +10,8 @@ import {
   Button,
   Alert,
   TouchableOpacity,
+  Platform,
+  Keyboard,
 } from "react-native";
 import {
   getDocs,
@@ -27,6 +29,7 @@ import { useAuth } from "../../context/AuthContext";
 import {
   GestureHandlerRootView,
   ScrollView,
+  TouchableWithoutFeedback,
 } from "react-native-gesture-handler";
 
 interface Item {
@@ -221,9 +224,11 @@ const MenuScreen = () => {
   }
 
   return (
+    <GestureHandlerRootView>
       <View style={styles.container}>
         <Text style={styles.header}>Menu</Text>
-          {editingItem ? (
+        {editingItem ? (
+          <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
             <View style={styles.editForm}>
               <TextInput
                 style={styles.input}
@@ -253,7 +258,6 @@ const MenuScreen = () => {
                 onChangeText={setEditedImageUrl}
                 numberOfLines={3}
                 multiline={true}
-                maxLength={500}
               />
 
               {/* OR text */}
@@ -278,40 +282,39 @@ const MenuScreen = () => {
                 color="orange"
               />
             </View>
-          ) : (
-            <FlatList
-              data={items}
-              keyExtractor={(item) => item.id}
-              renderItem={({ item }) => (
-                <View style={styles.card}>
-                  <View style={styles.cardContent}>
-                    <Image
-                      source={{ uri: item.imageUrl }}
-                      style={styles.image}
-                    />
-                    <View style={styles.itemInfo}>
-                      <Text style={styles.name}>{item.name}</Text>
-                      <Text style={styles.description}>{item.description}</Text>
-                      <Text style={styles.price}>RM {item.price}</Text>
-                    </View>
-                  </View>
-                  <View style={styles.actions}>
-                    <Button
-                      title="Edit"
-                      onPress={() => handleEditItem(item)}
-                      color="green"
-                    />
-                    <Button
-                      title="Delete"
-                      onPress={() => handleDeleteItem(item.id)}
-                      color="red"
-                    />
+          </TouchableWithoutFeedback>
+        ) : (
+          <FlatList
+            data={items}
+            keyExtractor={(item) => item.id}
+            renderItem={({ item }) => (
+              <View style={styles.card}>
+                <View style={styles.cardContent}>
+                  <Image source={{ uri: item.imageUrl }} style={styles.image} />
+                  <View style={styles.itemInfo}>
+                    <Text style={styles.name}>{item.name}</Text>
+                    <Text style={styles.description}>{item.description}</Text>
+                    <Text style={styles.price}>RM {item.price}</Text>
                   </View>
                 </View>
-              )}
-            />
-          )}
+                <View style={styles.actions}>
+                  <Button
+                    title="Edit"
+                    onPress={() => handleEditItem(item)}
+                    color="green"
+                  />
+                  <Button
+                    title="Delete"
+                    onPress={() => handleDeleteItem(item.id)}
+                    color="red"
+                  />
+                </View>
+              </View>
+            )}
+          />
+        )}
       </View>
+    </GestureHandlerRootView>
   );
 };
 
@@ -387,6 +390,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: "#ddd",
     borderRadius: 8,
+    maxHeight: Platform.OS === "ios" ? 100 : undefined,
   },
   imagePicker: {
     backgroundColor: "#f0f0f0",
