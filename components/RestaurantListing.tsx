@@ -193,7 +193,7 @@ const RestaurantListing = ({ listings, category }: Props) => {
             const newCartItem = {
               restaurantName: currentRestaurantName,
               name: item.name,
-              price: item.price,
+              oriPrice: item.price,
               quantity: quantity,
               totalPrice: totalPrice, // Save total price for this item
               email: userEmail,

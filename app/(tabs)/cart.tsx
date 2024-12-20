@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { StyleSheet, Text, View, FlatList, TouchableOpacity, Image, Alert } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { FIREBASE_AUTH, FIREBASE_DB } from "../../FirebaseConfig";
-import { collection, query, where, getDocs, deleteDoc, doc, updateDoc } from "firebase/firestore";
+import { collection, query, where, getDocs, getDoc, deleteDoc, doc, updateDoc } from "firebase/firestore";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 
 // Define types for cart items and quantities
@@ -52,23 +52,28 @@ export default function Cart() {
   };
 
   // Update the updateCartItem function to handle price calculation
-  const updateCartItem = async (itemId: string, quantity: number, price: number) => {
+  const updateCartItem = async (itemId: string, quantity: number) => {
     const userEmail = auth.currentUser?.email;
     if (!userEmail) return;
   
     setLoading(true); // Indicate that Firestore is being updated
   
     try {
-      // Calculate the new price based on the quantity
-      const newPrice = price * quantity;
+      // Get the current cart item document
       const cartDocRef = doc(FIREBASE_DB, "carts", itemId);
+      const cartDocSnap = await getDoc(cartDocRef);
   
-      if (quantity === 0) {
-        // Remove the item if quantity is zero
-        await deleteDoc(cartDocRef);
+      if (cartDocSnap.exists()) {
+        const cartItemData = cartDocSnap.data();
+        const oriPrice = cartItemData?.oriPrice || 0; // Assuming oriPrice exists in the document
+  
+        // Calculate the new total price
+        const newTotalPrice = oriPrice * quantity;
+  
+        // Update the quantity and totalPrice in Firestore
+        await updateDoc(cartDocRef, { quantity, totalPrice: newTotalPrice });
       } else {
-        // Update the item's quantity and price in Firestore
-        await updateDoc(cartDocRef, { quantity, price: newPrice });
+        console.error("Cart item not found");
       }
     } catch (error) {
       console.error("Error updating cart item: ", error);
@@ -78,23 +83,22 @@ export default function Cart() {
     }
   };
   
-
-// Update the incrementQuantity and decrementQuantity functions
-const incrementQuantity = (id: string, price: number) => {
-  setQuantities((prev) => {
-    const newQuantities = { ...prev, [id]: prev[id] + 1 };
-    updateCartItem(id, newQuantities[id], price); // Update Firestore with the new quantity and price
-    return newQuantities;
-  });
-};
-
-const decrementQuantity = (id: string, price: number) => {
-  setQuantities((prev) => {
-    const newQuantities = { ...prev, [id]: Math.max(prev[id] - 1, 0) }; // Prevent negative quantities
-    updateCartItem(id, newQuantities[id], price); // Update Firestore with the new quantity and price
-    return newQuantities;
-  });
-};
+  const incrementQuantity = (id: string) => {
+    setQuantities((prev) => {
+      const newQuantities = { ...prev, [id]: prev[id] + 1 };
+      updateCartItem(id, newQuantities[id]); // Update Firestore with the new quantity and totalPrice
+      return newQuantities;
+    });
+  };
+  
+  const decrementQuantity = (id: string) => {
+    setQuantities((prev) => {
+      const newQuantities = { ...prev, [id]: Math.max(prev[id] - 1, 0) }; // Prevent negative quantities
+      updateCartItem(id, newQuantities[id]); // Update Firestore with the new quantity and totalPrice
+      return newQuantities;
+    });
+  };
+  
 
 
   const deleteCartItem = async (itemId: string) => {
@@ -163,11 +167,11 @@ const decrementQuantity = (id: string, price: number) => {
                 </Text>
               
               <View style={styles.quantityContainer}>
-                <TouchableOpacity onPress={() => decrementQuantity(item.id, item.price)}>
+                <TouchableOpacity onPress={() => decrementQuantity(item.id)}>
                   <Text style={styles.quantityButton}>-</Text>
                 </TouchableOpacity>
                 <Text style={styles.quantityText}>{quantities[item.id]}</Text>
-                <TouchableOpacity onPress={() => incrementQuantity(item.id, item.price)}>
+                <TouchableOpacity onPress={() => incrementQuantity(item.id)}>
                   <Text style={styles.quantityButton}>+</Text>
                 </TouchableOpacity>
               </View>
