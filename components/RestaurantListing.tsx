@@ -30,7 +30,8 @@ interface MenuItem {
 }
 
 const RestaurantListing = ({ listings, category }: Props) => {
-  const [filteredListings, setFilteredListings] = useState<ListingType[]>(listings);
+  const [filteredListings, setFilteredListings] =
+    useState<ListingType[]>(listings);
   const [wishlist, setWishlist] = useState<ListingType[]>([]);
   const [loading, setLoading] = useState(false);
   const [menuModalVisible, setMenuModalVisible] = useState(false);
@@ -91,7 +92,9 @@ const RestaurantListing = ({ listings, category }: Props) => {
 
 
   const handleWishlistToggle = async (item: ListingType) => {
-    const isAlreadyInWishlist = wishlist.some((wishlistItem) => wishlistItem.id === item.id);
+    const isAlreadyInWishlist = wishlist.some(
+      (wishlistItem) => wishlistItem.id === item.id
+    );
     let updatedWishlist;
 
     if (isAlreadyInWishlist) {
@@ -159,7 +162,9 @@ const RestaurantListing = ({ listings, category }: Props) => {
   };
 
   const renderItems = ({ item }: { item: ListingType }) => {
-    const isInWishlist = wishlist.some((wishlistItem) => wishlistItem.id === item.id);
+    const isInWishlist = wishlist.some(
+      (wishlistItem) => wishlistItem.id === item.id
+    );
 
     return (
       <GestureHandlerRootView style={{ flex: 1 }}>
@@ -283,7 +288,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 3,
     elevation: 2,
-    padding:10
+    padding: 10,
   },
   restaurantImage: {
     width: 180, 
