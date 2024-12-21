@@ -11,9 +11,8 @@ import * as ImagePicker from "expo-image-picker";
 import { router } from "expo-router";
 
 const EditProfile: React.FC = () => {
-  const { user, setUser, authInitialized } = useAuth();
+  const { user, setUser, } = useAuth();
 
-  if (!authInitialized) return <Text>Loading...</Text>; 
   const [username, setUsername] = useState(user?.username || "");
   const [phoneNumber, setPhoneNumber] = useState(user?.phoneNumber || "");
   const [address, setAddress] = useState(user?.address || "");

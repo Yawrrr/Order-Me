@@ -7,16 +7,19 @@ import { FontAwesome5 } from "@expo/vector-icons";
 import Feather from '@expo/vector-icons/Feather';
 import AntDesign from '@expo/vector-icons/AntDesign';
 import Ionicons from '@expo/vector-icons/Ionicons';
+import { useAuth } from "@/context/AuthContext";
 
 const TabLayout = () => {
+  const { role } = useAuth();
   return (
     <>
       <Tabs screenOptions={{ tabBarActiveTintColor: 'orange' }}>
-        <Tabs.Screen name="home" options={{
+        <Tabs.Screen name="home" 
+        redirect ={role=="admin"}
+        options={{
           headerShown: false,
           title: 'Home',
           tabBarIcon: ({ color }) => <FontAwesome size={28} name="home" color={color} />
-          
         }}/>
         <Tabs.Screen name="cart" options={{
           headerShown: false,

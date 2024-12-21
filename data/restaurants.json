@@ -1,6 +1,6 @@
 [
   {
-    "id": 1,
+    "id": "1",
     "name": "Sister Fen",
     "cuisine": "Mix Rice",
     "location": "1.5km away",
@@ -12,7 +12,7 @@
     "category": "Mix Rice"
   },
   {
-    "id": 2,
+    "id": "2",
     "name": "JoJoe",
     "cuisine": "Mix Rice",
     "location": "3km away",
@@ -24,7 +24,7 @@
     "category": "Mix Rice"
   },
   {
-    "id": 3,
+    "id": "3",
     "name": "Umi Kitchen Bajet",
     "cuisine": "Indian",
     "location": "2km away",
@@ -36,7 +36,7 @@
     "category": "Western Food"
   },
   {
-    "id": 4,
+    "id": "4",
     "name": "感恩 Vegetarian",
     "cuisine": "Italian",
     "location": "Taman Universiti",
@@ -48,7 +48,7 @@
     "category": "Vegetarian"
   },
   {
-    "id": 5,
+    "id": "5",
     "name": "No.80 Fruits",
     "cuisine": "Vegan",
     "location": "202 Greenway, Austin, TX",

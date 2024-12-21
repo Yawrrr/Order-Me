@@ -77,7 +77,7 @@ const Status: React.FC = () => {
           ))}
         </ScrollView>
       ) : (
-        <View>
+        <ScrollView showsVerticalScrollIndicator={false}>
           <TouchableOpacity onPress={() => setSelectedOrder(null)}>
             <Text style={styles.backButton}>Back</Text>
           </TouchableOpacity>
@@ -121,7 +121,7 @@ const Status: React.FC = () => {
               title={selectedOrder.address}
             />
           </MapView>
-        </View>
+        </ScrollView>
       )}
 
       <View style={styles.floatButton}>
