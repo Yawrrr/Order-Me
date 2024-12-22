@@ -89,6 +89,12 @@ const MainLayout = () => {
           headerShown: false,
         }}
       />
+      <Stack.Screen
+        name="components/Checkout"
+        options={{
+          headerShown: false,
+        }}
+      />
     </Stack>
     
   );

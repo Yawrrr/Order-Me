@@ -5,6 +5,7 @@ import { FIREBASE_AUTH, FIREBASE_DB } from "../../FirebaseConfig";
 import { collection, query, where, getDocs, getDoc, deleteDoc, doc, updateDoc, onSnapshot } from "firebase/firestore";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import StartNewCartCard from "../../components/MyCarts/StartNewCartCard";
+import { router } from "expo-router";
 
 // Define types for cart items and quantities
 type CartItem = {
@@ -219,9 +220,14 @@ export default function Cart() {
         )}
       />
 
-      <View style={styles.footer}>
-        <Text style={styles.totalPrice}>Total: RM {calculateTotalPrice().toFixed(2)}</Text>
-        <TouchableOpacity style={styles.reviewButton} onPress={() => Alert.alert("Review Payment", "Proceed to payment and address review.")}>
+<View style={styles.footer}>
+        <Text style={styles.totalPrice}>
+          Total: RM {calculateTotalPrice().toFixed(2)}
+        </Text>
+        <TouchableOpacity
+          style={styles.reviewButton}
+          onPress={() => router.push("../components/Checkout")} // Use `router.push` correctly
+        >
           <Text style={styles.checkOut}>Checkout</Text>
         </TouchableOpacity>
       </View>
