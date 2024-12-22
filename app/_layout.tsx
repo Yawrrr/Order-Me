@@ -95,6 +95,12 @@ const MainLayout = () => {
           headerShown: false,
         }}
       />
+      <Stack.Screen
+        name="components/AddNewAddress"
+        options={{
+          headerShown: false,
+        }}
+      />
     </Stack>
     
   );

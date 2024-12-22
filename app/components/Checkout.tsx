@@ -111,6 +111,7 @@ export default function Checkout() {
       setLoading(false);
     }
   };
+
   
   useEffect(() => {
     if (auth.currentUser) {
@@ -134,9 +135,21 @@ export default function Checkout() {
 
       {/* Display selected address */}
       <View style={styles.addressContainer}>
-        <Text style={styles.addressTitle}>Delivery Address</Text>
-        <Text style={styles.selectedAddress}>{selectedAddress}</Text>
-      </View>
+  <Text style={styles.addressTitle}>Delivery Address</Text>
+  <View style={styles.addressWrapper}>
+    <View style={styles.selectedAddressContainer}>
+      <Text style={styles.selectedAddress} numberOfLines={1} ellipsizeMode="tail">
+        {selectedAddress}
+      </Text>
+    </View>
+    <TouchableOpacity style={styles.newAddressButton} onPress={() => router.push("../components/AddNewAddress")}>
+  <Text style={styles.newAddressText}>Change Address</Text>
+</TouchableOpacity>
+
+  </View>
+</View>
+
+
 
       <FlatList
         data={cartItems}
@@ -261,5 +274,27 @@ const styles = StyleSheet.create({
   itemDetails: {
     flex: 1,
     justifyContent: "space-between",
+  },
+  addressWrapper: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    width: '100%',
+  },
+  newAddressButton: {
+    paddingVertical: 5,
+    paddingHorizontal: 10,
+    backgroundColor: 'orange',
+    borderRadius: 8,
+  },
+  selectedAddressContainer: {
+    flex: 1, // Allow this container to take up remaining space
+    marginRight: 10, // Add spacing between the text and the button
+    flexShrink: 1, // Prevent overflow by shrinking if needed
+  },
+  newAddressText: {
+    fontSize: 16,
+    color: '#fff',
+    fontWeight: '500',
   },
 });
