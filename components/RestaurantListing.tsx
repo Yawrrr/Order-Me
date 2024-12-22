@@ -14,7 +14,8 @@ import { Ionicons, FontAwesome5 } from "@expo/vector-icons";
 import { colors } from "@/constants/colors";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { FIREBASE_DB } from "@/FirebaseConfig";
-import { collection, getDocs, query, where } from "firebase/firestore";
+import { doc, setDoc, updateDoc, collection, getDocs, query, where, deleteDoc } from "firebase/firestore";
+import { getAuth } from "firebase/auth";
 
 type Props = {
   listings: ListingType[];
@@ -30,12 +31,16 @@ interface MenuItem {
 }
 
 const RestaurantListing = ({ listings, category }: Props) => {
-  const [filteredListings, setFilteredListings] = useState<ListingType[]>(listings);
+  const [filteredListings, setFilteredListings] =
+    useState<ListingType[]>(listings);
   const [wishlist, setWishlist] = useState<ListingType[]>([]);
   const [loading, setLoading] = useState(false);
   const [menuModalVisible, setMenuModalVisible] = useState(false);
   const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
   const [currentRestaurantName, setCurrentRestaurantName] = useState<string>("");
+  const auth = getAuth();
+   // New state to track quantities
+   const [quantities, setQuantities] = useState<{ [key: string]: number }>({});
 
   // Load wishlist on mount
   useEffect(() => {
@@ -86,9 +91,11 @@ const RestaurantListing = ({ listings, category }: Props) => {
     fetchRestaurants();
   }, [category]);
 
-  // Toggle wishlist
+
   const handleWishlistToggle = async (item: ListingType) => {
-    const isAlreadyInWishlist = wishlist.some((wishlistItem) => wishlistItem.id === item.id);
+    const isAlreadyInWishlist = wishlist.some(
+      (wishlistItem) => wishlistItem.id === item.id
+    );
     let updatedWishlist;
 
     if (isAlreadyInWishlist) {
@@ -119,6 +126,13 @@ const RestaurantListing = ({ listings, category }: Props) => {
       })) as MenuItem[];
 
       setMenuItems(fetchedMenuItems);
+      // Initialize quantities for each menu item
+      const initialQuantities = fetchedMenuItems.reduce((acc, item) => {
+        acc[item.id] = 0;
+        return acc;
+      }, {} as { [key: string]: number });
+      setQuantities(initialQuantities);
+
       setMenuModalVisible(true);
     } catch (error) {
       console.error("Error fetching menu items: ", error);
@@ -127,8 +141,137 @@ const RestaurantListing = ({ listings, category }: Props) => {
     }
   };
 
+  // Increment quantity
+  const incrementQuantity = (id: string) => {
+    setQuantities((prev) => ({ ...prev, [id]: prev[id] + 1 }));
+  };
+
+  // Decrement quantity
+  const decrementQuantity = (id: string) => {
+    setQuantities((prev) => ({
+      ...prev,
+      [id]: prev[id] > 0 ? prev[id] - 1 : 0,
+    }));
+  };
+
+  // Handle Add to Cart
+  const handleAddToCart = async () => {
+    const userEmail = auth.currentUser?.email; // Replace with actual user email retrieval
+    if (!userEmail) {
+      Alert.alert("Error", "Please log in to add items to the cart.");
+      return;
+    }
+  
+    setLoading(true);
+  
+    try {
+      // Step 1: Check if there are existing cart items from a different restaurant
+      const cartRef = collection(FIREBASE_DB, "carts");
+      const cartQuery = query(cartRef, where("email", "==", userEmail));
+      const existingCartDocs = await getDocs(cartQuery);
+  
+      let differentRestaurantInCart = false;
+      let existingRestaurantName = "";
+  
+      // Check if there are any items from a different restaurant
+      existingCartDocs.forEach((doc) => {
+        if (doc.data().restaurantName !== currentRestaurantName) {
+          differentRestaurantInCart = true;
+          existingRestaurantName = doc.data().restaurantName;
+        }
+      });
+  
+      if (differentRestaurantInCart) {
+        // Step 2: Show alert to confirm clearing the cart
+        Alert.alert(
+          "Adding this item will clear your cart. Add anyway?",
+          `You already have items from ${existingRestaurantName} in your cart.`,
+          [
+            {
+              text: "Don't Add",
+              style: "cancel",
+            },
+            {
+              text: "Add Item",
+              onPress: async () => {
+                // Step 3: Clear the existing cart
+                existingCartDocs.forEach(async (doc) => {
+                  await deleteDoc(doc.ref); // Delete all documents in the cart
+                });
+  
+                // Step 4: Add the new items to the cart
+                await addItemsToCart(userEmail);
+  
+                Alert.alert("Cart Updated", `${menuItems.length} item(s) added to your cart.`);
+              },
+            },
+          ]
+        );
+      } else {
+        // Step 4: If no conflicting restaurant in the cart, simply add the items
+        await addItemsToCart(userEmail);
+        Alert.alert("Cart Updated", `${menuItems.length} item(s) added to your cart.`);
+      }
+    } catch (error) {
+      console.error("Error adding to cart: ", error);
+      Alert.alert("Error", "Could not update cart. Please try again.");
+    } finally {
+      setLoading(false);
+      setMenuModalVisible(false); // Close the modal after adding
+    }
+  };
+  
+  // Helper function to add items to the cart
+  const addItemsToCart = async (userEmail: string) => {
+    for (const item of menuItems) {
+      const quantity = quantities[item.id];
+      if (quantity > 0) {
+        const cartRef = collection(FIREBASE_DB, "carts");
+        const cartQuery = query(
+          cartRef,
+          where("email", "==", userEmail),
+          where("restaurantName", "==", currentRestaurantName),
+          where("name", "==", item.name)
+        );
+  
+        const existingCartDocs = await getDocs(cartQuery);
+  
+        const totalPrice = item.price * quantity; // Calculate total price
+  
+        if (!existingCartDocs.empty) {
+          // If item exists in the cart, update its quantity and total price
+          const existingDoc = existingCartDocs.docs[0];
+          const newQuantity = existingDoc.data().quantity + quantity;
+          const newTotalPrice = item.price * newQuantity;
+  
+          await updateDoc(existingDoc.ref, { 
+            quantity: newQuantity,
+            totalPrice: newTotalPrice // Update total price as well
+          });
+        } else {
+          // Add a new document for the new item
+          const newCartItem = {
+            restaurantName: currentRestaurantName,
+            name: item.name,
+            oriPrice: item.price,
+            quantity: quantity,
+            totalPrice: totalPrice, // Save total price for this item
+            email: userEmail,
+            imageUrl: item.imageUrl,
+          };
+  
+          await setDoc(doc(cartRef), newCartItem);
+        }
+      }
+    }
+  };
+  
+  
+
   const renderItems = ({ item }: { item: ListingType }) => {
-    const isInWishlist = wishlist.some((wishlistItem) => wishlistItem.id === item.id);
+    const isInWishlist = wishlist.some(
+      (wishlistItem) => wishlistItem.id === item.id
+    );
 
     return (
       <GestureHandlerRootView style={{ flex: 1 }}>
@@ -182,8 +325,8 @@ const RestaurantListing = ({ listings, category }: Props) => {
         horizontal
         showsHorizontalScrollIndicator={false}
       />
-      {/* Modal for Menu Items */}
-      <Modal
+       {/* Modal for Menu Items */}
+       <Modal
         visible={menuModalVisible}
         animationType="slide"
         onRequestClose={() => setMenuModalVisible(false)}
@@ -197,13 +340,25 @@ const RestaurantListing = ({ listings, category }: Props) => {
               <View style={styles.menuItemCard}>
                 <Image source={{ uri: item.imageUrl }} style={styles.image} />
                 <View style={styles.menuItemInfo}>
-            <Text style={styles.menuItemName}>{item.name}</Text>
-            <Text style={styles.menuItemDescription}>{item.description}</Text>
-            <Text style={styles.menuItemPrice}>RM {item.price}</Text>
-          </View>
+                  <Text style={styles.menuItemName}>{item.name}</Text>
+                  <Text style={styles.menuItemDescription}>{item.description}</Text>
+                  <Text style={styles.menuItemPrice}>RM {item.price}</Text>
+                </View>
+                <View style={styles.quantityContainer}>
+                  <TouchableOpacity onPress={() => decrementQuantity(item.id)}>
+                    <Text style={styles.quantityButton}>-</Text>
+                  </TouchableOpacity>
+                  <Text style={styles.quantityText}>{quantities[item.id]}</Text>
+                  <TouchableOpacity onPress={() => incrementQuantity(item.id)}>
+                    <Text style={styles.quantityButton}>+</Text>
+                  </TouchableOpacity>
+                </View>
               </View>
             )}
           />
+           <TouchableOpacity style={styles.addToCartButton} onPress={handleAddToCart}>
+            <Text style={styles.addToCartText}>Add To Cart</Text>
+          </TouchableOpacity>
         </View>
       </Modal>
     </GestureHandlerRootView>
@@ -240,7 +395,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 3,
     elevation: 2,
-    padding:10
+    padding: 10,
   },
   restaurantImage: {
     width: 180, 
@@ -300,13 +455,13 @@ const styles = StyleSheet.create({
   location: {
     flexDirection: "row",
     alignItems: "center",
-    flex: 1, // Take available space in the row
+    flex: 1, 
   },
   itemLocationTxt: {
     fontSize: 12,
     marginLeft: 5,
     flexShrink: 1,
-    fontWeight: "bold", // Allows the text to shrink if needed
+    fontWeight: "bold", 
   },
   ratingContainer: {
     flexDirection: "row",
@@ -348,4 +503,42 @@ const styles = StyleSheet.create({
     color: "#007BFF",
     marginLeft: 10, // Add left margin
   },
+  quantityContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginLeft: 10, // Align with other elements
+  },
+  
+  quantityButton: {
+    fontSize: 20,
+    fontWeight: "bold",
+    color: "#007BFF",
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderWidth: 1,
+    borderColor: "#ddd",
+    borderRadius: 4,
+  },
+  
+  quantityText: {
+    fontSize: 16,
+    fontWeight: "bold",
+    marginHorizontal: 8,
+  },
+  
+  addToCartButton: {
+    backgroundColor: "orange",
+    padding: 16,
+    borderRadius: 8,
+    alignItems: "center",
+    margin: 16,
+  },
+  
+  addToCartText: {
+    color: "#fff",
+    fontSize: 18,
+    fontWeight: "bold",
+  },
+  
 });

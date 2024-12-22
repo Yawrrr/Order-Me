@@ -21,15 +21,13 @@ import * as ImageManipulator from "expo-image-manipulator";
 import * as ImagePicker from "expo-image-picker";
 
 const EditDetails: React.FC = () => {
-  const { user, setUser, authInitialized } = useAuth();
-
-  if (!authInitialized) return <Text>Loading...</Text>;
-
+  const { user, setUser } = useAuth();
   // States for both personal and vendor details
   const [username, setUsername] = useState(user?.username || "");
   const [phoneNumber, setPhoneNumber] = useState(user?.phoneNumber || "");
   const [address, setAddress] = useState(user?.address || "");
   const [restaurantName, setRestaurantName] = useState(user?.restaurantName || "");
+  const [restaurantAddress, setRestaurantAddress] = useState(user?.restaurantAddress || "");
   const [category, setCategory] = useState(user?.category || "mix rice");
   const [restaurantImage, setRestaurantImage] = useState<string | null>(null); // State for restaurant image
   const [profileImage, setProfileImage] = useState<string | null>(null); // State for profile image
@@ -91,7 +89,7 @@ const EditDetails: React.FC = () => {
       const userDoc = userSnapshot.docs[0];
       const userDocRef = doc(FIREBASE_DB, "users", userDoc.id);
 
-      const updatedUser = { username, phoneNumber, address, profileImage: profileImage || "" };
+      const updatedUser = { username, phoneNumber, address, restaurantName, category, restaurantAddress, profileImage: profileImage || "" };
       await updateDoc(userDocRef, updatedUser);
       setUser({ ...user, ...updatedUser });
 
@@ -103,10 +101,10 @@ const EditDetails: React.FC = () => {
       if (!restaurantSnapshot.empty) {
         const restDoc = restaurantSnapshot.docs[0];
         const restaurantDocRef = doc(FIREBASE_DB, "restaurants", restDoc.id);
-        await updateDoc(restaurantDocRef, { restaurantName, category, owner: user.email, restaurantImage });
+        await updateDoc(restaurantDocRef, { restaurantName, restaurantAddress, category, owner: user.email, restaurantImage });
       } else {
         const newRestaurantDocRef = doc(restaurantsCollection);
-        await setDoc(newRestaurantDocRef, { restaurantName, category, owner: user.email, restaurantImage });
+        await setDoc(newRestaurantDocRef, { restaurantName, restaurantAddress, category, owner: user.email, restaurantImage });
       }
 
       Alert.alert("Profile", "Details updated successfully.", [
@@ -222,6 +220,13 @@ const EditDetails: React.FC = () => {
             onChangeText={setRestaurantName}
           />
 
+        <Text style={styles.label}>Restaurant Address</Text>
+          <TextInput
+            style={styles.input}
+            value={restaurantAddress}
+            onChangeText={setRestaurantAddress}
+          />
+
           <Text style={styles.label}>Category</Text>
           <View style={styles.pickerContainer}>
             <Picker
@@ -250,7 +255,7 @@ const EditDetails: React.FC = () => {
 
           {/* Save Button */}
           <TouchableOpacity style={styles.saveButton} onPress={handleSave} disabled={loading}>
-            <Text style={styles.buttonText}>              {loading ? "Saving..." : "Save Changes"}</Text>
+            <Text style={styles.buttonText}>{loading ? "Saving..." : "Save Changes"}</Text>
           </TouchableOpacity>
         </SafeAreaView>
       </SafeAreaView>

@@ -10,13 +10,14 @@ import {
 } from "react-native";
 import { ListingType } from "@/type/listingType";
 import { saveWishlist, getWishlist } from "@/app/utility/storage";
-import { MaterialIcons, FontAwesome5, Ionicons } from "@expo/vector-icons"; // Updated import for MaterialIcons
+import { MaterialIcons, FontAwesome5, Ionicons } from "@expo/vector-icons"; 
 import { colors } from "@/constants/colors";
-import { Link } from "expo-router";  // For navigation in expo-router
+import { Link } from "expo-router"; 
 import { GestureHandlerRootView } from "react-native-gesture-handler";
-import { useRouter } from "expo-router"; // Import useRouter for back navigation
+import { useRouter } from "expo-router"; 
+import { getAuth } from "firebase/auth";
 
-// Empty wishlist message component
+
 const EmptyWishlistMessage = () => (
   <View style={styles.emptyWishlistContainer}>
     <Ionicons name="heart-outline" size={50} color={colors.secondary[200]} />
@@ -27,39 +28,47 @@ const EmptyWishlistMessage = () => (
 
 const Wishlist = () => {
   const [wishlist, setWishlist] = useState<ListingType[]>([]);
-  const { back } = useRouter(); // Access the router for navigation
-
-  // Load wishlist items on mount
+  const { back } = useRouter(); 
   useEffect(() => {
     const loadWishlist = async () => {
-      const savedWishlist = await getWishlist();
+      const savedWishlist = await getWishlist(); 
       setWishlist(savedWishlist);
     };
     loadWishlist();
   }, []);
 
-  // Toggle wishlist (for heart icon)
   const handleWishlistToggle = async (item: ListingType) => {
-    const isAlreadyInWishlist = wishlist.some(
+    const user = getAuth().currentUser;
+    if (!user) {
+      console.error("User is not authenticated");
+      return;
+    }
+    const currentWishlist = await getWishlist();
+  
+    let updatedWishlist = [...currentWishlist];  
+    
+    const isAlreadyInWishlist = updatedWishlist.some(
       (wishlistItem) => wishlistItem.id === item.id
     );
-    let updatedWishlist;
-
+  
     if (isAlreadyInWishlist) {
-      updatedWishlist = wishlist.filter(
+      updatedWishlist = updatedWishlist.filter(
         (wishlistItem) => wishlistItem.id !== item.id
       );
-      Alert.alert("Removed", `${item.name} has been removed from your wishlist.`);
+      Alert.alert(
+        "Removed",
+        `${item.name} has been removed from your wishlist.`
+      );
     } else {
-      updatedWishlist = [...wishlist, item];
+      updatedWishlist.push(item);  
       Alert.alert("Added", `${item.name} has been added to your wishlist.`);
     }
-
-    setWishlist(updatedWishlist);
-    await saveWishlist(updatedWishlist); // Persist wishlist to AsyncStorage
+  
+    await saveWishlist(updatedWishlist); 
+    setWishlist(updatedWishlist);  
   };
+  
 
-  // Render item for each listing in wishlist
   const renderItems = ({ item }: { item: ListingType }) => {
     return (
       <GestureHandlerRootView style={{ flex: 1 }}>
@@ -71,12 +80,19 @@ const Wishlist = () => {
             </Text>
             <View style={styles.locationContainer}>
               <View style={styles.location}>
-                <FontAwesome5 name="map-marker-alt" size={18} color={colors.secondary[200]} />
-                <Text style={styles.itemLocationTxt} numberOfLines={1} ellipsizeMode="tail">
+                <FontAwesome5
+                  name="map-marker-alt"
+                  size={18}
+                  color={colors.secondary[200]}
+                />
+                <Text
+                  style={styles.itemLocationTxt}
+                  numberOfLines={1}
+                  ellipsizeMode="tail"
+                >
                   {item.location}
                 </Text>
               </View>
-
               <View style={styles.ratingContainer}>
                 <Text style={styles.ratingText}>{item.rating}</Text>
                 <Ionicons name="star" size={16} color={colors.secondary[200]} />
@@ -90,15 +106,14 @@ const Wishlist = () => {
 
   return (
     <View style={styles.container}>
-      {/* Custom header with back button */}
       <View style={styles.customHeader}>
         <TouchableOpacity onPress={back}>
-          <MaterialIcons name="arrow-back-ios" size={28} color="black" /> {/* Improved back icon */}
+          <MaterialIcons name="arrow-back-ios" size={28} color="black" />{" "}
+         
         </TouchableOpacity>
         <Text style={styles.headerTitle}>My Wishlist</Text>
       </View>
 
-      {/* If wishlist is empty, show the EmptyWishlistMessage */}
       {wishlist.length === 0 ? (
         <EmptyWishlistMessage />
       ) : (
@@ -106,17 +121,14 @@ const Wishlist = () => {
           data={wishlist}
           renderItem={renderItems}
           keyExtractor={(item) => item.id.toString()}
-          showsVerticalScrollIndicator={false} // Vertical scrolling
+          showsVerticalScrollIndicator={false}
         />
       )}
     </View>
   );
 };
 
-// Disable the default header
-Wishlist.options = {
-  headerShown: false, // Disable the default header
-};
+
 
 export default Wishlist;
 
@@ -125,7 +137,6 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingTop: 20,
     paddingHorizontal: 10,
-
   },
   customHeader: {
     flexDirection: "row",
@@ -134,15 +145,14 @@ const styles = StyleSheet.create({
     paddingBottom: 10,
     paddingHorizontal: 15,
     backgroundColor: colors.primary[200],
-    elevation: 5, // Optional: Adds shadow to the header
+    elevation: 5,
   },
   headerTitle: {
-    fontSize: 28, // Slightly larger font size for better readability
+    fontSize: 28, 
     fontWeight: "bold",
     color: colors.secondary.DEFAULT,
     marginLeft: 20,
-    marginBottom:5
- 
+    marginBottom: 5,
   },
   card: {
     backgroundColor: "white",
@@ -155,8 +165,8 @@ const styles = StyleSheet.create({
     shadowRadius: 3,
     elevation: 2,
     position: "relative",
-    margin:20,
-   padding:10// Make sure that the heart icon stays inside the card
+    margin: 20,
+    padding: 10, 
   },
   image: {
     width: 200,
@@ -173,18 +183,18 @@ const styles = StyleSheet.create({
   locationContainer: {
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "space-between", // Ensures space between location and rating
+    justifyContent: "space-between", 
   },
   location: {
     flexDirection: "row",
     alignItems: "center",
-    flex: 1, // Take available space in the row
+    flex: 1, 
   },
   itemLocationTxt: {
     fontSize: 12,
     marginLeft: 5,
     flexShrink: 1,
-    fontWeight: "bold", // Allows the text to shrink if needed
+    fontWeight: "bold", 
   },
   ratingContainer: {
     flexDirection: "row",
@@ -197,7 +207,7 @@ const styles = StyleSheet.create({
   },
   emptyWishlistContainer: {
     flex: 1,
-   marginTop:100,
+    marginTop: 100,
     alignItems: "center",
     padding: 20,
   },
