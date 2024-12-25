@@ -4,75 +4,72 @@ import { router } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useAuth } from "@/context/AuthContext";
 import images from "@/constants/images";
-import MaterialIcons from '@expo/vector-icons/MaterialIcons';// Import FontAwesome for the vendor icon
+import MaterialIcons from "@expo/vector-icons/MaterialIcons"; // Import FontAwesome for the vendor icon
+
+const Breakline = () => {
+  return <View style={styles.breakline}>
+  </View>
+}
 
 const Profile = () => {
   const { logout, user } = useAuth();
 
   const handleLogout = async () => {
     await logout();
-    router.replace('/sign-in');
+    router.replace("/sign-in");
   };
 
   const navigateToVendor = () => {
-    router.push('/menu'); // Replace with the correct vendor-side route
+    router.push("/menu"); // Replace with the correct vendor-side route
   };
 
   const username = user?.username ? user?.username : user?.email;
   const email = user?.email;
   const profileImage = user?.profileImage;
   const phoneNumber = user?.phoneNumber;
-  const address = user?.addresses?.find(addr => addr.primary)?.address;
+  const address = user?.addresses?.find((addr) => addr.primary)?.address;
 
   return (
-    <SafeAreaView style={{ height: "100%", padding: 25, paddingTop: 15, }}>
+    <SafeAreaView style={{ height: "100%", padding: 25, paddingTop: 15 }}>
       <View style={styles.header}>
         <Text style={styles.title}>Profile</Text>
-        <View style={styles.headerActions}>
-        
-      <MaterialIcons
-        name="store" // Shop icon
-        size={30}
-        color="orange"
-        style={styles.iconSpacing}
-        onPress={navigateToVendor}
-      />
-          {/* Logout Icon */}
-          <MaterialIcons
-            name="logout"
-            size={30}
-            color="#E10000"
-            onPress={handleLogout}
-          />
-        </View>
       </View>
-      <View className="items-center" style={styles.profileImageContainer}>
-        <Image
-                    source={
-                      profileImage
-                        ? { uri: profileImage }
-                         : require('../../assets/images/defaultProfile.png') // Use a placeholder URL
-                    }
-                    style={styles.profileImage}
-                    />
-        <Text className="mt-4" style={styles.infoText}>{username}</Text>
-      </View>
-      <View style={styles.infoContainer}>
-        <Text style={styles.label}>Email</Text>
-        <Text style={styles.infoText}>{email}</Text>
 
-        <Text style={styles.label}>Phone</Text>
-        <Text style={styles.infoText}>+60 {phoneNumber}</Text>
-
-        <Text style={styles.label}>Address</Text>
-        <Text style={styles.infoText}>{address}</Text>
-      </View>
       <TouchableOpacity
-        style={styles.editButton}
+        style={styles.infoContainer}
         onPress={() => router.push("../components/EditProfile")}
       >
-        <Text style={styles.editText}>Edit</Text>
+        <View style={styles.profileImageContainer}>
+          <Image
+            source={
+              profileImage
+                ? { uri: profileImage }
+                : require("../../assets/images/defaultProfile.png") // Use a placeholder URL
+            }
+            style={styles.profileImage}
+          />
+        </View>
+        <View style={styles.infoDetail}>
+          <Text className="mt-4" style={styles.username}>
+            {username? username : email}
+          </Text>
+          <Text style={styles.userEmail}>{username ? email : phoneNumber}</Text>
+        </View>
+        {/* 
+        <Text style={styles.label}>Address</Text>
+        <Text style={styles.username}>{address}</Text> */}
       </TouchableOpacity>
+      <View>
+          <Text style={styles.label}>My Addresses</Text>
+      </View>
+      <Breakline/>
+      <TouchableOpacity onPress={navigateToVendor}>
+          <Text style={styles.label}>Change to Vendor</Text>
+      </TouchableOpacity>
+      <Breakline/>
+      <View>
+          <Text style={styles.label}>Logout</Text>
+      </View>
     </SafeAreaView>
   );
 };
@@ -80,6 +77,12 @@ const Profile = () => {
 export default Profile;
 
 const styles = StyleSheet.create({
+  breakline:{
+    width: "100%",
+    backgroundColor: "#CCC",
+    height: 1.5,
+    marginVertical: 16
+  },
   header: {
     flexDirection: "row",
     alignItems: "center",
@@ -95,38 +98,53 @@ const styles = StyleSheet.create({
     color: "orange",
   },
   profileImageContainer: {
-    marginTop: 20,
-    marginBottom: 8,
+    justifyContent: "center",
   },
   profileImage: {
-    width: 120,
-    height: 120,
+    width: 80,
+    height: 80,
     borderRadius: 60,
     borderWidth: 2,
     borderColor: "#ddd",
+    marginRight: 24,
   },
   infoContainer: {
+    flex: 1,
+    flexDirection: "row",
     width: "100%",
+    maxHeight: "16%",
     backgroundColor: "#fff",
-    borderRadius: 10,
+    borderRadius: 16,
     padding: 20,
-    marginBottom: 20,
+    marginBottom: 32,
+    marginTop: 8,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.2,
     shadowRadius: 4,
     elevation: 5,
   },
+  infoDetail: {
+    // backgroundColor: "red",
+    flex: 1,
+    justifyContent: "space-around",
+  },
   label: {
     fontSize: 16,
-    color: "#888",
-    marginTop: 10,
+    marginLeft: 16,
+    fontWeight: "500"
+    
   },
-  infoText: {
-    fontSize: 18,
+  username: {
+    // backgroundColor: "blue",
+    fontSize: 28,
     fontWeight: "bold",
     color: "#333",
-    marginBottom: 15,
+    marginTop: 0,
+  },
+  userEmail: {
+    fontSize: 16,
+    color: "#333",
   },
   editButton: {
     paddingVertical: 10,
