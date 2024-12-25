@@ -96,7 +96,7 @@ const MainLayout = () => {
         }}
       />
       <Stack.Screen
-        name="components/AddNewAddress"
+        name="components/ChangeAddress"
         options={{
           headerShown: false,
         }}

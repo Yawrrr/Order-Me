@@ -1,5 +1,12 @@
 import React, { useState, useEffect } from "react";
-import { StyleSheet, Text, View, FlatList, TouchableOpacity, Alert } from "react-native";
+import {
+  StyleSheet,
+  Text,
+  View,
+  FlatList,
+  TouchableOpacity,
+  Alert,
+} from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { FIREBASE_AUTH, FIREBASE_DB } from "../../FirebaseConfig";
 import { collection, query, where, getDocs, addDoc } from "firebase/firestore";
@@ -22,7 +29,8 @@ export default function Checkout() {
   const [totalPrice, setTotalPrice] = useState(0);
   const [loading, setLoading] = useState(false);
   const { user } = useAuth(); // Access user data
-  const [selectedAddress, setSelectedAddress] = useState(user?.address || "No Address Found");
+  const [selectedAddress, setSelectedAddress] =
+    useState<String>("No Address Found");
   const auth = FIREBASE_AUTH;
   const router = useRouter();
 
@@ -44,7 +52,10 @@ export default function Checkout() {
       setCartItems(cartItems);
 
       // Calculate total price
-      const total = cartItems.reduce((sum, item) => sum + (item.totalPrice || 0), 0);
+      const total = cartItems.reduce(
+        (sum, item) => sum + (item.totalPrice || 0),
+        0
+      );
       setTotalPrice(total);
     } catch (error) {
       console.error("Error fetching cart data: ", error);
@@ -58,18 +69,18 @@ export default function Checkout() {
       console.log("No authenticated user found.");
       return;
     }
-  
+
     try {
       const userRef = collection(FIREBASE_DB, "users");
       const userQuery = query(userRef, where("email", "==", userEmail));
       const snapshot = await getDocs(userQuery);
-  
+
       console.log("Query executed, documents found: ", snapshot.size);
-  
+
       if (!snapshot.empty) {
         const userData = snapshot.docs[0].data();
         console.log("Fetched user data: ", userData);
-  
+
         const address = userData?.address || "No Address Found";
         setSelectedAddress(address);
         console.log("Fetched Address: ", address);
@@ -82,7 +93,6 @@ export default function Checkout() {
       setSelectedAddress("Error fetching address");
     }
   };
-  
 
   // Confirm the order
   const confirmOrder = async () => {
@@ -112,20 +122,21 @@ export default function Checkout() {
     }
   };
 
-  
   useEffect(() => {
     if (auth.currentUser) {
       fetchCartData(); // Fetch cart items from Firestore
     }
-    
+
     // Use `user` to set the address
-    if (user?.address) {
-      setSelectedAddress(user.address);
+    if (user?.addresses) {
+      setSelectedAddress(
+        user?.addresses?.find((addr) => addr.primary)?.address ??
+          "No Address Found"
+      );
     } else {
       console.log("No address found in user context");
     }
   }, [auth.currentUser, user]);
-  
 
   return (
     <SafeAreaView style={styles.container}>
@@ -135,21 +146,25 @@ export default function Checkout() {
 
       {/* Display selected address */}
       <View style={styles.addressContainer}>
-  <Text style={styles.addressTitle}>Delivery Address</Text>
-  <View style={styles.addressWrapper}>
-    <View style={styles.selectedAddressContainer}>
-      <Text style={styles.selectedAddress} numberOfLines={1} ellipsizeMode="tail">
-        {selectedAddress}
-      </Text>
-    </View>
-    <TouchableOpacity style={styles.newAddressButton} onPress={() => router.push("../components/AddNewAddress")}>
-  <Text style={styles.newAddressText}>Change Address</Text>
-</TouchableOpacity>
-
-  </View>
-</View>
-
-
+        <Text style={styles.addressTitle}>Delivery Address</Text>
+        <View style={styles.addressWrapper}>
+          <View style={styles.selectedAddressContainer}>
+            <Text
+              style={styles.selectedAddress}
+              numberOfLines={1}
+              ellipsizeMode="tail"
+            >
+              {selectedAddress}
+            </Text>
+          </View>
+          <TouchableOpacity
+            style={styles.newAddressButton}
+            onPress={() => router.push("../components/ChangeAddress")}
+          >
+            <Text style={styles.newAddressText}>Change Address</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
 
       <FlatList
         data={cartItems}
@@ -167,7 +182,9 @@ export default function Checkout() {
             <View style={styles.itemDetails}>
               <Text style={styles.itemName}>{item.name}</Text>
               <Text style={styles.itemQuantity}>Qty: {item.quantity}</Text>
-              <Text style={styles.itemPrice}>RM {item.totalPrice.toFixed(2)}</Text>
+              <Text style={styles.itemPrice}>
+                RM {item.totalPrice.toFixed(2)}
+              </Text>
             </View>
           </View>
         )}
@@ -276,15 +293,15 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
   },
   addressWrapper: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-    width: '100%',
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
+    width: "100%",
   },
   newAddressButton: {
     paddingVertical: 5,
     paddingHorizontal: 10,
-    backgroundColor: 'orange',
+    backgroundColor: "orange",
     borderRadius: 8,
   },
   selectedAddressContainer: {
@@ -294,7 +311,7 @@ const styles = StyleSheet.create({
   },
   newAddressText: {
     fontSize: 16,
-    color: '#fff',
-    fontWeight: '500',
+    color: "#fff",
+    fontWeight: "500",
   },
 });

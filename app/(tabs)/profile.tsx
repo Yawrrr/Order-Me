@@ -22,7 +22,7 @@ const Profile = () => {
   const email = user?.email;
   const profileImage = user?.profileImage;
   const phoneNumber = user?.phoneNumber;
-  const address = user?.address;
+  const address = user?.addresses?.find(addr => addr.primary)?.address;
 
   return (
     <SafeAreaView style={{ height: "100%", padding: 25, paddingTop: 15, }}>

@@ -7,18 +7,6 @@ import images from "@/constants/images";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import { User } from "@/context/AuthContext";
 
-// interface User {
-//   username?: string;
-//   email: string;
-//   phoneNumber?: string;
-//   address?: string;
-//   profileImage?: string;
-//   restaurantName?: string;
-//   restaurantAddress?: string;
-//   category?: string;
-//   restaurantImage?: string;
-// }
-
 const Profile = () => {
   const { logout, user }= useAuth();
 
@@ -34,7 +22,7 @@ const Profile = () => {
   const username = user?.username ?? user?.email;
   const email = user?.email;
   const phoneNumber = user?.phoneNumber;
-  const address = user?.address;
+  const address = user?.addresses?.find(addr => addr.primary)?.address;
   const profileImage = user?.profileImage;
   const restaurantName = user?.restaurantName;
   const restaurantAddress = user?.restaurantAddress;

@@ -4,11 +4,18 @@ import { FIREBASE_AUTH, FIREBASE_DB } from "@/FirebaseConfig";
 import { onAuthStateChanged, signOut, signInWithEmailAndPassword, createUserWithEmailAndPassword } from "firebase/auth";
 import { doc, getDoc, setDoc } from "firebase/firestore";
 
+export type AddressInfo= {
+  address: String;
+  primary: boolean;
+  state?: string;
+  postcode?: string;
+}
+
 export interface User {
   username: string;
   email: string;
   phoneNumber: string;
-  address: string;
+  addresses: AddressInfo[];
   profileImage: string;
   role: string;
   restaurantName: string;
@@ -59,8 +66,8 @@ export const AuthContextProvider = ({ children }: AuthContextProviderProps) => {
             setUser(userData);
             setRole(userData.role);
             setIsAuthenticated(true);
-            // console.log("Your user details : "+ JSON.stringify(userData, null, 2))
-            console.log("Your category: " + userData.category)
+            console.log("Your user details : "+ JSON.stringify(userData, null, 2))
+            console.log("Your category: " + userData.addresses)
           }
         } catch (error: unknown) {
           if (error instanceof Error) {
@@ -93,12 +100,17 @@ export const AuthContextProvider = ({ children }: AuthContextProviderProps) => {
   };
 
   const signUp = async (email: string, password: string, phoneNumber: string, address: string) => {
+    // Create address list with initial address
+    const addressList: AddressInfo[] = [{
+      address: address,
+      primary: true
+    }];
     try {
       const response = await createUserWithEmailAndPassword(FIREBASE_AUTH, email, password);
       await setDoc(doc(FIREBASE_DB, "users", response.user.uid), {
         email,
         phoneNumber,
-        address,
+        addresses: addressList,
         username: "",
         role: "user",
       });
