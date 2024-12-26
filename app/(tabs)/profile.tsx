@@ -72,9 +72,6 @@ const Profile = () => {
           </Text>
           <Text style={styles.userEmail}>{username ? email : phoneNumber}</Text>
         </View>
-        {/* 
-        <Text style={styles.label}>Address</Text>
-        <Text style={styles.username}>{address}</Text> */}
       </TouchableOpacity>
       <Options receiveFunction={viewAddresses} title="My Addresses" />
       <Breakline />

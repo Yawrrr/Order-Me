@@ -68,7 +68,7 @@ export const AuthContextProvider = ({ children }: AuthContextProviderProps) => {
             setIsAuthenticated(true);
             const { profileImage, ...userDataWithoutImage } = userData;
             console.log("Your user details: " + JSON.stringify(userDataWithoutImage, null, 2));
-            console.log("Your category: " + userData.addresses);
+            console.log("Your category: " + JSON.stringify(userData.addresses, null, 2));
           }
         } catch (error: unknown) {
           if (error instanceof Error) {
