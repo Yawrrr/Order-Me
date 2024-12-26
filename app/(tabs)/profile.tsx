@@ -7,9 +7,22 @@ import images from "@/constants/images";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons"; // Import FontAwesome for the vendor icon
 
 const Breakline = () => {
-  return <View style={styles.breakline}>
-  </View>
-}
+  return <View style={styles.breakline}></View>;
+};
+
+const Options = ({
+  receiveFunction,
+  title,
+}: {
+  receiveFunction: () => void;
+  title: String;
+}) => {
+  return (
+    <TouchableOpacity onPress={receiveFunction}>
+      <Text style={styles.label}>{title}</Text>
+    </TouchableOpacity>
+  );
+};
 
 const Profile = () => {
   const { logout, user } = useAuth();
@@ -21,6 +34,10 @@ const Profile = () => {
 
   const navigateToVendor = () => {
     router.push("/menu"); // Replace with the correct vendor-side route
+  };
+
+  const viewAddresses = () => {
+    router.push("../components/Addresses");
   };
 
   const username = user?.username ? user?.username : user?.email;
@@ -51,7 +68,7 @@ const Profile = () => {
         </View>
         <View style={styles.infoDetail}>
           <Text className="mt-4" style={styles.username}>
-            {username? username : email}
+            {username ? username : email}
           </Text>
           <Text style={styles.userEmail}>{username ? email : phoneNumber}</Text>
         </View>
@@ -59,17 +76,11 @@ const Profile = () => {
         <Text style={styles.label}>Address</Text>
         <Text style={styles.username}>{address}</Text> */}
       </TouchableOpacity>
-      <View>
-          <Text style={styles.label}>My Addresses</Text>
-      </View>
-      <Breakline/>
-      <TouchableOpacity onPress={navigateToVendor}>
-          <Text style={styles.label}>Change to Vendor</Text>
-      </TouchableOpacity>
-      <Breakline/>
-      <View>
-          <Text style={styles.label}>Logout</Text>
-      </View>
+      <Options receiveFunction={viewAddresses} title="My Addresses" />
+      <Breakline />
+      <Options receiveFunction={navigateToVendor} title="Change to Vendor" />
+      <Breakline />
+      <Options receiveFunction={handleLogout} title="Logout" />
     </SafeAreaView>
   );
 };
@@ -77,11 +88,11 @@ const Profile = () => {
 export default Profile;
 
 const styles = StyleSheet.create({
-  breakline:{
+  breakline: {
     width: "100%",
     backgroundColor: "#CCC",
     height: 1.5,
-    marginVertical: 16
+    marginVertical: 16,
   },
   header: {
     flexDirection: "row",
@@ -132,8 +143,7 @@ const styles = StyleSheet.create({
   label: {
     fontSize: 16,
     marginLeft: 16,
-    fontWeight: "500"
-    
+    fontWeight: "500",
   },
   username: {
     // backgroundColor: "blue",

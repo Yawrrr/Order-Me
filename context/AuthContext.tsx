@@ -5,7 +5,7 @@ import { onAuthStateChanged, signOut, signInWithEmailAndPassword, createUserWith
 import { doc, getDoc, setDoc } from "firebase/firestore";
 
 export type AddressInfo= {
-  address: String;
+  address: string;
   primary: boolean;
   state?: string;
   postcode?: string;
@@ -66,8 +66,9 @@ export const AuthContextProvider = ({ children }: AuthContextProviderProps) => {
             setUser(userData);
             setRole(userData.role);
             setIsAuthenticated(true);
-            console.log("Your user details : "+ JSON.stringify(userData, null, 2))
-            console.log("Your category: " + userData.addresses)
+            const { profileImage, ...userDataWithoutImage } = userData;
+            console.log("Your user details: " + JSON.stringify(userDataWithoutImage, null, 2));
+            console.log("Your category: " + userData.addresses);
           }
         } catch (error: unknown) {
           if (error instanceof Error) {
