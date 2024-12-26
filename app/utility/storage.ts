@@ -17,8 +17,11 @@ export const saveWishlist = async (wishlist: ListingType[]) => {
 
     const userRef = doc(FIREBASE_DB, "users", user.uid); 
     await setDoc(userRef, { wishlist }, { merge: true }); 
-
-    console.log("Wishlist saved to Firestore:", wishlist);
+    const filteredWishlist = wishlist.map(item => {
+      const { imageUrl, ...rest } = item;
+      return rest;
+    });
+    console.log("Wishlist saved to Firestore:", filteredWishlist);
   } catch (error) {
     console.error("Error saving wishlist to Firestore: ", error);
   }

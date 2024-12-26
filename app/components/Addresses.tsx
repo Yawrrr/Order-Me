@@ -4,6 +4,8 @@ import {
   TouchableOpacity,
   Touchable,
   View,
+  TouchableHighlight,
+  Alert,
 } from "react-native";
 import React from "react";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
@@ -11,9 +13,13 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { router } from "expo-router";
 import { useAuth } from "@/context/AuthContext";
+import { FIREBASE_DB } from "@/FirebaseConfig";
+import { doc, updateDoc } from "firebase/firestore";
+import { getAuth } from "firebase/auth";
 
 const Addresses = () => {
-  const { user } = useAuth();
+  const { user, setUser } = useAuth();
+  const userUid = getAuth().currentUser?.uid;
   const primaryAddress = user?.addresses?.find((addr) => addr.primary)?.address;
   const secondaryAddresses = user?.addresses?.filter((addr) => !addr.primary);
   const goBack = () => {
@@ -24,6 +30,35 @@ const Addresses = () => {
     return <View style={styles.breakline}></View>;
   };
 
+  const handleSetPrimary = async (selectedAddress: { address: string }) => {
+    Alert.alert(
+      "Set Primary Address",
+      "Are you sure you want to set this address as your primary address?",
+      [
+        {
+          text: "Cancel",
+          style: "cancel",
+        },
+        {
+          text: "Confirm",
+          onPress: async () => {
+            const updatedAddresses = user?.addresses.map((addr) => ({
+              ...addr,
+              primary: addr.address === selectedAddress.address,
+            }));
+            if (user && userUid) {
+              const userRef = doc(FIREBASE_DB, "users", userUid);
+              await updateDoc(userRef, { addresses: updatedAddresses });
+              if (updatedAddresses) {
+                setUser({ ...user, addresses: updatedAddresses });
+              }
+            }
+          },
+        },
+      ]
+    );
+  };
+
   return (
     <GestureHandlerRootView>
       <SafeAreaView style={styles.container}>
@@ -31,6 +66,7 @@ const Addresses = () => {
           <Ionicons name="chevron-back-outline" size={16} color="black" />
           <Text>Back</Text>
         </TouchableOpacity>
+        
         <View>
           <Text>Primary Address</Text>
           <View style={styles.infoContainer}>
@@ -39,13 +75,21 @@ const Addresses = () => {
           </View>
           <Text>Secondary Addresses</Text>
           {secondaryAddresses?.map((address, index) => (
-            <>
+            <View key={index}>
               <Breakline />
-              <View key={index} style={styles.secondaryAddresses}>
-                {/* <Text style={styles.phoneNum}>{user?.phoneNumber}</Text> */}
+              <TouchableOpacity
+                style={styles.secondaryAddresses}
+                onPress={() => handleSetPrimary(address)}
+              >
                 <Text style={styles.address}>{address.address}</Text>
-              </View>
-            </>
+                {address.state && (
+                  <Text className="text-sm">{address.state}</Text>
+                )}
+                {address.postcode && (
+                  <Text className="text-sm">{address.postcode}</Text>
+                )}
+              </TouchableOpacity>
+            </View>
           ))}
         </View>
       </SafeAreaView>
@@ -87,11 +131,11 @@ const styles = StyleSheet.create({
   },
   phoneNum: {
     fontSize: 16,
-    fontWeight: "500",
+    fontWeight: "600",
   },
   address: {
     fontSize: 14,
-    fontWeight: "300",
+    fontWeight: "400",
   },
   breakline: {
     width: "100%",
