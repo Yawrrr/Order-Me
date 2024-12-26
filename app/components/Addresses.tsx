@@ -5,9 +5,14 @@ import {
   Touchable,
   View,
   TouchableHighlight,
+  Modal,
   Alert,
+  Button,
+  TextInput,
+  Keyboard,
+  TouchableWithoutFeedback,
 } from "react-native";
-import React from "react";
+import React, { useState } from "react";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Ionicons from "@expo/vector-icons/Ionicons";
@@ -22,6 +27,11 @@ const Addresses = () => {
   const userUid = getAuth().currentUser?.uid;
   const primaryAddress = user?.addresses?.find((addr) => addr.primary)?.address;
   const secondaryAddresses = user?.addresses?.filter((addr) => !addr.primary);
+  const [modalVisible, setModalVisible] = useState(false);
+  const [newAddress, setNewAddress] = useState("");
+  const [newState, setNewState] = useState("");
+  const [newPostcode, setNewPostcode] = useState("");
+
   const goBack = () => {
     router.back();
   };
@@ -59,14 +69,37 @@ const Addresses = () => {
     );
   };
 
+  const handleAddAddress = async () => {
+    const newAddressInfo = {
+      address: newAddress,
+      primary: false,
+      state: newState,
+      postcode: newPostcode,
+    };
+    const updatedAddresses = [...(user?.addresses || []), newAddressInfo];
+    if (user && userUid) {
+      const userRef = doc(FIREBASE_DB, "users", userUid);
+      await updateDoc(userRef, { addresses: updatedAddresses });
+      setUser({ ...user, addresses: updatedAddresses });
+      setModalVisible(false);
+      setNewAddress("");
+      setNewState("");
+      setNewPostcode("");
+    }
+  };
+
   return (
     <GestureHandlerRootView>
       <SafeAreaView style={styles.container}>
-        <TouchableOpacity style={styles.backbtn} onPress={goBack}>
-          <Ionicons name="chevron-back-outline" size={16} color="black" />
-          <Text>Back</Text>
-        </TouchableOpacity>
-        
+        <View style={styles.header}>
+          <TouchableOpacity style={styles.backbtn} onPress={goBack}>
+            <Ionicons name="chevron-back-outline" size={16} color="black" />
+            <Text>Back</Text>
+          </TouchableOpacity>
+          <TouchableOpacity onPress={() => setModalVisible(true)}>
+            <Text >Add New Address</Text>
+          </TouchableOpacity>
+        </View>
         <View>
           <Text>Primary Address</Text>
           <View style={styles.infoContainer}>
@@ -92,6 +125,45 @@ const Addresses = () => {
             </View>
           ))}
         </View>
+        <Modal
+          animationType="slide"
+          transparent={true}
+          visible={modalVisible}
+          onRequestClose={() => {
+            setModalVisible(!modalVisible);
+          }}
+        >
+          <TouchableWithoutFeedback onPress={() => setModalVisible(false)}>
+            <View style={styles.centeredView}>
+              <TouchableWithoutFeedback onPress={() => Keyboard.dismiss()}>
+                <View style={styles.modalView}>
+                  <Text style={styles.modalText}>Add New Address</Text>
+                  <TextInput
+                    style={styles.input}
+                    placeholder="Address"
+                    value={newAddress}
+                    onChangeText={setNewAddress}
+                  />
+                  <TextInput
+                    style={styles.input}
+                    placeholder="State"
+                    value={newState}
+                    onChangeText={setNewState}
+                  />
+                  <TextInput
+                    style={styles.input}
+                    placeholder="Postcode"
+                    value={newPostcode}
+                    onChangeText={setNewPostcode}
+                  />
+                  <TouchableOpacity style={styles.addButton} onPress={handleAddAddress}>
+                    <Text style={styles.addBtnText}>Add New Address</Text>
+                  </TouchableOpacity>
+                </View>
+              </TouchableWithoutFeedback>
+            </View>
+          </TouchableWithoutFeedback>
+        </Modal>
       </SafeAreaView>
     </GestureHandlerRootView>
   );
@@ -104,6 +176,12 @@ const styles = StyleSheet.create({
     flex: 1,
     flexDirection: "column",
     padding: 16,
+  },
+  header: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 24,
   },
   infoContainer: {
     width: "100%",
@@ -123,7 +201,6 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     maxWidth: "20%",
-    marginBottom: 16,
   },
   icon: {
     // height: 16,
@@ -145,5 +222,51 @@ const styles = StyleSheet.create({
   },
   secondaryAddresses: {
     padding: 12,
+  },
+  centeredView: {
+    flex: 1,
+    justifyContent: "center",
+    marginTop: 22,
+  },
+  modalView: {
+    margin: 20,
+    backgroundColor: "white",
+    borderRadius: 20,
+    padding: 35,
+    alignItems: "center",
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+    elevation: 5,
+  },
+  modalText: {
+    marginBottom: 15,
+    textAlign: "center",
+    fontSize: 18,
+    fontWeight: "bold",
+  },
+  input: {
+    width: "100%",
+    height: 40,
+    borderColor: "gray",
+    borderWidth: 1,
+    marginTop: 12,
+    paddingLeft: 8,
+    borderRadius: 5,
+  },
+  addButton: {
+    backgroundColor: "orange",
+    padding: 12,
+    borderRadius: 8,
+    alignItems: "center",
+    marginTop: 24,
+  },
+  addBtnText: {
+    color: "#fff",
+    fontSize: 16,
   },
 });
