@@ -39,36 +39,48 @@ const Addresses = () => {
   const Breakline = () => {
     return <View style={styles.breakline}></View>;
   };
-
-  const handleSetPrimary = async (selectedAddress: { address: string }) => {
-    Alert.alert(
-      "Set Primary Address",
-      "Are you sure you want to set this address as your primary address?",
-      [
-        {
-          text: "Cancel",
-          style: "cancel",
-        },
-        {
-          text: "Confirm",
-          onPress: async () => {
-            const updatedAddresses = user?.addresses.map((addr) => ({
-              ...addr,
-              primary: addr.address === selectedAddress.address,
-            }));
-            if (user && userUid) {
-              const userRef = doc(FIREBASE_DB, "users", userUid);
-              await updateDoc(userRef, { addresses: updatedAddresses });
-              if (updatedAddresses) {
-                setUser({ ...user, addresses: updatedAddresses });
-              }
+const handleSetPrimaryOrDelete = async (selectedAddress: { address: string }) => {
+  Alert.alert(
+    "Address Options",
+    "Choose an option for this address:",
+    [
+      {
+        text: "Cancel",
+        style: "cancel",
+      },
+      {
+        text: "Set as Primary",
+        onPress: async () => {
+          const updatedAddresses = user?.addresses.map((addr) => ({
+            ...addr,
+            primary: addr.address === selectedAddress.address,
+          }));
+          if (user && userUid) {
+            const userRef = doc(FIREBASE_DB, "users", userUid);
+            await updateDoc(userRef, { addresses: updatedAddresses });
+            if (updatedAddresses) {
+              setUser({ ...user, addresses: updatedAddresses });
             }
-          },
+          }
         },
-      ]
-    );
-  };
-
+      },
+      {
+        text: "Delete",
+        onPress: async () => {
+          const updatedAddresses = user?.addresses.filter((addr) => addr.address !== selectedAddress.address);
+          if (user && userUid) {
+            const userRef = doc(FIREBASE_DB, "users", userUid);
+            await updateDoc(userRef, { addresses: updatedAddresses });
+            if (updatedAddresses) {
+              setUser({ ...user, addresses: updatedAddresses });
+            }
+          }
+        },
+        style: "destructive",
+      },
+    ]
+  );
+};
   const handleAddAddress = async () => {
     const newAddressInfo = {
       address: newAddress,
@@ -112,7 +124,7 @@ const Addresses = () => {
               <Breakline />
               <TouchableOpacity
                 style={styles.secondaryAddresses}
-                onPress={() => handleSetPrimary(address)}
+                onPress={() => handleSetPrimaryOrDelete(address)}
               >
                 <Text style={styles.address}>{address.address}</Text>
                 {address.state && (
