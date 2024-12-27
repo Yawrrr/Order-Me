@@ -270,6 +270,7 @@ const styles = StyleSheet.create({
     flex: 1,
     padding: 20,
     backgroundColor: "#fff",
+    marginBottom: 40,
   },
   header: {
     alignItems: "flex-start",
