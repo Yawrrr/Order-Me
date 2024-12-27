@@ -10,7 +10,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { FIREBASE_AUTH, FIREBASE_DB } from "../../FirebaseConfig";
 import { collection, query, where, getDocs, addDoc } from "firebase/firestore";
-import { useRouter } from "expo-router";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import { Image } from "react-native";
 import { useAuth } from "@/context/AuthContext";
 
@@ -30,9 +30,27 @@ export default function Checkout() {
   const [loading, setLoading] = useState(false);
   const { user } = useAuth(); // Access user data
   const [selectedAddress, setSelectedAddress] =
-    useState<String>("No Address Found");
+    useState<string>("No Address Found");
+  const [deliveryAddress, setDeliveryAddress] = useState("");
   const auth = FIREBASE_AUTH;
   const router = useRouter();
+  const params = useLocalSearchParams();
+  
+  useEffect(() => {
+    if (user?.addresses) {
+      const primary =
+        user.addresses.find((addr) => addr.primary)?.address ||
+        "No Address Found";
+      setSelectedAddress(primary);
+      setDeliveryAddress(primary); // Initially set delivery address to primary
+    }
+  }, [user]);
+
+  useEffect(() => {
+    if (params.selectedAddress) {
+      setSelectedAddress(params.selectedAddress as string);
+    }
+  }, [params]);
 
   // Fetch cart data
   const fetchCartData = async () => {
@@ -59,38 +77,6 @@ export default function Checkout() {
       setTotalPrice(total);
     } catch (error) {
       console.error("Error fetching cart data: ", error);
-    }
-  };
-
-  // Fetch user address from users collection
-  const fetchUserAddress = async () => {
-    const userEmail = auth.currentUser?.email;
-    if (!userEmail) {
-      console.log("No authenticated user found.");
-      return;
-    }
-
-    try {
-      const userRef = collection(FIREBASE_DB, "users");
-      const userQuery = query(userRef, where("email", "==", userEmail));
-      const snapshot = await getDocs(userQuery);
-
-      console.log("Query executed, documents found: ", snapshot.size);
-
-      if (!snapshot.empty) {
-        const userData = snapshot.docs[0].data();
-        console.log("Fetched user data: ", userData);
-
-        const address = userData?.address || "No Address Found";
-        setSelectedAddress(address);
-        console.log("Fetched Address: ", address);
-      } else {
-        console.log("No user document found for email: ", userEmail);
-        setSelectedAddress("No Address Found");
-      }
-    } catch (error) {
-      console.error("Error fetching user address: ", error);
-      setSelectedAddress("Error fetching address");
     }
   };
 
@@ -159,7 +145,12 @@ export default function Checkout() {
           </View>
           <TouchableOpacity
             style={styles.newAddressButton}
-            onPress={() => router.push("../components/ChangeAddress")}
+            onPress={() => router.push({
+              pathname: "../components/ChangeAddress",
+              params: {
+                currentAddress: deliveryAddress,
+              },
+            })}
           >
             <Text style={styles.newAddressText}>Change Address</Text>
           </TouchableOpacity>
