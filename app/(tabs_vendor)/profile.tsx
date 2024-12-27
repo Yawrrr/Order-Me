@@ -1,14 +1,17 @@
-import { StyleSheet, Text, TouchableOpacity, View, Image, ScrollView } from "react-native";
-import React from "react";
+import { StyleSheet, Text, TouchableOpacity, View, Image, ScrollView, Switch } from "react-native";
+import React, { useState } from "react";
 import { router } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useAuth } from "@/context/AuthContext";
 import images from "@/constants/images";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
-import { User } from "@/context/AuthContext";
+import { doc, updateDoc, collection, query, where, getDocs} from "firebase/firestore";
+import { FIREBASE_DB } from "@/FirebaseConfig";
+
 
 const Profile = () => {
-  const { logout, user }= useAuth();
+  const { logout, user } = useAuth();
+  const [isRestaurantOpen, setIsRestaurantOpen] = useState(false); // Manage restaurant status
 
   const handleLogout = async () => {
     await logout();
@@ -19,15 +22,47 @@ const Profile = () => {
     router.push("/home");
   };
 
+  const toggleRestaurantStatus = async () => {
+    try {
+      const newStatus = !isRestaurantOpen;
+      setIsRestaurantOpen(newStatus);
+  
+      if (!user?.email) {
+        console.error("User email is unavailable.");
+        return;
+      }
+  
+      // Query for the restaurant belonging to the user
+      const restaurantsCollection = collection(FIREBASE_DB, "restaurants");
+      const restaurantQuery = query(restaurantsCollection, where("owner", "==", user.email));
+      const restaurantSnapshot = await getDocs(restaurantQuery);
+  
+      if (!restaurantSnapshot.empty) {
+        const restaurantDoc = restaurantSnapshot.docs[0];
+        const restaurantDocRef = doc(FIREBASE_DB, "restaurants", restaurantDoc.id);
+  
+        // Update the status field
+        await updateDoc(restaurantDocRef, { status: newStatus ? "Open" : "Closed" });
+        console.log("Restaurant status updated successfully:", newStatus ? "Opened" : "Closed");
+      } else {
+        console.error("Restaurant document not found for the user.");
+      }
+    } catch (error) {
+      console.error("Error updating restaurant status: ", error);
+    }
+  };
+  
+
   const username = user?.username ?? user?.email;
   const email = user?.email;
   const phoneNumber = user?.phoneNumber;
-  const address = user?.addresses?.find(addr => addr.primary)?.address;
+  const address = user?.addresses?.find((addr) => addr.primary)?.address;
   const profileImage = user?.profileImage;
   const restaurantName = user?.restaurantName;
   const restaurantAddress = user?.restaurantAddress;
   const restaurantImage = user?.restaurantImage;
   const category = user?.category;
+  const status = user?.status;
 
   return (
     <SafeAreaView style={{ flex: 1 }}>
@@ -58,11 +93,13 @@ const Profile = () => {
             source={
               profileImage
                 ? { uri: profileImage }
-                 : require('../../assets/images/defaultProfile.png') // Use a placeholder URL
+                : require("../../assets/images/defaultProfile.png") // Use a placeholder URL
             }
             style={styles.profileImage}
-            />
-          <Text className="mt-4" style={styles.infoText}>{username}</Text>
+          />
+          <Text className="mt-4" style={styles.infoText}>
+            {username}
+          </Text>
         </View>
         <View style={styles.infoContainer}>
           <Text style={styles.label}>Email</Text>
@@ -83,12 +120,23 @@ const Profile = () => {
           <Text style={styles.label}>Category</Text>
           <Text style={styles.infoText}>{category}</Text>
 
+          <Text style={styles.label}>Restaurant Status</Text>
+          <View style={styles.statusContainer}>
+            <Text style={styles.infoText}>{isRestaurantOpen ? "Opened" : "Closed"}</Text>
+            <Switch
+              value={isRestaurantOpen}
+              onValueChange={toggleRestaurantStatus}
+              thumbColor={isRestaurantOpen ? "green" : "red"}
+              trackColor={{ false: "#ddd", true: "lightgreen" }}
+            />
+          </View>
+
           <Text style={styles.label}>Restaurant Image</Text>
           <Image
             source={
               restaurantImage
                 ? { uri: restaurantImage }
-                 : { uri: "https://via.placeholder.com/150" } // Use a placeholder URL
+                : { uri: "https://via.placeholder.com/150" } // Use a placeholder URL
             }
             style={styles.restaurantImage}
           />
@@ -176,5 +224,10 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     marginTop: 10,
     resizeMode: "cover",
+  },
+  statusContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
   },
 });

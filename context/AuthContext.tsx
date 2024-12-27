@@ -21,7 +21,8 @@ export interface User {
   restaurantName: string;
   category: string;
   restaurantImage: string;
-  restaurantAddress: string
+  restaurantAddress: string;
+  status: boolean;
 }
 
 interface AuthContextType {
