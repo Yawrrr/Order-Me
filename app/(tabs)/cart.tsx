@@ -7,6 +7,7 @@ import {
   TouchableOpacity,
   Image,
   Alert,
+  Platform,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { FIREBASE_AUTH, FIREBASE_DB } from "../../FirebaseConfig";
@@ -270,7 +271,7 @@ const styles = StyleSheet.create({
     flex: 1,
     padding: 20,
     backgroundColor: "#fff",
-    marginBottom: 40,
+    paddingBottom: Platform.OS === 'android' ? 88 : 60,
   },
   header: {
     alignItems: "flex-start",

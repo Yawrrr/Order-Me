@@ -1,6 +1,6 @@
 import { AntDesign, FontAwesome, Ionicons } from "@expo/vector-icons"
 import React from "react"
-import { StyleSheet, Text, TouchableOpacity, View } from "react-native"
+import { Platform, StyleSheet, Text, TouchableOpacity, View } from "react-native"
 
 interface CustomTabBarProps {
   state: {
@@ -90,7 +90,7 @@ export default TabBar
 const styles = StyleSheet.create({
   container: {
     position: "absolute",
-    bottom: 24,
+    bottom: Platform.OS === 'ios' ? 24 : 16,
     flexDirection: "row",
     backgroundColor: "#fff",
     padding: 12,
