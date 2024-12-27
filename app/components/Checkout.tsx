@@ -9,7 +9,7 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { FIREBASE_AUTH, FIREBASE_DB } from "../../FirebaseConfig";
-import { collection, query, where, getDocs, addDoc } from "firebase/firestore";
+import { collection, query, where, getDocs, addDoc, deleteDoc } from "firebase/firestore";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { Image } from "react-native";
 import { useAuth } from "@/context/AuthContext";
@@ -31,7 +31,6 @@ export default function Checkout() {
   const { user } = useAuth(); // Access user data
   const [selectedAddress, setSelectedAddress] =
     useState<string>("No Address Found");
-  const [deliveryAddress, setDeliveryAddress] = useState("");
   const auth = FIREBASE_AUTH;
   const router = useRouter();
   const params = useLocalSearchParams();
@@ -42,7 +41,6 @@ export default function Checkout() {
         user.addresses.find((addr) => addr.primary)?.address ||
         "No Address Found";
       setSelectedAddress(primary);
-      setDeliveryAddress(primary); // Initially set delivery address to primary
     }
   }, [user]);
 
@@ -80,6 +78,23 @@ export default function Checkout() {
     }
   };
 
+  // Function to clear cart items
+  const clearCartItems = async () => {
+    const userEmail = auth.currentUser?.email;
+    if (!userEmail) return;
+
+    try {
+      const cartRef = collection(FIREBASE_DB, "carts");
+      const cartQuery = query(cartRef, where("email", "==", userEmail));
+      const snapshot = await getDocs(cartQuery);
+
+      const deletePromises = snapshot.docs.map((doc) => deleteDoc(doc.ref));
+      await Promise.all(deletePromises);
+    } catch (error) {
+      console.error("Error clearing cart items: ", error);
+    }
+  };
+
   // Confirm the order
   const confirmOrder = async () => {
     const userEmail = auth.currentUser?.email;
@@ -97,6 +112,8 @@ export default function Checkout() {
         timestamp: new Date(),
         status: "Pending",
       });
+
+      await clearCartItems(); // Clear cart items after order is placed
 
       Alert.alert("Success", "Your order has been placed!");
       router.push("/home");
@@ -148,7 +165,7 @@ export default function Checkout() {
             onPress={() => router.push({
               pathname: "../components/ChangeAddress",
               params: {
-                currentAddress: deliveryAddress,
+                currentAddress: selectedAddress,
               },
             })}
           >
