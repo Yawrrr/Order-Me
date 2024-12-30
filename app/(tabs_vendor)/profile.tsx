@@ -1,5 +1,5 @@
-import { StyleSheet, Text, TouchableOpacity, View, Image, ScrollView, Switch } from "react-native";
-import React, { useState } from "react";
+import { StyleSheet, Text, TouchableOpacity, View, Image, ScrollView, Switch, Alert } from "react-native";
+import React, { useState, useEffect } from "react";
 import { router } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useAuth } from "@/context/AuthContext";
@@ -11,8 +11,9 @@ import { FIREBASE_DB } from "@/FirebaseConfig";
 
 const Profile = () => {
   const { logout, user } = useAuth();
-  const [isRestaurantOpen, setIsRestaurantOpen] = useState(false); // Manage restaurant status
-
+  const [isRestaurantOpen, setIsRestaurantOpen] = useState(false); // Default to closed
+  const [loading, setLoading] = useState(true);
+  
   const handleLogout = async () => {
     await logout();
     router.replace("/sign-in");
@@ -22,36 +23,71 @@ const Profile = () => {
     router.push("/home");
   };
 
+  useEffect(() => {
+    const fetchRestaurantStatus = async () => {
+      try {
+        if (!user?.email) {
+          console.error("User email is unavailable.");
+          return;
+        }
+
+        const restaurantsCollection = collection(FIREBASE_DB, "restaurants");
+        const restaurantQuery = query(restaurantsCollection, where("owner", "==", user.email));
+        const restaurantSnapshot = await getDocs(restaurantQuery);
+
+        if (!restaurantSnapshot.empty) {
+          const restaurantDoc = restaurantSnapshot.docs[0];
+          const restaurantData = restaurantDoc.data();
+          setIsRestaurantOpen(restaurantData.isOpen); // Set the initial value from Firestore
+        } else {
+          console.error("Restaurant document not found for the user.");
+        }
+      } catch (error) {
+        console.error("Error fetching restaurant status: ", error);
+      } finally {
+        setLoading(false); // Stop loading once data is fetched
+      }
+    };
+
+    fetchRestaurantStatus();
+  }, [user]);
   const toggleRestaurantStatus = async () => {
     try {
-      const newStatus = !isRestaurantOpen;
+      const newStatus = !isRestaurantOpen; // Toggle the current status
       setIsRestaurantOpen(newStatus);
-  
+
       if (!user?.email) {
         console.error("User email is unavailable.");
         return;
       }
-  
-      // Query for the restaurant belonging to the user
+
       const restaurantsCollection = collection(FIREBASE_DB, "restaurants");
       const restaurantQuery = query(restaurantsCollection, where("owner", "==", user.email));
       const restaurantSnapshot = await getDocs(restaurantQuery);
-  
+
       if (!restaurantSnapshot.empty) {
         const restaurantDoc = restaurantSnapshot.docs[0];
         const restaurantDocRef = doc(FIREBASE_DB, "restaurants", restaurantDoc.id);
-  
-        // Update the status field
-        await updateDoc(restaurantDocRef, { status: newStatus ? "Open" : "Closed" });
-        console.log("Restaurant status updated successfully:", newStatus ? "Opened" : "Closed");
+
+        // Update the `isOpen` status in Firestore
+        await updateDoc(restaurantDocRef, { isOpen: newStatus });
+        Alert.alert("Success", `Restaurant status updated to ${newStatus ? "Open" : "Closed"}.`);
       } else {
         console.error("Restaurant document not found for the user.");
       }
     } catch (error) {
       console.error("Error updating restaurant status: ", error);
+      Alert.alert("Error", "Failed to update restaurant status. Please try again.");
     }
   };
-  
+
+  if (loading) {
+    return (
+      <SafeAreaView style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+        <Text>Loading...</Text>
+      </SafeAreaView>
+    );
+  }
 
   const username = user?.username ?? user?.email;
   const email = user?.email;
@@ -62,7 +98,8 @@ const Profile = () => {
   const restaurantAddress = user?.restaurantAddress;
   const restaurantImage = user?.restaurantImage;
   const category = user?.category;
-  const status = user?.status;
+  const qrType = user?.qrType;
+  const qrCode = user?.qrCode;
 
   return (
     <SafeAreaView style={{ flex: 1 }}>
@@ -140,6 +177,16 @@ const Profile = () => {
             }
             style={styles.restaurantImage}
           />
+          <Text style={styles.label}>QR Code Payment</Text>
+          <Text style={styles.infoText}>{qrType || "Not Available"}</Text>
+
+          <Image
+          source={{
+            uri: qrCode ?? "https://via.placeholder.com/150",
+          }}
+          style={styles.qrCode}
+          resizeMode="contain"
+        />
         </View>
         <TouchableOpacity
           style={styles.editButton}
@@ -224,6 +271,41 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     marginTop: 10,
     resizeMode: "cover",
+  },
+  qrCode: {
+    width: 150,
+    height: 150,
+    borderRadius: 10,
+    marginTop: 10,
+  },
+  modalContainer: {
+    flex: 1,
+    backgroundColor: "rgba(0, 0, 0, 0.8)",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  modalOverlay: {
+    position: "absolute",
+    width: "100%",
+    height: "100%",
+  },
+  modalContent: {
+    width: "90%",
+    height: "80%",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  fullImage: {
+    width: "100%",
+    height: "100%",
+  },
+  closeButton: {
+    position: "absolute",
+    top: 30,
+    right: 30,
+    backgroundColor: "rgba(0, 0, 0, 0.6)",
+    borderRadius: 50,
+    padding: 5,
   },
   statusContainer: {
     flexDirection: "row",
