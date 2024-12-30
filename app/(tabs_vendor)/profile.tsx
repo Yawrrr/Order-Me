@@ -177,16 +177,7 @@ const Profile = () => {
             }
             style={styles.restaurantImage}
           />
-          <Text style={styles.label}>QR Code Payment</Text>
-          <Text style={styles.infoText}>{qrType || "Not Available"}</Text>
-
-          <Image
-          source={{
-            uri: qrCode ?? "https://via.placeholder.com/150",
-          }}
-          style={styles.qrCode}
-          resizeMode="contain"
-        />
+          
         </View>
         <TouchableOpacity
           style={styles.editButton}
