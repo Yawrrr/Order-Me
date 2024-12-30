@@ -30,6 +30,7 @@ const EditDetails: React.FC = () => {
   const [restaurantAddress, setRestaurantAddress] = useState(user?.restaurantAddress || "");
   const [category, setCategory] = useState(user?.category || "mix rice");
   const [restaurantImage, setRestaurantImage] = useState<string | null>(null); // State for restaurant image
+  const [paymentImage, setPaymentImage] = useState<string | null>(null); // State for payment image
   const [profileImage, setProfileImage] = useState<string | null>(null); // State for profile image
   const [loading, setLoading] = useState(false);
 
@@ -55,6 +56,7 @@ const EditDetails: React.FC = () => {
           const restaurantDoc = restaurantSnapshot.docs[0];
           const restaurantData = restaurantDoc.data();
           setRestaurantImage(restaurantData.restaurantImage || null);
+          setPaymentImage(restaurantData.paymentImage || null);
         }
       }
     };
@@ -89,7 +91,7 @@ const EditDetails: React.FC = () => {
       const userDoc = userSnapshot.docs[0];
       const userDocRef = doc(FIREBASE_DB, "users", userDoc.id);
 
-      const updatedUser = { username, phoneNumber, address, restaurantName, category, restaurantAddress, profileImage: profileImage || "" };
+      const updatedUser = { username, phoneNumber, address, restaurantName, category, restaurantAddress, paymentImage: paymentImage || "", profileImage: profileImage || "" };
       await updateDoc(userDocRef, updatedUser);
       setUser({ ...user, ...updatedUser });
 
@@ -101,10 +103,10 @@ const EditDetails: React.FC = () => {
       if (!restaurantSnapshot.empty) {
         const restDoc = restaurantSnapshot.docs[0];
         const restaurantDocRef = doc(FIREBASE_DB, "restaurants", restDoc.id);
-        await updateDoc(restaurantDocRef, { restaurantName, restaurantAddress, category, owner: user.email, restaurantImage });
+        await updateDoc(restaurantDocRef, { restaurantName, restaurantAddress, category, owner: user.email, restaurantImage, paymentImage });
       } else {
         const newRestaurantDocRef = doc(restaurantsCollection);
-        await setDoc(newRestaurantDocRef, { restaurantName, restaurantAddress, category, owner: user.email, restaurantImage });
+        await setDoc(newRestaurantDocRef, { restaurantName, restaurantAddress, category, owner: user.email, restaurantImage,paymentImage });
       }
 
       Alert.alert("Profile", "Details updated successfully.", [
@@ -249,6 +251,17 @@ const EditDetails: React.FC = () => {
                 <Image source={{ uri: restaurantImage }} style={styles.image} />
               ) : (
                 <Text>Pick a restaurant image</Text>
+              )}
+            </View>
+          </TouchableOpacity>
+
+          <Text style={styles.label}>Payment QR</Text>
+          <TouchableOpacity onPress={() => pickImage(setPaymentImage)}>
+            <View style={styles.imagePicker}>
+              {paymentImage ? (
+                <Image source={{ uri: paymentImage }} style={styles.image} />
+              ) : (
+                <Text>Pick a payment QR image</Text>
               )}
             </View>
           </TouchableOpacity>

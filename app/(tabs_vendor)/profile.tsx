@@ -1,14 +1,28 @@
 import { StyleSheet, Text, TouchableOpacity, View, Image, ScrollView } from "react-native";
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { router } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useAuth } from "@/context/AuthContext";
-import images from "@/constants/images";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
-import { User } from "@/context/AuthContext";
 
 const Profile = () => {
-  const { logout, user }= useAuth();
+  const { logout, user } = useAuth();
+  const [paymentImage, setPaymentImage] = useState<string | null>(null);
+
+  // Fetch payment image (if not included in user data)
+  useEffect(() => {
+    const fetchPaymentImage = async () => {
+      if (user?.paymentImage) {
+        setPaymentImage(user.paymentImage);
+      } else {
+        // Optional: Fetch paymentImage from Firebase if needed
+        // const paymentImageFromFirebase = await getPaymentImage(user?.email);
+        // setPaymentImage(paymentImageFromFirebase);
+        setPaymentImage(null);
+      }
+    };
+    fetchPaymentImage();
+  }, [user]);
 
   const handleLogout = async () => {
     await logout();
@@ -58,10 +72,10 @@ const Profile = () => {
             source={
               profileImage
                 ? { uri: profileImage }
-                 : require('../../assets/images/defaultProfile.png') // Use a placeholder URL
+                : require('../../assets/images/defaultProfile.png')
             }
             style={styles.profileImage}
-            />
+          />
           <Text className="mt-4" style={styles.infoText}>{username}</Text>
         </View>
         <View style={styles.infoContainer}>
@@ -88,7 +102,17 @@ const Profile = () => {
             source={
               restaurantImage
                 ? { uri: restaurantImage }
-                 : { uri: "https://via.placeholder.com/150" } // Use a placeholder URL
+                : { uri: "https://via.placeholder.com/150" }
+            }
+            style={styles.restaurantImage}
+          />
+
+          <Text style={styles.label}>Payment QR Image</Text>
+          <Image
+            source={
+              paymentImage
+                ? { uri: paymentImage }
+                : { uri: "https://via.placeholder.com/150" }
             }
             style={styles.restaurantImage}
           />
