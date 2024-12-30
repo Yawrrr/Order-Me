@@ -75,7 +75,7 @@ const RestaurantListing = ({ listings, category }: Props) => {
             rating: data.rating || "No ratings",
             cuisine: data.cuisine || "Unknown",
             priceRange: data.priceRange || "Unknown",
-            isOpen: data.isOpen || true,
+            isOpen: data.isOpen || false,
             description: data.description || "No description available",
           };
         });
@@ -272,12 +272,22 @@ const RestaurantListing = ({ listings, category }: Props) => {
     const isInWishlist = wishlist.some(
       (wishlistItem) => wishlistItem.id === item.id
     );
-
+  
     return (
       <GestureHandlerRootView style={{ flex: 1 }}>
         <TouchableOpacity
-          style={styles.card}
-          onPress={() => fetchMenuItems(item.name)} // Fetch menu when clicked
+          style={[
+            styles.card,
+            !item.isOpen && { opacity: 0.6 }, // Dim the card if closed
+          ]}
+          onPress={() => {
+            if (item.isOpen) {
+              fetchMenuItems(item.name); // Allow interaction only if open
+            } else {
+              Alert.alert("Closed", `${item.name} is currently closed.`);
+            }
+          }}
+          disabled={!item.isOpen} // Disable touch interaction for closed restaurants
         >
           <Image source={{ uri: item.imageUrl }} style={styles.restaurantImage} />
           <Text style={styles.itemTxt} numberOfLines={1}>
@@ -285,17 +295,32 @@ const RestaurantListing = ({ listings, category }: Props) => {
           </Text>
           <View style={styles.locationContainer}>
             <View style={styles.location}>
-              <FontAwesome5 name="map-marker-alt" size={18} color={colors.secondary[200]} />
-              <Text style={styles.itemLocationTxt} numberOfLines={1} ellipsizeMode="tail">
+              <FontAwesome5
+                name="map-marker-alt"
+                size={18}
+                color={colors.secondary[200]}
+              />
+              <Text
+                style={styles.itemLocationTxt}
+                numberOfLines={1}
+                ellipsizeMode="tail"
+              >
                 {item.location}
               </Text>
             </View>
-
+  
             <View style={styles.ratingContainer}>
               <Text style={styles.ratingText}>{item.rating}</Text>
               <Ionicons name="star" size={16} color={colors.secondary[200]} />
             </View>
           </View>
+  
+          {/* Display "Closed" overlay if restaurant is not open */}
+          {!item.isOpen && (
+            <View style={styles.closedOverlay}>
+              <Text style={styles.closedText}>Closed</Text>
+            </View>
+          )}
         </TouchableOpacity>
         <TouchableOpacity
           style={styles.favorite}
@@ -310,6 +335,7 @@ const RestaurantListing = ({ listings, category }: Props) => {
       </GestureHandlerRootView>
     );
   };
+  
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
@@ -540,5 +566,21 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: "bold",
   },
-  
+  closedOverlay: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: "rgba(0, 0, 0, 0.6)", // Semi-transparent grey
+    justifyContent: "center",
+    alignItems: "center",
+    zIndex: 1, // Ensure overlay is above other content
+    borderRadius: 10, // Match the card border radius
+  },
+  closedText: {
+    color: "white",
+    fontSize: 20,
+    fontWeight: "bold",
+  },
 });
