@@ -8,12 +8,14 @@ import Feather from '@expo/vector-icons/Feather';
 import AntDesign from '@expo/vector-icons/AntDesign';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useAuth } from "@/context/AuthContext";
+import TabBar from "@/components/CustomTabbar";
 
 const TabLayout = () => {
   const { role } = useAuth();
   return (
-    <>
-      <Tabs screenOptions={{ tabBarActiveTintColor: 'orange' }}>
+      <Tabs screenOptions={{ tabBarActiveTintColor: 'orange' }}
+      tabBar={props => <TabBar {...props} />}
+      >
         <Tabs.Screen name="home" 
         redirect ={role=="admin"}
         options={{
@@ -36,15 +38,12 @@ const TabLayout = () => {
           title: 'Status',
           tabBarIcon: ({ color }) => <FontAwesome name="star" size={24} color={color} />
         }}/>
-
-
         <Tabs.Screen name="profile" options={{
           headerShown: false,
           title: 'Profile',
           tabBarIcon: ({ color }) => <Ionicons name="person" size={24} color={color}  />
         }}/>
       </Tabs>
-    </>
   );
 };
 

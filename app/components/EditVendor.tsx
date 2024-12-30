@@ -25,7 +25,7 @@ const EditDetails: React.FC = () => {
   // States for both personal and vendor details
   const [username, setUsername] = useState(user?.username || "");
   const [phoneNumber, setPhoneNumber] = useState(user?.phoneNumber || "");
-  const [address, setAddress] = useState(user?.address || "");
+  const [address, setAddress] = useState(user?.addresses.find((address) => address.primary)?.address || "");
   const [restaurantName, setRestaurantName] = useState(user?.restaurantName || "");
   const [restaurantAddress, setRestaurantAddress] = useState(user?.restaurantAddress || "");
   const [category, setCategory] = useState(user?.category || "mix rice");

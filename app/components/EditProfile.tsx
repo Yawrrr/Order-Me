@@ -136,8 +136,8 @@ const EditProfile: React.FC = () => {
       <Text style={styles.label}>Phone Number</Text>
       <TextInput style={styles.input} value={phoneNumber} onChangeText={setPhoneNumber} />
 
-      <Text style={styles.label}>Address</Text>
-      <TextInput style={styles.input} value={address} onChangeText={setAddress} />
+      {/* <Text style={styles.label}>Address</Text> */}
+      {/* <TextInput style={styles.input} value={address} onChangeText={setAddress} /> */}
       <TouchableOpacity style={styles.saveButton} onPress={handleSave} disabled={loading}>
         <Text style={styles.buttonText}>{loading ? "Saving..." : "Save"}</Text>
       </TouchableOpacity>

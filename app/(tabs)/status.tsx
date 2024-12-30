@@ -228,10 +228,10 @@ const styles = StyleSheet.create({
   },
   floatButton: {
     position: 'absolute',
-    bottom: 10,
-    right: 10,
+    bottom: 110,
+    right: 20,
     backgroundColor: '#fff',
-    elevation: 10,
+    elevation: 5,
     width: 60,
     height: 60,
     borderRadius: 30,

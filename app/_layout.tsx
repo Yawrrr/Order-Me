@@ -77,7 +77,7 @@ const MainLayout = () => {
           headerShown: false,
         }}
       />
-          <Stack.Screen
+      <Stack.Screen
         name="components/search"
         options={{
           headerShown: false,
@@ -89,8 +89,23 @@ const MainLayout = () => {
           headerShown: false,
         }}
       />
+      <Stack.Screen
+        name="components/Checkout"
+        options={{
+          headerShown: false,
+        }}
+      />
+      <Stack.Screen
+        name="components/ChangeAddress"
+        options={{
+          headerShown: false,
+        }}
+      />
+      <Stack.Screen
+        name="components/Addresses"
+        options={{ headerShown: false }}
+      />
     </Stack>
-    
   );
 };
 
