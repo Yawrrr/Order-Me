@@ -22,7 +22,9 @@ export interface User {
   category: string;
   restaurantImage: string;
   restaurantAddress: string;
-  status: boolean;
+  isOpen: boolean;
+  qrType: string;
+  qrCode: string;
 }
 
 interface AuthContextType {
