@@ -1,15 +1,19 @@
-import { StyleSheet, Text, TouchableOpacity, View, Image, ScrollView } from "react-native";
-import React from "react";
+import { StyleSheet, Text, TouchableOpacity, View, Image, ScrollView, Switch, Alert } from "react-native";
+import React, { useState, useEffect } from "react";
 import { router } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useAuth } from "@/context/AuthContext";
 import images from "@/constants/images";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
-import { User } from "@/context/AuthContext";
+import { doc, updateDoc, collection, query, where, getDocs} from "firebase/firestore";
+import { FIREBASE_DB } from "@/FirebaseConfig";
+
 
 const Profile = () => {
-  const { logout, user }= useAuth();
-
+  const { logout, user } = useAuth();
+  const [isRestaurantOpen, setIsRestaurantOpen] = useState(false); // Default to closed
+  const [loading, setLoading] = useState(true);
+  
   const handleLogout = async () => {
     await logout();
     router.replace("/sign-in");
@@ -19,15 +23,83 @@ const Profile = () => {
     router.push("/home");
   };
 
+  useEffect(() => {
+    const fetchRestaurantStatus = async () => {
+      try {
+        if (!user?.email) {
+          console.error("User email is unavailable.");
+          return;
+        }
+
+        const restaurantsCollection = collection(FIREBASE_DB, "restaurants");
+        const restaurantQuery = query(restaurantsCollection, where("owner", "==", user.email));
+        const restaurantSnapshot = await getDocs(restaurantQuery);
+
+        if (!restaurantSnapshot.empty) {
+          const restaurantDoc = restaurantSnapshot.docs[0];
+          const restaurantData = restaurantDoc.data();
+          setIsRestaurantOpen(restaurantData.isOpen); // Set the initial value from Firestore
+        } else {
+          console.error("Restaurant document not found for the user.");
+        }
+      } catch (error) {
+        console.error("Error fetching restaurant status: ", error);
+      } finally {
+        setLoading(false); // Stop loading once data is fetched
+      }
+    };
+
+    fetchRestaurantStatus();
+  }, [user]);
+  const toggleRestaurantStatus = async () => {
+    try {
+      const newStatus = !isRestaurantOpen; // Toggle the current status
+      setIsRestaurantOpen(newStatus);
+
+      if (!user?.email) {
+        console.error("User email is unavailable.");
+        return;
+      }
+
+      const restaurantsCollection = collection(FIREBASE_DB, "restaurants");
+      const restaurantQuery = query(restaurantsCollection, where("owner", "==", user.email));
+      const restaurantSnapshot = await getDocs(restaurantQuery);
+
+      if (!restaurantSnapshot.empty) {
+        const restaurantDoc = restaurantSnapshot.docs[0];
+        const restaurantDocRef = doc(FIREBASE_DB, "restaurants", restaurantDoc.id);
+
+        // Update the `isOpen` status in Firestore
+        await updateDoc(restaurantDocRef, { isOpen: newStatus });
+        Alert.alert("Success", `Restaurant status updated to ${newStatus ? "Open" : "Closed"}.`);
+      } else {
+        console.error("Restaurant document not found for the user.");
+      }
+    } catch (error) {
+      console.error("Error updating restaurant status: ", error);
+      Alert.alert("Error", "Failed to update restaurant status. Please try again.");
+    }
+  };
+
+  if (loading) {
+    return (
+      <SafeAreaView style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+        <Text>Loading...</Text>
+      </SafeAreaView>
+    );
+  }
+
   const username = user?.username ?? user?.email;
   const email = user?.email;
   const phoneNumber = user?.phoneNumber;
-  const address = user?.addresses?.find(addr => addr.primary)?.address;
+  const address = user?.addresses?.find((addr) => addr.primary)?.address;
   const profileImage = user?.profileImage;
   const restaurantName = user?.restaurantName;
   const restaurantAddress = user?.restaurantAddress;
   const restaurantImage = user?.restaurantImage;
   const category = user?.category;
+  const qrType = user?.qrType;
+  const qrCode = user?.qrCode;
 
   return (
     <SafeAreaView style={{ flex: 1 }}>
@@ -58,11 +130,13 @@ const Profile = () => {
             source={
               profileImage
                 ? { uri: profileImage }
-                 : require('../../assets/images/defaultProfile.png') // Use a placeholder URL
+                : require("../../assets/images/defaultProfile.png") // Use a placeholder URL
             }
             style={styles.profileImage}
-            />
-          <Text className="mt-4" style={styles.infoText}>{username}</Text>
+          />
+          <Text className="mt-4" style={styles.infoText}>
+            {username}
+          </Text>
         </View>
         <View style={styles.infoContainer}>
           <Text style={styles.label}>Email</Text>
@@ -83,15 +157,36 @@ const Profile = () => {
           <Text style={styles.label}>Category</Text>
           <Text style={styles.infoText}>{category}</Text>
 
+          <Text style={styles.label}>Restaurant Status</Text>
+          <View style={styles.statusContainer}>
+            <Text style={styles.infoText}>{isRestaurantOpen ? "Opened" : "Closed"}</Text>
+            <Switch
+              value={isRestaurantOpen}
+              onValueChange={toggleRestaurantStatus}
+              thumbColor={isRestaurantOpen ? "green" : "red"}
+              trackColor={{ false: "#ddd", true: "lightgreen" }}
+            />
+          </View>
+
           <Text style={styles.label}>Restaurant Image</Text>
           <Image
             source={
               restaurantImage
                 ? { uri: restaurantImage }
-                 : { uri: "https://via.placeholder.com/150" } // Use a placeholder URL
+                : { uri: "https://via.placeholder.com/150" } // Use a placeholder URL
             }
             style={styles.restaurantImage}
           />
+          <Text style={styles.label}>QR Code Payment</Text>
+          <Text style={styles.infoText}>{qrType || "Not Available"}</Text>
+
+          <Image
+          source={{
+            uri: qrCode ?? "https://via.placeholder.com/150",
+          }}
+          style={styles.qrCode}
+          resizeMode="contain"
+        />
         </View>
         <TouchableOpacity
           style={styles.editButton}
@@ -176,5 +271,45 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     marginTop: 10,
     resizeMode: "cover",
+  },
+  qrCode: {
+    width: 150,
+    height: 150,
+    borderRadius: 10,
+    marginTop: 10,
+  },
+  modalContainer: {
+    flex: 1,
+    backgroundColor: "rgba(0, 0, 0, 0.8)",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  modalOverlay: {
+    position: "absolute",
+    width: "100%",
+    height: "100%",
+  },
+  modalContent: {
+    width: "90%",
+    height: "80%",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  fullImage: {
+    width: "100%",
+    height: "100%",
+  },
+  closeButton: {
+    position: "absolute",
+    top: 30,
+    right: 30,
+    backgroundColor: "rgba(0, 0, 0, 0.6)",
+    borderRadius: 50,
+    padding: 5,
+  },
+  statusContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
   },
 });

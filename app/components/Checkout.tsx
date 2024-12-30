@@ -13,6 +13,7 @@ import { collection, query, where, getDocs, addDoc, deleteDoc } from "firebase/f
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { Image } from "react-native";
 import { useAuth } from "@/context/AuthContext";
+import Ionicons from '@expo/vector-icons/Ionicons';
 
 // Define types for cart items
 type CartItem = {
@@ -144,6 +145,12 @@ export default function Checkout() {
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
+      <Ionicons
+        name="arrow-back-outline"
+        size={25}
+        color="black"
+        onPress={() => router.back()}
+       /> 
         <Text style={styles.title}>Checkout</Text>
       </View>
 
@@ -220,16 +227,22 @@ const styles = StyleSheet.create({
     padding: 20,
     backgroundColor: "#fff",
   },
+  // header: {
+  //   alignItems: "flex-start",
+  //   justifyContent: "center",
+  //   marginBottom: 10,
+  // },
   header: {
-    alignItems: "flex-start",
-    justifyContent: "center",
+    flexDirection: "row",
+    alignItems: "center",
     marginBottom: 10,
   },
   title: {
     fontFamily: "Poppins-Bold",
     fontSize: 30,
     color: "orange",
-    marginBottom: 5,
+    marginLeft: 16,
+
   },
   addressContainer: {
     marginBottom: 15,

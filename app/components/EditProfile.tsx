@@ -15,7 +15,7 @@ const EditProfile: React.FC = () => {
 
   const [username, setUsername] = useState(user?.username || "");
   const [phoneNumber, setPhoneNumber] = useState(user?.phoneNumber || "");
-  const [address, setAddress] = useState(user?.address || "");
+  const [addresses, setAddress] = useState(user?.addresses || "");
   const [profileImage, setProfileImage] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -163,7 +163,6 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: "row",
     alignItems: "center",
-
   },
   headerText: {
     fontSize: 24,

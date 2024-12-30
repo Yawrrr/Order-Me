@@ -7,6 +7,6 @@ export interface ListingType {
   rating: number;
   cuisine?: string;        // Optional field
   priceRange: string;     
-  isOpen?: boolean;        // Optional field
-  description: string;    
+  isOpen: boolean;       
+  description: string;  
 }
