@@ -6,14 +6,17 @@ import {
   FlatList,
   TouchableOpacity,
   Alert,
+  Image,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { FIREBASE_AUTH, FIREBASE_DB } from "../../FirebaseConfig";
 import { collection, query, where, getDocs, addDoc, deleteDoc } from "firebase/firestore";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { Image } from "react-native";
 import { useAuth } from "@/context/AuthContext";
-import Ionicons from '@expo/vector-icons/Ionicons';
+import * as ImagePicker from "expo-image-picker";
+import * as ImageManipulator from "expo-image-manipulator";
+import * as FileSystem from "expo-file-system";
+import { ScrollView } from "react-native";
 
 // Define types for cart items
 type CartItem = {
@@ -32,6 +35,9 @@ export default function Checkout() {
   const { user } = useAuth(); // Access user data
   const [selectedAddress, setSelectedAddress] =
     useState<string>("No Address Found");
+  const [paymentImage, setPaymentImage] = useState<string | null>(null);
+  const [receiptImage, setReceiptImage] = useState<string | null>(null);
+
   const auth = FIREBASE_AUTH;
   const router = useRouter();
   const params = useLocalSearchParams();
@@ -42,6 +48,9 @@ export default function Checkout() {
         user.addresses.find((addr) => addr.primary)?.address ||
         "No Address Found";
       setSelectedAddress(primary);
+    }
+    if (user?.paymentImage) {
+      setPaymentImage(user.paymentImage);
     }
   }, [user]);
 
@@ -60,7 +69,8 @@ export default function Checkout() {
       const cartRef = collection(FIREBASE_DB, "carts");
       const cartQuery = query(cartRef, where("email", "==", userEmail));
       const snapshot = await getDocs(cartQuery);
-
+      const ordersRef = collection(FIREBASE_DB, "orders");
+      
       const cartItems: CartItem[] = snapshot.docs.map((doc) => ({
         id: doc.id,
         ...(doc.data() as Omit<CartItem, "id">),
@@ -99,7 +109,10 @@ export default function Checkout() {
   // Confirm the order
   const confirmOrder = async () => {
     const userEmail = auth.currentUser?.email;
-    if (!userEmail) return;
+    if (!userEmail || !receiptImage) {
+      Alert.alert("Error", "Please upload a payment receipt.");
+      return;
+    }
 
     setLoading(true);
 
@@ -110,6 +123,7 @@ export default function Checkout() {
         items: cartItems,
         totalPrice,
         address: selectedAddress,
+        receiptImage, // Add the receipt image here
         timestamp: new Date(),
         status: "Pending",
       });
@@ -126,6 +140,47 @@ export default function Checkout() {
     }
   };
 
+  const pickImage = async (setImage: React.Dispatch<React.SetStateAction<string | null>>) => {
+      try {
+        // Request permission for media library
+        const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
+        if (!permissionResult.granted) {
+          Alert.alert("Permission Denied", "You need to allow access to your photos.");
+          return;
+        }
+  
+        // Launch image picker to select a photo
+        const result = await ImagePicker.launchImageLibraryAsync({
+          mediaTypes: ImagePicker.MediaTypeOptions.Images,
+          allowsEditing: true,
+          quality: 1,
+        });
+  
+        if (!result.canceled && result.assets && result.assets.length > 0) {
+          const uri = result.assets[0].uri;
+  
+          // Resize the image
+          const resizedImage = await ImageManipulator.manipulateAsync(
+            uri,
+            [{ resize: { width: 600 } }],
+            { compress: 0.7, format: ImageManipulator.SaveFormat.JPEG }
+          );
+  
+          // Convert resized image to Base64
+          const base64 = await FileSystem.readAsStringAsync(resizedImage.uri, {
+            encoding: FileSystem.EncodingType.Base64,
+          });
+  
+          // Set the image as Base64 encoded string
+          setImage(`data:image/jpeg;base64,${base64}`);
+        } else {
+          Alert.alert("Selection Cancelled", "No image was selected.");
+        }
+      } catch (error) {
+        console.error("Error picking image: ", error);
+        Alert.alert("Error", "Failed to pick an image.");
+      }
+    };
   useEffect(() => {
     if (auth.currentUser) {
       fetchCartData(); // Fetch cart items from Firestore
@@ -144,13 +199,8 @@ export default function Checkout() {
 
   return (
     <SafeAreaView style={styles.container}>
+      <ScrollView contentContainerStyle={{ flexGrow: 1 }}></ScrollView>
       <View style={styles.header}>
-      <Ionicons
-        name="arrow-back-outline"
-        size={25}
-        color="black"
-        onPress={() => router.back()}
-       /> 
         <Text style={styles.title}>Checkout</Text>
       </View>
 
@@ -205,6 +255,26 @@ export default function Checkout() {
         )}
       />
 
+      {/* QR Code Payment Section */}
+      <View style={styles.qrCodeContainer}>
+        <Text style={styles.qrCodeTitle}>Pay via QR Code</Text>
+        <Image
+          source={
+            user?.paymentImage
+              ? { uri: user.paymentImage }
+              : { uri: "https://via.placeholder.com/150" }
+          }
+          style={styles.qrCodeImage}
+        />
+        <Text style={styles.receiptTitle}>Upload Payment Receipt</Text>
+        {receiptImage && (
+          <Image source={{ uri: receiptImage }} style={styles.receiptImage} />
+        )}
+        <TouchableOpacity style={styles.uploadButton} onPress={() => pickImage(setReceiptImage)}>
+          <Text style={styles.uploadButtonText}>Upload Receipt</Text>
+        </TouchableOpacity>
+      </View>
+
       <View style={styles.footer}>
         <Text style={styles.totalPrice}>Total: RM {totalPrice.toFixed(2)}</Text>
         <TouchableOpacity
@@ -217,6 +287,7 @@ export default function Checkout() {
           </Text>
         </TouchableOpacity>
       </View>
+      
     </SafeAreaView>
   );
 }
@@ -227,22 +298,16 @@ const styles = StyleSheet.create({
     padding: 20,
     backgroundColor: "#fff",
   },
-  // header: {
-  //   alignItems: "flex-start",
-  //   justifyContent: "center",
-  //   marginBottom: 10,
-  // },
   header: {
-    flexDirection: "row",
-    alignItems: "center",
+    alignItems: "flex-start",
+    justifyContent: "center",
     marginBottom: 10,
   },
   title: {
     fontFamily: "Poppins-Bold",
     fontSize: 30,
     color: "orange",
-    marginLeft: 16,
-
+    marginBottom: 5,
   },
   addressContainer: {
     marginBottom: 15,
@@ -261,10 +326,12 @@ const styles = StyleSheet.create({
   },
   item: {
     flexDirection: "row",
-    justifyContent: "space-between",
     paddingVertical: 10,
-    borderBottomWidth: 1,
-    borderBottomColor: "#ccc",
+    paddingHorizontal: 15,
+    marginVertical: 5,
+    backgroundColor: "#f9f9f9",
+    borderRadius: 8,
+    alignItems: "center",
   },
   itemName: {
     fontSize: 16,
@@ -334,5 +401,46 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: "#fff",
     fontWeight: "500",
+  },
+  qrCodeContainer: {
+    marginVertical: 20,
+    alignItems: "center",
+  },
+  qrCodeTitle: {
+    fontSize: 16,
+    fontWeight: "bold",
+    color: "#333",
+    marginBottom: 10,
+  },
+  qrCodeImage: {
+    width: 200,
+    height: 200,
+    marginBottom: 15,
+  },
+  receiptTitle: {
+    fontSize: 16,
+    fontWeight: "bold",
+    color: "#333",
+    marginBottom: 10,
+  },
+  receiptImage: {
+    width: 200,
+    height: 200,
+    borderRadius: 8,
+    marginVertical: 10,
+    borderWidth: 1,
+    borderColor: "#ccc",
+  },
+  uploadButton: {
+    marginTop: 10,
+    backgroundColor: "orange",
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    borderRadius: 8,
+  },
+  uploadButtonText: {
+    fontSize: 16,
+    fontWeight: "bold",
+    color: "#fff",
   },
 });
