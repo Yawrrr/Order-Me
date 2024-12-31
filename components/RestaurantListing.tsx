@@ -96,6 +96,7 @@ const RestaurantListing = ({ listings, category }: Props) => {
       params: { name: restaurantName }
     });
   };
+  
 
   const renderItems = ({ item }: { item: ListingType }) => {
     const isInWishlist = wishlist.some(
@@ -111,7 +112,10 @@ const RestaurantListing = ({ listings, category }: Props) => {
           ]}
           onPress={() => {
             if (item.isOpen) {
-              fetchMenuItems(item.name); // Allow interaction only if open
+              router.push({
+                pathname: "/components/RestaurantMenuScreen",
+                params: { name: item.name }, // Pass the restaurant name as a parameter
+              });// Allow interaction only if open
             } else {
               Alert.alert("Closed", `${item.name} is currently closed.`);
             }
@@ -183,7 +187,7 @@ const RestaurantListing = ({ listings, category }: Props) => {
     </GestureHandlerRootView>
   );
 };
-
+export default RestaurantListing;
 const styles = StyleSheet.create({
   loader: {
     flex: 1,
