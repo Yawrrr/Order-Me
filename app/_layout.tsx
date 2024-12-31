@@ -89,6 +89,13 @@ const MainLayout = () => {
           headerShown: false,
         }}
       />
+        <Stack.Screen
+  name="components/RestaurantMenuScreen"
+  options={{
+    headerShown: false,
+  }}
+  initialParams={{ restaurantName: '' }}
+/>
       <Stack.Screen
         name="components/Checkout"
         options={{
