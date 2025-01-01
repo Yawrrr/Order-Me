@@ -4,6 +4,7 @@ import { FIREBASE_DB } from "@/FirebaseConfig";
 import { collection, getDocs, query, where, deleteDoc, setDoc, doc, updateDoc } from "firebase/firestore";
 import { getAuth } from "firebase/auth";
 import { useLocalSearchParams } from "expo-router";
+import { useAuth } from "@/context/AuthContext";
 
 interface MenuItem {
   id: string;
@@ -19,6 +20,7 @@ const RestaurantMenuScreen = () => {
   const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
   const [quantities, setQuantities] = useState<{ [key: string]: number }>({});
   const auth = getAuth();
+  const {user} = useAuth();
 
   useEffect(() => {
     if (name) {
@@ -152,6 +154,7 @@ const RestaurantMenuScreen = () => {
             totalPrice: totalPrice,
             email: userEmail,
             imageUrl: item.imageUrl,
+            username: user?.username,
           };
 
           await setDoc(doc(cartRef), newCartItem);

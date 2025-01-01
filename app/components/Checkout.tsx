@@ -7,6 +7,7 @@ import {
   TouchableOpacity,
   Alert,
   Image,
+  TextInput,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { FIREBASE_AUTH, FIREBASE_DB } from "../../FirebaseConfig";
@@ -34,6 +35,7 @@ type CartItem = {
   imageUrl: string;
   price: number;
   totalPrice: number;
+  username: string;
 };
 
 export default function Checkout() {
@@ -47,6 +49,8 @@ export default function Checkout() {
   const [receiptImage, setReceiptImage] = useState<string | null>(null);
   const [restaurantName, setRestaurantName] = useState<string>("");
   const [restaurantEmail, setRestaurantEmail] = useState<string>("");
+  const [username, setUsername] = useState<string>("");
+  const [remark, setRemark] = useState<string>("");
 
   const auth = FIREBASE_AUTH;
   const router = useRouter();
@@ -98,6 +102,7 @@ export default function Checkout() {
       }));
 
       setRestaurantName(cartItems[0].restaurantName);
+      setUsername(cartItems[0].username);
       setCartItems(cartItems);
 
       // Calculate total price
@@ -151,6 +156,8 @@ export default function Checkout() {
         receiptImage, // Add the receipt image here
         timestamp: new Date(),
         status: "Pending",
+        username : username,
+        remark: remark,
       });
 
       await clearCartItems(); // Clear cart items after order is placed
@@ -289,6 +296,17 @@ export default function Checkout() {
         )}
         ListFooterComponent={() => (
           <>
+          <View style={styles.remarkContainer}>
+            <Text style={styles.remarkTitle}>Order Remarks</Text>
+            <TextInput
+              style={styles.remarkInput}
+              placeholder="Add special instructions for your order..."
+              value={remark}
+              onChangeText={setRemark}
+              multiline
+              numberOfLines={3}
+            />
+          </View>
             <View style={styles.qrCodeContainer}>
               <Text style={styles.qrCodeTitle}>Pay via QR Code</Text>
               <Image
@@ -445,6 +463,25 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: "#fff",
     fontWeight: "500",
+  },
+  remarkContainer: {
+    marginTop: 10,
+    padding: 10,
+    backgroundColor: '#f9f9f9',
+    borderRadius: 8,
+  },
+  remarkTitle: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    marginBottom: 8,
+  },
+  remarkInput: {
+    borderWidth: 1,
+    borderColor: '#ddd',
+    borderRadius: 4,
+    padding: 10,
+    minHeight: 80,
+    textAlignVertical: 'top',
   },
   qrCodeContainer: {
     marginVertical: 20,
