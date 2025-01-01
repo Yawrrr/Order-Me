@@ -199,96 +199,104 @@ export default function Checkout() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <ScrollView contentContainerStyle={{ flexGrow: 1 }}></ScrollView>
-      <View style={styles.header}>
-        <Text style={styles.title}>Checkout</Text>
-      </View>
-
-      {/* Display selected address */}
-      <View style={styles.addressContainer}>
-        <Text style={styles.addressTitle}>Delivery Address</Text>
-        <View style={styles.addressWrapper}>
-          <View style={styles.selectedAddressContainer}>
-            <Text
-              style={styles.selectedAddress}
-              numberOfLines={1}
-              ellipsizeMode="tail"
-            >
-              {selectedAddress}
-            </Text>
+    <FlatList
+      data={cartItems}
+      keyExtractor={(item) => item.id}
+      ListHeaderComponent={() => (
+        <>
+          <View style={styles.header}>
+            <Text style={styles.title}>Checkout</Text>
           </View>
-          <TouchableOpacity
-            style={styles.newAddressButton}
-            onPress={() => router.push({
-              pathname: "../components/ChangeAddress",
-              params: {
-                currentAddress: selectedAddress,
-              },
-            })}
-          >
-            <Text style={styles.newAddressText}>Change Address</Text>
-          </TouchableOpacity>
-        </View>
-      </View>
 
-      <FlatList
-        data={cartItems}
-        keyExtractor={(item) => item.id}
-        renderItem={({ item }) => (
-          <View style={styles.item}>
-            <Image
-              source={
-                item.imageUrl
-                  ? { uri: item.imageUrl }
-                  : { uri: "https://via.placeholder.com/150" }
-              }
-              style={styles.itemImage}
-            />
-            <View style={styles.itemDetails}>
-              <Text style={styles.itemName}>{item.name}</Text>
-              <Text style={styles.itemQuantity}>Qty: {item.quantity}</Text>
-              <Text style={styles.itemPrice}>
-                RM {item.totalPrice.toFixed(2)}
-              </Text>
+          <View style={styles.addressContainer}>
+            <Text style={styles.addressTitle}>Delivery Address</Text>
+            <View style={styles.addressWrapper}>
+              <View style={styles.selectedAddressContainer}>
+                <Text
+                  style={styles.selectedAddress}
+                  numberOfLines={1}
+                  ellipsizeMode="tail"
+                >
+                  {selectedAddress}
+                </Text>
+              </View>
+              <TouchableOpacity
+                style={styles.newAddressButton}
+                onPress={() => router.push({
+                  pathname: "../components/ChangeAddress",
+                  params: {
+                    currentAddress: selectedAddress,
+                  },
+                })}
+              >
+                <Text style={styles.newAddressText}>Change Address</Text>
+              </TouchableOpacity>
             </View>
           </View>
-        )}
-      />
+        </>
+      )}
+      renderItem={({ item }) => (
+        <View style={styles.item}>
+          <Image
+            source={
+              item.imageUrl
+                ? { uri: item.imageUrl }
+                : { uri: "https://via.placeholder.com/150" }
+            }
+            style={styles.itemImage}
+          />
+          <View style={styles.itemDetails}>
+            <Text style={styles.itemName}>{item.name}</Text>
+            <Text style={styles.itemQuantity}>Qty: {item.quantity}</Text>
+            <Text style={styles.itemPrice}>
+              RM {item.totalPrice.toFixed(2)}
+            </Text>
+          </View>
+        </View>
+      )}
+      ListFooterComponent={() => (
+        <>
+          <View style={styles.qrCodeContainer}>
+            <Text style={styles.qrCodeTitle}>Pay via QR Code</Text>
+            <Image
+              source={
+                user?.paymentImage
+                  ? { uri: user.paymentImage }
+                  : { uri: "https://via.placeholder.com/150" }
+              }
+              style={styles.qrCodeImage}
+            />
+            <Text style={styles.receiptTitle}>Upload Payment Receipt</Text>
+            {receiptImage && (
+              <Image source={{ uri: receiptImage }} style={styles.receiptImage} />
+            )}
+            <TouchableOpacity 
+              style={styles.uploadButton} 
+              onPress={() => pickImage(setReceiptImage)}
+            >
+              <Text style={styles.uploadButtonText}>Upload Receipt</Text>
+            </TouchableOpacity>
+          </View>
 
-      {/* QR Code Payment Section */}
-      <View style={styles.qrCodeContainer}>
-        <Text style={styles.qrCodeTitle}>Pay via QR Code</Text>
-        <Image
-          source={
-            user?.paymentImage
-              ? { uri: user.paymentImage }
-              : { uri: "https://via.placeholder.com/150" }
-          }
-          style={styles.qrCodeImage}
-        />
-        <Text style={styles.receiptTitle}>Upload Payment Receipt</Text>
-        {receiptImage && (
-          <Image source={{ uri: receiptImage }} style={styles.receiptImage} />
-        )}
-        <TouchableOpacity style={styles.uploadButton} onPress={() => pickImage(setReceiptImage)}>
-          <Text style={styles.uploadButtonText}>Upload Receipt</Text>
-        </TouchableOpacity>
-      </View>
-
-      <View style={styles.footer}>
-        <Text style={styles.totalPrice}>Total: RM {totalPrice.toFixed(2)}</Text>
-        <TouchableOpacity
-          style={styles.confirmButton}
-          onPress={confirmOrder}
-          disabled={loading}
-        >
-          <Text style={styles.confirmButtonText}>
-            {loading ? "Processing..." : "Confirm Order"}
-          </Text>
-        </TouchableOpacity>
-      </View>
-      
-    </SafeAreaView>
+          <View style={styles.footer}>
+            <Text style={styles.totalPrice}>
+              Total: RM {totalPrice.toFixed(2)}
+            </Text>
+            <TouchableOpacity
+              style={styles.confirmButton}
+              onPress={confirmOrder}
+              disabled={loading}
+            >
+              <Text style={styles.confirmButtonText}>
+                {loading ? "Processing..." : "Confirm Order"}
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </>
+      )}
+      contentContainerStyle={{ flexGrow: 1 }}
+    />
+  </SafeAreaView>
   );
 }
 
