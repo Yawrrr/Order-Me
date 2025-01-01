@@ -54,6 +54,7 @@ const Order = () => {
   const vendorEmail = user?.email;
   const [orders, setOrders] = useState<Order[]>([]);
   const [orderItems, setOrderItems] = useState<OrderItem[]>([]);
+  const [filteredOrders, setFilteredOrders] = useState<OrderItem[]>([]);
 
   useEffect(() => {
     // Fetch orders from the database
@@ -100,11 +101,30 @@ const Order = () => {
 
     // console.log(allItems);
     setOrderItems(allItems);
+    setFilteredOrders(allItems);
     // console.log(orderItems);
   };
 
+  const handleSearch = (text: string) => {
+    if (text.trim() === "") {
+      setFilteredOrders(orderItems);
+      return;
+    }
+
+    const searchText = text.toLowerCase();
+    const filtered = orderItems.filter(
+      (order) =>
+        // Search by status
+        order.orderStatus.toLowerCase().includes(searchText) ||
+        order.name.toLowerCase().includes(searchText) ||
+        order.address.toLowerCase().includes(searchText) 
+    );
+
+    setFilteredOrders(filtered);
+  };
+
   return (
-    <GestureHandlerRootView>
+    <GestureHandlerRootView style={styles.outerContainer}>
       <SafeAreaView style={styles.container}>
         <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
           <View style="">
@@ -114,11 +134,11 @@ const Order = () => {
                 <TextInput
                   placeholder="Search for orders"
                   style={styles.searchBar}
-                  onChangeText={() => {}}
+                  onChangeText={handleSearch}
                 ></TextInput>
               </View>
               <View>
-                {orderItems.map((order) => (
+                {filteredOrders.map((order) => (
                   <TouchableOpacity
                     key={order.id}
                     style={styles.orderCard}
@@ -146,6 +166,10 @@ const Order = () => {
 };
 
 const styles = StyleSheet.create({
+  outerContainer: {
+    flex: 1,
+    backgroundColor: '#f0f0f0', // same color as container
+  },
   container: {
     flex: 1,
     backgroundColor: "#f0f0f0",
