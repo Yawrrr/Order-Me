@@ -29,6 +29,7 @@ import { router } from "expo-router";
 // Define types for cart items and quantities
 type CartItem = {
   restaurantName: string;
+  restaurantEmail: string;
   id: string;
   name: string;
   quantity: number;
@@ -41,6 +42,7 @@ export default function Cart() {
   const [userCart, setUserCart] = useState<CartItem[]>([]);
   const [quantities, setQuantities] = useState<{ [key: string]: number }>({});
   const [restaurantName, setRestaurantName] = useState<string>(""); // Track restaurant name
+  const [restaurantEmail, setRestaurantEmail] = useState<string>(""); // Track restaurant email
   const [loading, setLoading] = useState(false);
   const auth = FIREBASE_AUTH;
 

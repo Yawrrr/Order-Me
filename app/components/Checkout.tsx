@@ -10,20 +10,28 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { FIREBASE_AUTH, FIREBASE_DB } from "../../FirebaseConfig";
-import { collection, query, where, getDocs, addDoc, deleteDoc } from "firebase/firestore";
+import {
+  collection,
+  query,
+  where,
+  getDocs,
+  addDoc,
+  deleteDoc,
+} from "firebase/firestore";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useAuth } from "@/context/AuthContext";
 import * as ImagePicker from "expo-image-picker";
 import * as ImageManipulator from "expo-image-manipulator";
 import * as FileSystem from "expo-file-system";
-import { ScrollView } from "react-native";
 
 // Define types for cart items
 type CartItem = {
+  restaurantName: string;
+  restaurantEmail: string; // Add this
   id: string;
-  imageUrl: string;
   name: string;
   quantity: number;
+  imageUrl: string;
   price: number;
   totalPrice: number;
 };
@@ -37,11 +45,13 @@ export default function Checkout() {
     useState<string>("No Address Found");
   const [paymentImage, setPaymentImage] = useState<string | null>(null);
   const [receiptImage, setReceiptImage] = useState<string | null>(null);
+  const [restaurantName, setRestaurantName] = useState<string>("");
+  const [restaurantEmail, setRestaurantEmail] = useState<string>("");
 
   const auth = FIREBASE_AUTH;
   const router = useRouter();
   const params = useLocalSearchParams();
-  
+
   useEffect(() => {
     if (user?.addresses) {
       const primary =
@@ -54,10 +64,21 @@ export default function Checkout() {
     }
   }, [user]);
 
+  const fetchRestaurantName = async () => {
+    const restaurantRef = collection(FIREBASE_DB, "restaurants");
+    const restaurantQuery = query(
+      restaurantRef,
+      where("restaurantName", "==", restaurantName)
+    );
+    const restaurantSnapshot = await getDocs(restaurantQuery);
+    // console.log(restaurantSnapshot.docs[0].data());
+    setRestaurantEmail(restaurantSnapshot.docs[0].data().owner);
+  };
   useEffect(() => {
     if (params.selectedAddress) {
       setSelectedAddress(params.selectedAddress as string);
     }
+    fetchRestaurantName();
   }, [params]);
 
   // Fetch cart data
@@ -70,12 +91,13 @@ export default function Checkout() {
       const cartQuery = query(cartRef, where("email", "==", userEmail));
       const snapshot = await getDocs(cartQuery);
       const ordersRef = collection(FIREBASE_DB, "orders");
-      
+
       const cartItems: CartItem[] = snapshot.docs.map((doc) => ({
         id: doc.id,
         ...(doc.data() as Omit<CartItem, "id">),
       }));
 
+      setRestaurantName(cartItems[0].restaurantName);
       setCartItems(cartItems);
 
       // Calculate total price
@@ -118,8 +140,11 @@ export default function Checkout() {
 
     try {
       const ordersRef = collection(FIREBASE_DB, "orders");
+      // setRestaurantEmail(restaurantSnapshot.docs[0].data().email);
       await addDoc(ordersRef, {
-        email: userEmail,
+        email: restaurantEmail,
+        restaurantName: restaurantName,
+        user: userEmail,
         items: cartItems,
         totalPrice,
         address: selectedAddress,
@@ -140,47 +165,53 @@ export default function Checkout() {
     }
   };
 
-  const pickImage = async (setImage: React.Dispatch<React.SetStateAction<string | null>>) => {
-      try {
-        // Request permission for media library
-        const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
-        if (!permissionResult.granted) {
-          Alert.alert("Permission Denied", "You need to allow access to your photos.");
-          return;
-        }
-  
-        // Launch image picker to select a photo
-        const result = await ImagePicker.launchImageLibraryAsync({
-          mediaTypes: ImagePicker.MediaTypeOptions.Images,
-          allowsEditing: true,
-          quality: 1,
-        });
-  
-        if (!result.canceled && result.assets && result.assets.length > 0) {
-          const uri = result.assets[0].uri;
-  
-          // Resize the image
-          const resizedImage = await ImageManipulator.manipulateAsync(
-            uri,
-            [{ resize: { width: 600 } }],
-            { compress: 0.7, format: ImageManipulator.SaveFormat.JPEG }
-          );
-  
-          // Convert resized image to Base64
-          const base64 = await FileSystem.readAsStringAsync(resizedImage.uri, {
-            encoding: FileSystem.EncodingType.Base64,
-          });
-  
-          // Set the image as Base64 encoded string
-          setImage(`data:image/jpeg;base64,${base64}`);
-        } else {
-          Alert.alert("Selection Cancelled", "No image was selected.");
-        }
-      } catch (error) {
-        console.error("Error picking image: ", error);
-        Alert.alert("Error", "Failed to pick an image.");
+  const pickImage = async (
+    setImage: React.Dispatch<React.SetStateAction<string | null>>
+  ) => {
+    try {
+      // Request permission for media library
+      const permissionResult =
+        await ImagePicker.requestMediaLibraryPermissionsAsync();
+      if (!permissionResult.granted) {
+        Alert.alert(
+          "Permission Denied",
+          "You need to allow access to your photos."
+        );
+        return;
       }
-    };
+
+      // Launch image picker to select a photo
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        allowsEditing: true,
+        quality: 1,
+      });
+
+      if (!result.canceled && result.assets && result.assets.length > 0) {
+        const uri = result.assets[0].uri;
+
+        // Resize the image
+        const resizedImage = await ImageManipulator.manipulateAsync(
+          uri,
+          [{ resize: { width: 600 } }],
+          { compress: 0.7, format: ImageManipulator.SaveFormat.JPEG }
+        );
+
+        // Convert resized image to Base64
+        const base64 = await FileSystem.readAsStringAsync(resizedImage.uri, {
+          encoding: FileSystem.EncodingType.Base64,
+        });
+
+        // Set the image as Base64 encoded string
+        setImage(`data:image/jpeg;base64,${base64}`);
+      } else {
+        Alert.alert("Selection Cancelled", "No image was selected.");
+      }
+    } catch (error) {
+      console.error("Error picking image: ", error);
+      Alert.alert("Error", "Failed to pick an image.");
+    }
+  };
   useEffect(() => {
     if (auth.currentUser) {
       fetchCartData(); // Fetch cart items from Firestore
@@ -199,104 +230,109 @@ export default function Checkout() {
 
   return (
     <SafeAreaView style={styles.container}>
-    <FlatList
-      data={cartItems}
-      keyExtractor={(item) => item.id}
-      ListHeaderComponent={() => (
-        <>
-          <View style={styles.header}>
-            <Text style={styles.title}>Checkout</Text>
-          </View>
-
-          <View style={styles.addressContainer}>
-            <Text style={styles.addressTitle}>Delivery Address</Text>
-            <View style={styles.addressWrapper}>
-              <View style={styles.selectedAddressContainer}>
-                <Text
-                  style={styles.selectedAddress}
-                  numberOfLines={1}
-                  ellipsizeMode="tail"
-                >
-                  {selectedAddress}
-                </Text>
-              </View>
-              <TouchableOpacity
-                style={styles.newAddressButton}
-                onPress={() => router.push({
-                  pathname: "../components/ChangeAddress",
-                  params: {
-                    currentAddress: selectedAddress,
-                  },
-                })}
-              >
-                <Text style={styles.newAddressText}>Change Address</Text>
-              </TouchableOpacity>
+      <FlatList
+        data={cartItems}
+        keyExtractor={(item) => item.id}
+        ListHeaderComponent={() => (
+          <>
+            <View style={styles.header}>
+              <Text style={styles.title}>Checkout</Text>
             </View>
-          </View>
-        </>
-      )}
-      renderItem={({ item }) => (
-        <View style={styles.item}>
-          <Image
-            source={
-              item.imageUrl
-                ? { uri: item.imageUrl }
-                : { uri: "https://via.placeholder.com/150" }
-            }
-            style={styles.itemImage}
-          />
-          <View style={styles.itemDetails}>
-            <Text style={styles.itemName}>{item.name}</Text>
-            <Text style={styles.itemQuantity}>Qty: {item.quantity}</Text>
-            <Text style={styles.itemPrice}>
-              RM {item.totalPrice.toFixed(2)}
-            </Text>
-          </View>
-        </View>
-      )}
-      ListFooterComponent={() => (
-        <>
-          <View style={styles.qrCodeContainer}>
-            <Text style={styles.qrCodeTitle}>Pay via QR Code</Text>
+
+            <View style={styles.addressContainer}>
+              <Text style={styles.addressTitle}>Delivery Address</Text>
+              <View style={styles.addressWrapper}>
+                <View style={styles.selectedAddressContainer}>
+                  <Text
+                    style={styles.selectedAddress}
+                    numberOfLines={1}
+                    ellipsizeMode="tail"
+                  >
+                    {selectedAddress}
+                  </Text>
+                </View>
+                <TouchableOpacity
+                  style={styles.newAddressButton}
+                  onPress={() =>
+                    router.push({
+                      pathname: "../components/ChangeAddress",
+                      params: {
+                        currentAddress: selectedAddress,
+                      },
+                    })
+                  }
+                >
+                  <Text style={styles.newAddressText}>Change Address</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </>
+        )}
+        renderItem={({ item }) => (
+          <View style={styles.item}>
             <Image
               source={
-                user?.paymentImage
-                  ? { uri: user.paymentImage }
+                item.imageUrl
+                  ? { uri: item.imageUrl }
                   : { uri: "https://via.placeholder.com/150" }
               }
-              style={styles.qrCodeImage}
+              style={styles.itemImage}
             />
-            <Text style={styles.receiptTitle}>Upload Payment Receipt</Text>
-            {receiptImage && (
-              <Image source={{ uri: receiptImage }} style={styles.receiptImage} />
-            )}
-            <TouchableOpacity 
-              style={styles.uploadButton} 
-              onPress={() => pickImage(setReceiptImage)}
-            >
-              <Text style={styles.uploadButtonText}>Upload Receipt</Text>
-            </TouchableOpacity>
-          </View>
-
-          <View style={styles.footer}>
-            <Text style={styles.totalPrice}>
-              Total: RM {totalPrice.toFixed(2)}
-            </Text>
-            <TouchableOpacity
-              style={styles.confirmButton}
-              onPress={confirmOrder}
-              disabled={loading}
-            >
-              <Text style={styles.confirmButtonText}>
-                {loading ? "Processing..." : "Confirm Order"}
+            <View style={styles.itemDetails}>
+              <Text style={styles.itemName}>{item.name}</Text>
+              <Text style={styles.itemQuantity}>Qty: {item.quantity}</Text>
+              <Text style={styles.itemPrice}>
+                RM {item.totalPrice.toFixed(2)}
               </Text>
-            </TouchableOpacity>
+            </View>
           </View>
-        </>
-      )}
-      contentContainerStyle={{ flexGrow: 1 }}
-    />
-  </SafeAreaView>
+        )}
+        ListFooterComponent={() => (
+          <>
+            <View style={styles.qrCodeContainer}>
+              <Text style={styles.qrCodeTitle}>Pay via QR Code</Text>
+              <Image
+                source={
+                  user?.paymentImage
+                    ? { uri: user.paymentImage }
+                    : { uri: "https://via.placeholder.com/150" }
+                }
+                style={styles.qrCodeImage}
+              />
+              <Text style={styles.receiptTitle}>Upload Payment Receipt</Text>
+              {receiptImage && (
+                <Image
+                  source={{ uri: receiptImage }}
+                  style={styles.receiptImage}
+                />
+              )}
+              <TouchableOpacity
+                style={styles.uploadButton}
+                onPress={() => pickImage(setReceiptImage)}
+              >
+                <Text style={styles.uploadButtonText}>Upload Receipt</Text>
+              </TouchableOpacity>
+            </View>
+
+            <View style={styles.footer}>
+              <Text style={styles.totalPrice}>
+                Total: RM {totalPrice.toFixed(2)}
+              </Text>
+              <TouchableOpacity
+                style={styles.confirmButton}
+                onPress={confirmOrder}
+                disabled={loading}
+              >
+                <Text style={styles.confirmButtonText}>
+                  {loading ? "Processing..." : "Confirm Order"}
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </>
+        )}
+        contentContainerStyle={{ flexGrow: 1 }}
+      />
+    </SafeAreaView>
   );
 }
 

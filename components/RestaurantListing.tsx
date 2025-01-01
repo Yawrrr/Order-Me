@@ -58,6 +58,7 @@ const RestaurantListing = ({ listings, category }: Props) => {
             priceRange: data.priceRange || "Unknown",
             isOpen: data.isOpen || false,
             description: data.description || "No description available",
+            owner: data.owner,
           };
         });
 
@@ -89,14 +90,6 @@ const RestaurantListing = ({ listings, category }: Props) => {
     setWishlist(updatedWishlist);
     await saveWishlist(updatedWishlist);
   };
-
-  const handleRestaurantPress = (restaurantName: string) => {
-    router.push({
-      pathname: "/components/RestaurantMenuScreen",
-      params: { name: restaurantName }
-    });
-  };
-  
 
   const renderItems = ({ item }: { item: ListingType }) => {
     const isInWishlist = wishlist.some(

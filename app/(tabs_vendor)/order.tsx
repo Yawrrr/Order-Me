@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import React, { useEffect, useState } from "react";
+import { SafeAreaView } from "react-native-safe-area-context";
+import AntDesign from "@expo/vector-icons/AntDesign";
 import {
   View,
   Text,
@@ -7,14 +8,36 @@ import {
   ScrollView,
   TouchableOpacity,
   Switch,
-} from 'react-native';
+  Keyboard,
+} from "react-native";
+import { useAuth } from "@/context/AuthContext";
+import {
+  GestureHandlerRootView,
+  TextInput,
+  TouchableWithoutFeedback,
+} from "react-native-gesture-handler";
+import { Firestore, getDoc, getDocs, query, where } from "firebase/firestore";
+import { ordersRef } from "@/FirebaseConfig";
+
+interface OrderItem{
+  email: string;
+  id: string;
+  imageUrl: string; 
+  name: string;
+  oriPrice: number;
+  quantity: number;
+  restaurantName: string;
+  totalPrice: number;
+}
 
 interface Order {
-  id: number;
+  id: string;
   address: string;
-  estimatedTime: string;
-  items: { name: string; quantity: number }[];
-  total: number;
+  email: string;
+  status: string;
+  items: OrderItem[];
+  timestamp: string;
+  totalPrice: number;
 }
 
 interface OrderStatus {
@@ -22,57 +45,57 @@ interface OrderStatus {
   timestamp?: string;
 }
 
-const Order: React.FC = () => {
-  const [orders, setOrders] = useState<Order[]>([
-    {
-      id: 1,
-      address: 'Taman Universiti, Skudai, Johor, Johor Bahru, Malaysia',
-      estimatedTime: '1:00 PM',
-      items: [{ name: 'Burger', quantity: 1 }],
-      total: 15.0,
-    },
-    {
-      id: 2,
-      address: 'Mount Austin, Skudai, Johor, Johor Bahru, Malaysia',
-      estimatedTime: '2:30 PM',
-      items: [
-        { name: 'Pizza', quantity: 1 },
-        { name: 'Soda', quantity: 1 },
-      ],
-      total: 25.0,
-    },
-  ]);
+const Order = () => {
+  const { user } = useAuth();
+  const restarantName = user?.restaurantName;
+  const vendorEmail = user?.email;
+  const [orders, setOrders] = useState<Order[]>([]);
 
-  const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
-  const [statuses, setStatuses] = useState<OrderStatus[]>([  // Initialize statuses for each order
-    { label: ' Order Placed' },
-    { label: ' Kitchen Preparing' },
-    { label: ' Out for Delivery' },
-    { label: ' Delivered' },
-  ]);
+  useEffect(() => {
+    // Fetch orders from the database
+    fetchOrders();
+    console.log(orders);
+  }, []);
 
-  const handleStatusChange = (index: number) => {
-    setStatuses((prevStatuses) => {
-      const newStatuses = [...prevStatuses];
-      const currentTime = new Date().toLocaleTimeString([], {
-        hour: '2-digit',
-        minute: '2-digit',
-      });
-
-      if (!newStatuses[index].timestamp) {
-        newStatuses[index].timestamp = currentTime;
-      } else {
-        newStatuses[index].timestamp = undefined;
-      }
-
-      return newStatuses;
+  const fetchOrders = async () => {
+    const orderDocs = await getDocs(
+      query(ordersRef, where("vendorEmail", "==", vendorEmail))
+    );
+    
+    const orders: Order[] = orderDocs.docs.map((doc) => {
+      const data = doc.data();
+      return {
+        id: doc.id,
+        address: data.address,
+        email: data.email,
+        status: data.status,
+        items: data.items,
+        timestamp: data.timestamp,
+        totalPrice: data.totalPrice,
+      };
     });
-  };
+
+    setOrders(orders);
+  }
+  
 
   return (
-    <SafeAreaView style={styles.container}>
-      <Text style={styles.title}>Order Management</Text>
-
+    <GestureHandlerRootView>
+      <SafeAreaView style={styles.container}>
+        <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+          <View style="">
+            <Text style={styles.title}>Orders</Text>
+            <ScrollView>
+              <View>
+                <TextInput
+                  placeholder="Search for orders"
+                  style={styles.searchBar}
+                  onChangeText={() => {}}
+                ></TextInput>
+              </View>
+            </ScrollView>
+          </View>
+          {/* 
       {!selectedOrder ? (
         <ScrollView>
           {orders.map((order) => (
@@ -119,72 +142,92 @@ const Order: React.FC = () => {
           ))}
           <Text style={styles.totalText}>Total: RM {selectedOrder.total.toFixed(2)}</Text>
         </View>
-      )}
-    </SafeAreaView>
+      )} */}
+        </TouchableWithoutFeedback>
+      </SafeAreaView>
+    </GestureHandlerRootView>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f9f9f9',
+    backgroundColor: "#f0f0f0",
     padding: 20,
+    height: "100%",
   },
   title: {
-    fontFamily: 'Poppins-Bold',
+    fontFamily: "Poppins-Bold",
     fontSize: 30,
-    color: '#FF8C00',
-    textAlign: 'center',
+    color: "#FF8C00",
+    textAlign: "left",
+  },
+  searchBar: {
+    // flexDirection: 'row',
+    // alignItems: 'center',
+    // justifyContent: 'space-between',
+    borderRadius: 10,
+    padding: 16,
     marginBottom: 16,
+    backgroundColor: "white",
+  },
+  searchBarText: {
+    fontSize: 16,
+    color: "black",
+    opacity: 0.6,
+  },
+  searchBarIcon: {
+    color: "black",
+    opacity: 0.6,
   },
   orderCard: {
     borderWidth: 1,
-    borderColor: '#FFCC99',
+    borderColor: "#FFCC99",
     borderRadius: 12,
     padding: 16,
     marginBottom: 16,
-    backgroundColor: '#FFF7E6',
+    backgroundColor: "#FFF7E6",
   },
   orderCardText: {
     fontSize: 16,
-    color: '#333',
+    color: "#333",
   },
   backButton: {
     fontSize: 16,
-    color: 'orange',
-    fontWeight: 'bold',
+    color: "orange",
+    fontWeight: "bold",
     marginBottom: 16,
   },
   subtitle: {
     fontSize: 20,
-    fontWeight: '600',
+    fontWeight: "600",
     marginBottom: 10,
-    color: '#FF8C00',
+    color: "#FF8C00",
     marginTop: 10,
   },
   detailText: {
     fontSize: 16,
-    color: '#333',
+    color: "#333",
     marginBottom: 4,
   },
   statusRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     marginBottom: 10,
   },
   statusLabel: {
     fontSize: 16,
-    color: '#333',
+    color: "#333",
     flex: 1,
   },
   timestamp: {
     fontSize: 14,
-    color: '#FF8C00',
+    color: "#FF8C00",
   },
   totalText: {
     fontSize: 18,
-    fontWeight: 'bold',
-    color: '#FF4500',
+    fontWeight: "bold",
+    color: "#FF4500",
     marginTop: 12,
   },
 });
