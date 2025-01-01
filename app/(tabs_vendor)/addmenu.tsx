@@ -162,7 +162,7 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingTop: 20,
     paddingHorizontal: 15,
-    backgroundColor: "#fff",
+    backgroundColor: "#fff",paddingBottom: 80,
   },
   form: {
     paddingVertical: 20,
