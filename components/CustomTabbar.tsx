@@ -1,36 +1,67 @@
-import { AntDesign, FontAwesome, Ionicons } from "@expo/vector-icons"
-import React from "react"
-import { Platform, StyleSheet, Text, TouchableOpacity, View } from "react-native"
+import { AntDesign, FontAwesome, Ionicons } from "@expo/vector-icons";
+import React from "react";
+import {
+  Platform,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
 
 interface CustomTabBarProps {
   state: {
-    index: number
+    index: number;
     routes: Array<{
-      key: string
-      name: string
-    }>
-  }
-  descriptors: any
-  navigation: any
+      key: string;
+      name: string;
+    }>;
+  };
+  descriptors: any;
+  navigation: any;
 }
 
-const TabBar: React.FC<CustomTabBarProps> = ({ state, descriptors, navigation }) => {
+const TabBar: React.FC<CustomTabBarProps> = ({
+  state,
+  descriptors,
+  navigation,
+}) => {
+  type IconName =
+    | "home"
+    | "cart"
+    | "message"
+    | "status"
+    | "profile"
+    | "menu"
+    | "addmenu"
+    | "order";
 
-  type IconName = "home" | "cart" | "message" | "status" | "profile";
-  
   const icons: Record<IconName, (props: { color: string }) => JSX.Element> = {
-    home: (props) => <FontAwesome size={28} name="home" color={props.color} />,
-    cart: (props) => <FontAwesome size={24} name="shopping-cart" color={props.color} />,
-    message: (props) => <AntDesign size={22} name="message1" color={props.color} />,
-    status: (props) => <FontAwesome size={24} name="star" color={props.color} />,
-    profile: (props) => <Ionicons  size={24} name="person" color={props.color} />,
-  }
+    home: (props) => <FontAwesome size={24} name="home" color={props.color} />,
+    cart: (props) => (
+      <FontAwesome size={22} name="shopping-cart" color={props.color} />
+    ),
+    message: (props) => (
+      <AntDesign size={20} name="message1" color={props.color} />
+    ),
+    status: (props) => (
+      <FontAwesome size={22} name="star" color={props.color} />
+    ),
+    profile: (props) => (
+      <Ionicons size={22} name="person" color={props.color} />
+    ),
+    menu: (props) => <FontAwesome size={24} name="home" color={props.color} />,
+    addmenu: (props) => (
+      <FontAwesome size={22} name="plus" color={props.color} />
+    ),
+    order: (props) => (
+      <FontAwesome size={24} name="shopping-cart" color={props.color} />
+    ),
+  };
 
-  const primaryColor = '#969696';
+  const primaryColor = "#969696";
   const secondaryColor = "#FF9001";
 
   return (
-    
     <View style={styles.container}>
       {state.routes.map((route, index) => {
         const { options } = descriptors[route.key];
@@ -41,12 +72,12 @@ const TabBar: React.FC<CustomTabBarProps> = ({ state, descriptors, navigation })
             ? options.title
             : route.name;
 
-            // console.log("Routes", route);
+        // console.log("Routes", route);
         const isFocused = state.index === index;
 
         const onPress = () => {
           const event = navigation.emit({
-            type: 'tabPress',
+            type: "tabPress",
             target: route.key,
             canPreventDefault: true,
           });
@@ -58,14 +89,14 @@ const TabBar: React.FC<CustomTabBarProps> = ({ state, descriptors, navigation })
 
         const onLongPress = () => {
           navigation.emit({
-            type: 'tabLongPress',
+            type: "tabLongPress",
             target: route.key,
           });
         };
 
         return (
           <TouchableOpacity
-          key={route.name}
+            key={route.name}
             accessibilityRole="button"
             accessibilityState={isFocused ? { selected: true } : {}}
             accessibilityLabel={options.tabBarAccessibilityLabel}
@@ -74,8 +105,15 @@ const TabBar: React.FC<CustomTabBarProps> = ({ state, descriptors, navigation })
             onLongPress={onLongPress}
             style={styles.tab}
           >
-            {icons[route.name as IconName]({color: isFocused ? secondaryColor : primaryColor})}
-            <Text style={{ color: isFocused ? secondaryColor : primaryColor }}>
+            {icons[route.name as IconName]({
+              color: isFocused ? secondaryColor : primaryColor,
+            })}
+            <Text
+              style={{
+                color: isFocused ? secondaryColor : primaryColor,
+                fontSize: 10,
+              }}
+            >
               {label}
             </Text>
           </TouchableOpacity>
@@ -83,16 +121,18 @@ const TabBar: React.FC<CustomTabBarProps> = ({ state, descriptors, navigation })
       })}
     </View>
   );
-}
+};
 
-export default TabBar
+export default TabBar;
 
 const styles = StyleSheet.create({
   container: {
     position: "absolute",
-    bottom: Platform.OS === 'ios' ? 24 : 16,
+    bottom: Platform.OS === "ios" ? 24 : 16,
     flexDirection: "row",
-    backgroundColor: "#fff",
+    justifyContent: "space-around",
+    backgroundColor: "white",
+    gap: 16,
     padding: 12,
     marginHorizontal: 16,
     borderRadius: 20,
@@ -109,10 +149,10 @@ const styles = StyleSheet.create({
   tab: {
     flex: 1,
     alignItems: "center",
-    justifyContent: "space-around",
+    justifyContent: "center",
   },
   label: {
     fontSize: 12,
     marginTop: 4,
   },
-})
+});
