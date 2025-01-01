@@ -21,10 +21,8 @@ export interface User {
   restaurantName: string;
   category: string;
   restaurantImage: string;
-  restaurantAddress: string;
-  isOpen: boolean;
-  qrType: string;
-  qrCode: string;
+  paymentImage: string;
+  restaurantAddress: string
 }
 
 interface AuthContextType {
