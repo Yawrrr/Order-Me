@@ -8,6 +8,9 @@ import {
   Alert,
   Image,
   TextInput,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { FIREBASE_AUTH, FIREBASE_DB } from "../../FirebaseConfig";
@@ -156,7 +159,7 @@ export default function Checkout() {
         receiptImage, // Add the receipt image here
         timestamp: new Date(),
         status: "Pending",
-        username : username,
+        username: username,
         remark: remark,
       });
 
@@ -237,119 +240,116 @@ export default function Checkout() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <FlatList
-        data={cartItems}
-        keyExtractor={(item) => item.id}
-        ListHeaderComponent={() => (
-          <>
-            <View style={styles.header}>
-              <Text style={styles.title}>Checkout</Text>
-            </View>
+      <KeyboardAvoidingView
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        style={{ flex: 1 }}
+      >
+        <ScrollView showsVerticalScrollIndicator={false}>
+          <View style={styles.header}>
+            <Text style={styles.title}>Checkout</Text>
+          </View>
 
-            <View style={styles.addressContainer}>
-              <Text style={styles.addressTitle}>Delivery Address</Text>
-              <View style={styles.addressWrapper}>
-                <View style={styles.selectedAddressContainer}>
-                  <Text
-                    style={styles.selectedAddress}
-                    numberOfLines={1}
-                    ellipsizeMode="tail"
-                  >
-                    {selectedAddress}
-                  </Text>
-                </View>
-                <TouchableOpacity
-                  style={styles.newAddressButton}
-                  onPress={() =>
-                    router.push({
-                      pathname: "../components/ChangeAddress",
-                      params: {
-                        currentAddress: selectedAddress,
-                      },
-                    })
-                  }
+          <View style={styles.addressContainer}>
+            <Text style={styles.addressTitle}>Delivery Address</Text>
+            <View style={styles.addressWrapper}>
+              <View style={styles.selectedAddressContainer}>
+                <Text
+                  style={styles.selectedAddress}
+                  numberOfLines={1}
+                  ellipsizeMode="tail"
                 >
-                  <Text style={styles.newAddressText}>Change Address</Text>
-                </TouchableOpacity>
+                  {selectedAddress}
+                </Text>
               </View>
-            </View>
-          </>
-        )}
-        renderItem={({ item }) => (
-          <View style={styles.item}>
-            <Image
-              source={
-                item.imageUrl
-                  ? { uri: item.imageUrl }
-                  : { uri: "https://via.placeholder.com/150" }
-              }
-              style={styles.itemImage}
-            />
-            <View style={styles.itemDetails}>
-              <Text style={styles.itemName}>{item.name}</Text>
-              <Text style={styles.itemQuantity}>Qty: {item.quantity}</Text>
-              <Text style={styles.itemPrice}>
-                RM {item.totalPrice.toFixed(2)}
-              </Text>
+              <TouchableOpacity
+                style={styles.newAddressButton}
+                onPress={() =>
+                  router.push({
+                    pathname: "../components/ChangeAddress",
+                    params: {
+                      currentAddress: selectedAddress,
+                    },
+                  })
+                }
+              >
+                <Text style={styles.newAddressText}>Change Address</Text>
+              </TouchableOpacity>
             </View>
           </View>
-        )}
-        ListFooterComponent={() => (
-          <>
+          {cartItems.map((item) => (
+            <View key={item.id} style={styles.item}>
+              <View style={styles.item}>
+                <Image
+                  source={
+                    item.imageUrl
+                      ? { uri: item.imageUrl }
+                      : { uri: "https://via.placeholder.com/150" }
+                  }
+                  style={styles.itemImage}
+                />
+                <View style={styles.itemDetails}>
+                  <Text style={styles.itemName}>{item.name}</Text>
+                  <Text style={styles.itemQuantity}>Qty: {item.quantity}</Text>
+                  <Text style={styles.itemPrice}>
+                    RM {item.totalPrice.toFixed(2)}
+                  </Text>
+                </View>
+              </View>
+            </View>
+          ))}
+
           <View style={styles.remarkContainer}>
             <Text style={styles.remarkTitle}>Order Remarks</Text>
             <TextInput
               style={styles.remarkInput}
-              placeholder="Add special instructions for your order..."
+              placeholder="Add special instructions..."
               value={remark}
               onChangeText={setRemark}
               multiline
               numberOfLines={3}
             />
           </View>
-            <View style={styles.qrCodeContainer}>
-              <Text style={styles.qrCodeTitle}>Pay via QR Code</Text>
+          <View style={styles.qrCodeContainer}>
+            <Text style={styles.qrCodeTitle}>Pay via QR Code</Text>
+            <Image
+              source={
+                user?.paymentImage
+                  ? { uri: user.paymentImage }
+                  : { uri: "https://via.placeholder.com/150" }
+              }
+              style={styles.qrCodeImage}
+            />
+            <Text style={styles.receiptTitle}>Upload Payment Receipt</Text>
+            {receiptImage && (
               <Image
-                source={
-                  user?.paymentImage
-                    ? { uri: user.paymentImage }
-                    : { uri: "https://via.placeholder.com/150" }
-                }
-                style={styles.qrCodeImage}
+                source={{ uri: receiptImage }}
+                style={styles.receiptImage}
               />
-              <Text style={styles.receiptTitle}>Upload Payment Receipt</Text>
-              {receiptImage && (
-                <Image
-                  source={{ uri: receiptImage }}
-                  style={styles.receiptImage}
-                />
-              )}
-              <TouchableOpacity
-                style={styles.uploadButton}
-                onPress={() => pickImage(setReceiptImage)}
-              >
-                <Text style={styles.uploadButtonText}>Upload Receipt</Text>
-              </TouchableOpacity>
-            </View>
+            )}
+            <TouchableOpacity
+              style={styles.uploadButton}
+              onPress={() => pickImage(setReceiptImage)}
+            >
+              <Text style={styles.uploadButtonText}>Upload Receipt</Text>
+            </TouchableOpacity>
+          </View>
 
-            <View style={styles.footer}>
-              <Text style={styles.totalPrice}>
-                Total: RM {totalPrice.toFixed(2)}
+          <View style={styles.footer}>
+            <Text style={styles.totalPrice}>
+              Total: RM {totalPrice.toFixed(2)}
+            </Text>
+            <TouchableOpacity
+              style={styles.confirmButton}
+              onPress={confirmOrder}
+              disabled={loading}
+            >
+              <Text style={styles.confirmButtonText}>
+                {loading ? "Processing..." : "Confirm Order"}
               </Text>
-              <TouchableOpacity
-                style={styles.confirmButton}
-                onPress={confirmOrder}
-                disabled={loading}
-              >
-                <Text style={styles.confirmButtonText}>
-                  {loading ? "Processing..." : "Confirm Order"}
-                </Text>
-              </TouchableOpacity>
-            </View>
-          </>
-        )}
-        contentContainerStyle={{ flexGrow: 1 }}
-      />
+            </TouchableOpacity>
+          </View>
+        </ScrollView>
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 }
@@ -467,21 +467,21 @@ const styles = StyleSheet.create({
   remarkContainer: {
     marginTop: 10,
     padding: 10,
-    backgroundColor: '#f9f9f9',
+    backgroundColor: "#f9f9f9",
     borderRadius: 8,
   },
   remarkTitle: {
     fontSize: 16,
-    fontWeight: 'bold',
+    fontWeight: "bold",
     marginBottom: 8,
   },
   remarkInput: {
     borderWidth: 1,
-    borderColor: '#ddd',
+    borderColor: "#ddd",
     borderRadius: 4,
     padding: 10,
     minHeight: 80,
-    textAlignVertical: 'top',
+    textAlignVertical: "top",
   },
   qrCodeContainer: {
     marginVertical: 20,
