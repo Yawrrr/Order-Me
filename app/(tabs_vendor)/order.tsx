@@ -17,6 +17,7 @@ import {
 import { getDocs, query, where } from "firebase/firestore";
 import { ordersRef } from "@/FirebaseConfig";
 import { router } from "expo-router";
+import { Picker } from "@react-native-picker/picker";
 
 export interface OrderItem {
   user: string;
@@ -54,6 +55,9 @@ const Order = () => {
   const [orders, setOrders] = useState<Order[]>([]);
   const [orderItems, setOrderItems] = useState<OrderItem[]>([]);
   const [filteredOrders, setFilteredOrders] = useState<OrderItem[]>([]);
+  const [selectedStatus, setSelectedStatus] = useState<string>("All");
+  const [selectedAddress, setSelectedAddress] = useState<string>("All");
+  const [selectedMealType, setSelectedMealType] = useState<string>("All");
 
   useEffect(() => {
     // Fetch orders from the database
@@ -122,19 +126,92 @@ const Order = () => {
     setFilteredOrders(filtered);
   };
 
+  const handleSortAndFilter = () => {
+    let filtered = orderItems;
+
+    // Filter by status
+    if (selectedStatus !== "All") {
+      filtered = filtered.filter(
+        (order) => order.orderStatus === selectedStatus
+      );
+    }
+
+    // Filter by address
+    if (selectedAddress !== "All") {
+      filtered = filtered.filter((order) => order.address === selectedAddress);
+    }
+
+    // Filter by meal type
+    if (selectedMealType !== "All") {
+      filtered = filtered.filter((order) => order.name === selectedMealType);
+    }
+
+    setFilteredOrders(filtered);
+  };
+
   return (
     <GestureHandlerRootView style={styles.outerContainer}>
       <SafeAreaView style={styles.container}>
         <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
           <View>
             <Text style={styles.title}>Orders</Text>
-              <View>
-                <TextInput
-                  placeholder="Search for orders"
-                  style={styles.searchBar}
-                  onChangeText={handleSearch}
-                ></TextInput>
-              </View>
+            <View>
+              <TextInput
+                placeholder="Search for orders"
+                style={styles.searchBar}
+                onChangeText={handleSearch}
+              ></TextInput>
+            </View>
+            <View style={styles.filtersContainer}>
+              {/* Status Dropdown */}
+              <Picker
+                selectedValue={selectedStatus}
+                onValueChange={(value) => {
+                  setSelectedStatus(value);
+                  handleSortAndFilter();
+                }}
+                style={styles.filterPicker}
+              >
+                <Picker.Item label="Status" value="All" />
+                <Picker.Item label="Preparing" value="Preparing" />
+                <Picker.Item label="Out of delivery" value="Out of delivery" />
+                <Picker.Item label="Delivered" value="Delivered" />
+              </Picker>
+
+              {/* Address Dropdown */}
+              <Picker
+                selectedValue={selectedAddress}
+                onValueChange={(value) => {
+                  setSelectedAddress(value);
+                  handleSortAndFilter();
+                }}
+                style={styles.filterPicker}
+              >
+                <Picker.Item label="Addresses" value="All" />
+                {Array.from(
+                  new Set(orderItems.map((item) => item.address))
+                ).map((address) => (
+                  <Picker.Item key={address} label={address} value={address} />
+                ))}
+              </Picker>
+
+              {/* Meal Type Dropdown */}
+              <Picker
+                selectedValue={selectedMealType}
+                onValueChange={(value) => {
+                  setSelectedMealType(value);
+                  handleSortAndFilter();
+                }}
+                style={styles.filterPicker}
+              >
+                <Picker.Item label="Meal Types" value="All" />
+                {Array.from(new Set(orderItems.map((item) => item.name))).map(
+                  (name) => (
+                    <Picker.Item key={name} label={name} value={name} />
+                  )
+                )}
+              </Picker>
+            </View>
             <ScrollView>
               <View>
                 {filteredOrders.map((order) => (
@@ -285,13 +362,14 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     marginBottom: 16,
+    gap: 8,
   },
   filterPicker: {
     flex: 1,
-    marginHorizontal: 4,
-    height: 40,
+    height: 50,
     backgroundColor: "#f5f5f5",
-    borderRadius: 8,
+    borderRadius: 10,
+    fontSize: 12
   },
   orderCardText: {
     fontSize: 14,
