@@ -1,13 +1,11 @@
 import React, { useEffect, useState } from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
-import AntDesign from "@expo/vector-icons/AntDesign";
 import {
   View,
   Text,
   StyleSheet,
   ScrollView,
   TouchableOpacity,
-  Switch,
   Keyboard,
 } from "react-native";
 import { useAuth } from "@/context/AuthContext";
@@ -16,10 +14,11 @@ import {
   TextInput,
   TouchableWithoutFeedback,
 } from "react-native-gesture-handler";
-import { Firestore, getDoc, getDocs, query, where } from "firebase/firestore";
+import { getDocs, query, where } from "firebase/firestore";
 import { ordersRef } from "@/FirebaseConfig";
+import { router } from "expo-router";
 
-interface OrderItem {
+export interface OrderItem {
   user: string;
   email: string;
   id: string;
@@ -117,7 +116,7 @@ const Order = () => {
         // Search by status
         order.orderStatus.toLowerCase().includes(searchText) ||
         order.name.toLowerCase().includes(searchText) ||
-        order.address.toLowerCase().includes(searchText) 
+        order.address.toLowerCase().includes(searchText)
     );
 
     setFilteredOrders(filtered);
@@ -127,9 +126,8 @@ const Order = () => {
     <GestureHandlerRootView style={styles.outerContainer}>
       <SafeAreaView style={styles.container}>
         <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-          <View style="">
+          <View>
             <Text style={styles.title}>Orders</Text>
-            <ScrollView>
               <View>
                 <TextInput
                   placeholder="Search for orders"
@@ -137,23 +135,42 @@ const Order = () => {
                   onChangeText={handleSearch}
                 ></TextInput>
               </View>
+            <ScrollView>
               <View>
                 {filteredOrders.map((order) => (
                   <TouchableOpacity
                     key={order.id}
                     style={styles.orderCard}
-                    onPress={() => console.log(order.id)}
+                    onPress={() =>
+                      router.push({
+                        pathname: "../components/OrderDetails",
+                        params: {
+                          orderItem: JSON.stringify(order),
+                        },
+                      })
+                    }
                   >
-                    <Text style={styles.orderCardText}>{order.username}</Text>
-                    <Text style={styles.orderCardText}>{order.address}</Text>
-                    <Text style={styles.orderCardText}>{order.name}</Text>
-                    <Text style={styles.orderCardText}>{order.remark}</Text>
-                    <Text style={styles.orderCardText}>
-                      Total Price: RM {order.totalPrice}
-                    </Text>
-                    <Text style={styles.orderCardText}>
-                      Status: {order.orderStatus}
-                    </Text>
+                    <View style={styles.cardHeader}>
+                      <Text style={styles.username}>{order.username}</Text>
+                      <Text
+                        style={[
+                          styles.statusBadge,
+                          order.orderStatus === "Preparing"
+                            ? styles.preparingStatus
+                            : order.orderStatus === "Out of delivery"
+                            ? styles.outForDeliveryStatus
+                            : styles.deliveredStatus,
+                        ]}
+                      >
+                        {order.orderStatus}
+                      </Text>
+                    </View>
+                    <Text style={styles.address}>{order.address}</Text>
+                    <Text style={styles.itemName}>{order.name}</Text>
+                    {order.remark && (
+                      <Text style={styles.remark}>"{order.remark}"</Text>
+                    )}
+                    <Text style={styles.totalPrice}>RM{order.totalPrice}</Text>
                   </TouchableOpacity>
                 ))}
               </View>
@@ -168,19 +185,18 @@ const Order = () => {
 const styles = StyleSheet.create({
   outerContainer: {
     flex: 1,
-    backgroundColor: '#f0f0f0', // same color as container
+    backgroundColor: "#f0f0f0",
   },
   container: {
     flex: 1,
     backgroundColor: "#f0f0f0",
     padding: 20,
-    height: "100%",
   },
   title: {
     fontFamily: "Poppins-Bold",
-    fontSize: 30,
+    fontSize: 28,
     color: "#FF8C00",
-    textAlign: "left",
+    marginBottom: 20,
   },
   searchBar: {
     // flexDirection: 'row',
@@ -201,52 +217,85 @@ const styles = StyleSheet.create({
     opacity: 0.6,
   },
   orderCard: {
+    backgroundColor: "#fff",
     borderRadius: 12,
     padding: 16,
     marginBottom: 16,
-    backgroundColor: "white",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 5,
+    elevation: 2,
   },
-  orderCardText: {
+  cardHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 8,
+  },
+  username: {
     fontSize: 16,
+    fontWeight: "bold",
     color: "#333",
   },
-  backButton: {
-    fontSize: 16,
-    color: "orange",
+  statusBadge: {
+    fontSize: 12,
+    paddingVertical: 2,
+    paddingHorizontal: 8,
+    borderRadius: 8,
+    textAlign: "center",
     fontWeight: "bold",
-    marginBottom: 16,
   },
-  subtitle: {
-    fontSize: 20,
-    fontWeight: "600",
-    marginBottom: 10,
-    color: "#FF8C00",
-    marginTop: 10,
+  preparingStatus: {
+    backgroundColor: "#EAE1FB",
+    color: "#8A2BE2",
   },
-  detailText: {
-    fontSize: 16,
+  outForDeliveryStatus: {
+    backgroundColor: "#E3F2FD",
+    color: "#2196F3",
+  },
+  deliveredStatus: {
+    backgroundColor: "#E8F5E9",
+    color: "#4CAF50",
+  },
+  address: {
+    fontSize: 14,
+    color: "#666",
+    marginBottom: 4,
+  },
+  itemName: {
+    fontSize: 14,
+    fontWeight: "bold",
     color: "#333",
     marginBottom: 4,
   },
-  statusRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: 10,
+  remark: {
+    fontSize: 12,
+    color: "#FF5722",
+    fontStyle: "italic",
+    marginBottom: 4,
   },
-  statusLabel: {
+  totalPrice: {
     fontSize: 16,
-    color: "#333",
-    flex: 1,
-  },
-  timestamp: {
-    fontSize: 14,
-    color: "#FF8C00",
-  },
-  totalText: {
-    fontSize: 18,
     fontWeight: "bold",
-    color: "#FF4500",
-    marginTop: 12,
+    color: "#FF8C00",
+    textAlign: "right",
+  },
+  filtersContainer: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginBottom: 16,
+  },
+  filterPicker: {
+    flex: 1,
+    marginHorizontal: 4,
+    height: 40,
+    backgroundColor: "#f5f5f5",
+    borderRadius: 8,
+  },
+  orderCardText: {
+    fontSize: 14,
+    color: "#333",
   },
 });
 
