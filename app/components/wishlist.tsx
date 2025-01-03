@@ -12,11 +12,9 @@ import { ListingType } from "@/type/listingType";
 import { saveWishlist, getWishlist } from "@/app/utility/storage";
 import { MaterialIcons, FontAwesome5, Ionicons } from "@expo/vector-icons"; 
 import { colors } from "@/constants/colors";
-import { Link } from "expo-router"; 
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { useRouter } from "expo-router"; 
 import { getAuth } from "firebase/auth";
-
 
 const EmptyWishlistMessage = () => (
   <View style={styles.emptyWishlistContainer}>
@@ -28,7 +26,8 @@ const EmptyWishlistMessage = () => (
 
 const Wishlist = () => {
   const [wishlist, setWishlist] = useState<ListingType[]>([]);
-  const { back } = useRouter(); 
+  const router = useRouter();
+
   useEffect(() => {
     const loadWishlist = async () => {
       const savedWishlist = await getWishlist(); 
@@ -37,69 +36,45 @@ const Wishlist = () => {
     loadWishlist();
   }, []);
 
-  const handleWishlistToggle = async (item: ListingType) => {
-    const user = getAuth().currentUser;
-    if (!user) {
-      console.error("User is not authenticated");
-      return;
-    }
-    const currentWishlist = await getWishlist();
-  
-    let updatedWishlist = [...currentWishlist];  
-    
-    const isAlreadyInWishlist = updatedWishlist.some(
-      (wishlistItem) => wishlistItem.id === item.id
-    );
-  
-    if (isAlreadyInWishlist) {
-      updatedWishlist = updatedWishlist.filter(
-        (wishlistItem) => wishlistItem.id !== item.id
-      );
-      Alert.alert(
-        "Removed",
-        `${item.name} has been removed from your wishlist.`
-      );
-    } else {
-      updatedWishlist.push(item);  
-      Alert.alert("Added", `${item.name} has been added to your wishlist.`);
-    }
-  
-    await saveWishlist(updatedWishlist); 
-    setWishlist(updatedWishlist);  
+  const handleRestaurantPress = (restaurantName: string) => {
+    router.push({
+      pathname: "/components/RestaurantMenuScreen",
+      params: { name: restaurantName }
+    });
   };
-  
 
   const renderItems = ({ item }: { item: ListingType }) => {
     return (
       <GestureHandlerRootView style={{ flex: 1 }}>
-        <Link href={`/listing/${item.id}`} asChild>
-          <TouchableOpacity style={styles.card}>
-            <Image source={{ uri: item.imageUrl }} style={styles.image} />
-            <Text style={styles.itemTxt} numberOfLines={1}>
-              {item.name}
-            </Text>
-            <View style={styles.locationContainer}>
-              <View style={styles.location}>
-                <FontAwesome5
-                  name="map-marker-alt"
-                  size={18}
-                  color={colors.secondary[200]}
-                />
-                <Text
-                  style={styles.itemLocationTxt}
-                  numberOfLines={1}
-                  ellipsizeMode="tail"
-                >
-                  {item.location}
-                </Text>
-              </View>
-              <View style={styles.ratingContainer}>
-                <Text style={styles.ratingText}>{item.rating}</Text>
-                <Ionicons name="star" size={16} color={colors.secondary[200]} />
-              </View>
+        <TouchableOpacity 
+          style={styles.card}
+          onPress={() => handleRestaurantPress(item.name)}
+        >
+          <Image source={{ uri: item.imageUrl }} style={styles.image} />
+          <Text style={styles.itemTxt} numberOfLines={1}>
+            {item.name}
+          </Text>
+          <View style={styles.locationContainer}>
+            <View style={styles.location}>
+              <FontAwesome5
+                name="map-marker-alt"
+                size={18}
+                color={colors.secondary[200]}
+              />
+              <Text
+                style={styles.itemLocationTxt}
+                numberOfLines={1}
+                ellipsizeMode="tail"
+              >
+                {item.location}
+              </Text>
             </View>
-          </TouchableOpacity>
-        </Link>
+            <View style={styles.ratingContainer}>
+              <Text style={styles.ratingText}>{item.rating}</Text>
+              <Ionicons name="star" size={16} color={colors.secondary[200]} />
+            </View>
+          </View>
+        </TouchableOpacity>
       </GestureHandlerRootView>
     );
   };
@@ -107,9 +82,8 @@ const Wishlist = () => {
   return (
     <View style={styles.container}>
       <View style={styles.customHeader}>
-        <TouchableOpacity onPress={back}>
-          <MaterialIcons name="arrow-back-ios" size={28} color="black" />{" "}
-         
+        <TouchableOpacity onPress={() => router.back()}>
+          <MaterialIcons name="arrow-back-ios" size={28} color="black" />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>My Wishlist</Text>
       </View>
@@ -122,15 +96,12 @@ const Wishlist = () => {
           renderItem={renderItems}
           keyExtractor={(item) => item.id.toString()}
           showsVerticalScrollIndicator={false}
+          numColumns={1}  
         />
       )}
     </View>
   );
 };
-
-
-
-export default Wishlist;
 
 const styles = StyleSheet.create({
   container: {
@@ -158,21 +129,23 @@ const styles = StyleSheet.create({
     backgroundColor: "white",
     borderRadius: 10,
     marginBottom: 20,
-    width: 220,
+    width: "85%", 
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 3,
     elevation: 2,
     position: "relative",
-    margin: 20,
+    margin: 5,
     padding: 10, 
+    alignSelf: 'center',
+    paddingLeft:5
   },
   image: {
-    width: 200,
-    height: 200,
+    width: "100%",  
+    height: 150,
     borderRadius: 10,
-    marginBottom: 30,
+    marginBottom: 20,
   },
   itemTxt: {
     fontSize: 16,
@@ -223,3 +196,5 @@ const styles = StyleSheet.create({
     marginTop: 5,
   },
 });
+
+export default Wishlist;

@@ -1,14 +1,30 @@
 import { StyleSheet, Text, TouchableOpacity, View, Image, ScrollView } from "react-native";
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { router } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useAuth } from "@/context/AuthContext";
-import images from "@/constants/images";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
-import { User } from "@/context/AuthContext";
+import { Menu, PaperProvider } from 'react-native-paper'; 
 
 const Profile = () => {
-  const { logout, user }= useAuth();
+  const { logout, user } = useAuth();
+  const [paymentImage, setPaymentImage] = useState<string | null>(null);
+  const [visible, setVisible] = useState(false);
+
+  // Fetch payment image (if not included in user data)
+  useEffect(() => {
+    const fetchPaymentImage = async () => {
+      if (user?.paymentImage) {
+        setPaymentImage(user.paymentImage);
+      } else {
+        // Optional: Fetch paymentImage from Firebase if needed
+        // const paymentImageFromFirebase = await getPaymentImage(user?.email);
+        // setPaymentImage(paymentImageFromFirebase);
+        setPaymentImage(null);
+      }
+    };
+    fetchPaymentImage();
+  }, [user]);
 
   const handleLogout = async () => {
     await logout();
@@ -18,6 +34,12 @@ const Profile = () => {
   const navigateToCustomer = () => {
     router.push("/home");
   };
+
+  const viewFeedbacks = () => {
+    router.push("../components/ViewFeedback");
+  };
+
+  const handleMenuVisibility = () => setVisible(!visible);
 
   const username = user?.username ?? user?.email;
   const email = user?.email;
@@ -30,7 +52,9 @@ const Profile = () => {
   const category = user?.category;
 
   return (
+    
     <SafeAreaView style={{ flex: 1 }}>
+      <PaperProvider> 
       <ScrollView
         contentContainerStyle={{ padding: 25, paddingTop: 15 }}
         showsVerticalScrollIndicator={false}
@@ -38,32 +62,38 @@ const Profile = () => {
         <View style={styles.header}>
           <Text style={styles.title}>Profile</Text>
           <View style={styles.headerActions}>
-            <MaterialIcons
-              name="food-bank"
-              size={36}
-              color="orange"
-              style={styles.iconSpacing}
-              onPress={navigateToCustomer}
-            />
-            <MaterialIcons
-              name="logout"
-              size={30}
-              color="#E10000"
-              onPress={handleLogout}
-            />
+            <Menu
+              visible={visible}
+              onDismiss={handleMenuVisibility}
+              anchor={
+                <MaterialIcons
+                  name="more-vert"
+                  size={30}
+                  color="black"
+                  onPress={handleMenuVisibility}
+                />
+              }
+            >
+              <Menu.Item onPress={navigateToCustomer} title="Switch to Customer" />
+              <Menu.Item onPress={viewFeedbacks} title="View Customer Feedbacks" />
+              <View style={styles.menuDivider} />
+              <Menu.Item onPress={handleLogout} title="Logout" />
+            </Menu>
           </View>
         </View>
+
         <View className="items-center" style={styles.profileImageContainer}>
           <Image
             source={
               profileImage
                 ? { uri: profileImage }
-                 : require('../../assets/images/defaultProfile.png') // Use a placeholder URL
+                : require('../../assets/images/defaultProfile.png')
             }
             style={styles.profileImage}
-            />
+          />
           <Text className="mt-4" style={styles.infoText}>{username}</Text>
         </View>
+
         <View style={styles.infoContainer}>
           <Text style={styles.label}>Email</Text>
           <Text style={styles.infoText}>{email}</Text>
@@ -88,11 +118,22 @@ const Profile = () => {
             source={
               restaurantImage
                 ? { uri: restaurantImage }
-                 : { uri: "https://via.placeholder.com/150" } // Use a placeholder URL
+                : { uri: "https://via.placeholder.com/150" }
+            }
+            style={styles.restaurantImage}
+          />
+
+          <Text style={styles.label}>Payment QR Image</Text>
+          <Image
+            source={
+              paymentImage
+                ? { uri: paymentImage }
+                : { uri: "https://via.placeholder.com/150" }
             }
             style={styles.restaurantImage}
           />
         </View>
+
         <TouchableOpacity
           style={styles.editButton}
           onPress={() => router.push("../components/EditVendor")}
@@ -100,6 +141,7 @@ const Profile = () => {
           <Text style={styles.editText}>Edit</Text>
         </TouchableOpacity>
       </ScrollView>
+      </PaperProvider> 
     </SafeAreaView>
   );
 };
@@ -176,5 +218,10 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     marginTop: 10,
     resizeMode: "cover",
+  },
+  menuDivider: {
+    height: 1,
+    backgroundColor: '#ddd',
+    marginVertical: 5,
   },
 });

@@ -1,4 +1,4 @@
-import { View, FlatList, ActivityIndicator } from 'react-native';
+import { View, FlatList } from 'react-native';
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'expo-router';
 import { FIREBASE_DB } from "@/FirebaseConfig";  // Import Firestore configuration
@@ -12,7 +12,7 @@ export default function ChatList({ users, currentUser }) {
   const filteredUsers = users.filter(user => user.restaurantName);
 
   return (
-    <View className="flex-1">
+    <View style={{ flex: 1 }}>
       <FlatList
         data={filteredUsers}
         contentContainerStyle={{ flex: 1, paddingVertical: 25 }}

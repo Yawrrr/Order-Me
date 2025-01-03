@@ -57,14 +57,15 @@ const Home = () => {
                 />
               </TouchableOpacity>
             </View>
+            <TouchableOpacity onPress={() => router.push("/components/search")}>
             <View style={styles.searchWrapper}>
+          
               <View style={styles.searchContainer}>
                 <TextInput
                   placeholder="Search..."
-                  value={searchQuery}
-                  onChangeText={setSearchQuery}
+                 editable={false}
                   style={styles.searchInput}
-                  onSubmitEditing={handleSearchNavigate}
+                 
                 />
                 <TouchableOpacity onPress={handleSearchNavigate}>
                   <Ionicons
@@ -75,7 +76,9 @@ const Home = () => {
                   />
                 </TouchableOpacity>
               </View>
+         
             </View>
+            </TouchableOpacity>
             <CategoryButtons onCategoryChanged={onCatChanged} />
             <RestaurantListing listings={restaurantData} category={category} />
             <GroupListings listings={groupData} />
@@ -132,6 +135,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     marginTop: 15,
+   
   },
   searchContainer: {
     flexDirection: "row",
@@ -141,6 +145,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     paddingVertical: 8,
     maxWidth: "100%",
+    width:500
   },
   searchIcon: {
     marginRight: 8,

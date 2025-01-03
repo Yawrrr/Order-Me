@@ -21,6 +21,7 @@ export interface User {
   restaurantName: string;
   category: string;
   restaurantImage: string;
+  paymentImage: string;
   restaurantAddress: string
 }
 
