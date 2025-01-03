@@ -124,6 +124,10 @@ const MainLayout = () => {
         name="components/Addresses"
         options={{ headerShown: false }}
       />
+      <Stack.Screen
+        name="components/OrderDetails"
+        options={{ headerShown: false }}
+      />
        <Stack.Screen
         name="components/OrderHistory"
         options={{ headerShown: false }}

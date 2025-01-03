@@ -7,10 +7,16 @@ import {
   TouchableOpacity,
   Alert,
   Image,
-  SafeAreaView,
 } from "react-native";
 import { FIREBASE_AUTH, FIREBASE_DB } from "../../FirebaseConfig";
-import { collection, query, where, getDocs, addDoc, deleteDoc } from "firebase/firestore";
+import {
+  collection,
+  query,
+  where,
+  getDocs,
+  addDoc,
+  deleteDoc,
+} from "firebase/firestore";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useAuth } from "@/context/AuthContext";
 import * as ImagePicker from "expo-image-picker";
@@ -18,12 +24,15 @@ import * as ImageManipulator from "expo-image-manipulator";
 import * as FileSystem from "expo-file-system";
 
 type CartItem = {
+  restaurantName: string;
+  restaurantEmail: string; // Add this
   id: string;
-  imageUrl: string;
   name: string;
   quantity: number;
+  imageUrl: string;
   price: number;
   totalPrice: number;
+  username: string;
 };
 
 export default function Checkout() {
@@ -33,6 +42,10 @@ export default function Checkout() {
   const { user } = useAuth();
   const [selectedAddress, setSelectedAddress] = useState<string>("No Address Found");
   const [receiptImage, setReceiptImage] = useState<string | null>(null);
+  const [restaurantName, setRestaurantName] = useState<string>("");
+  const [restaurantEmail, setRestaurantEmail] = useState<string>("");
+  const [username, setUsername] = useState<string>("");
+  const [remark, setRemark] = useState<string>("");
 
   const auth = FIREBASE_AUTH;
   const router = useRouter();
@@ -48,10 +61,21 @@ export default function Checkout() {
     }
   }, [user]);
 
+  const fetchRestaurantName = async () => {
+    const restaurantRef = collection(FIREBASE_DB, "restaurants");
+    const restaurantQuery = query(
+      restaurantRef,
+      where("restaurantName", "==", restaurantName)
+    );
+    const restaurantSnapshot = await getDocs(restaurantQuery);
+    // console.log(restaurantSnapshot.docs[0].data());
+    setRestaurantEmail(restaurantSnapshot.docs[0].data().owner);
+  };
   useEffect(() => {
     if (params.selectedAddress) {
       setSelectedAddress(params.selectedAddress as string);
     }
+    fetchRestaurantName();
   }, [params]);
 
   const fetchCartData = async () => {
@@ -62,12 +86,15 @@ export default function Checkout() {
       const cartRef = collection(FIREBASE_DB, "carts");
       const cartQuery = query(cartRef, where("email", "==", userEmail));
       const snapshot = await getDocs(cartQuery);
-
+      const ordersRef = collection(FIREBASE_DB, "orders");
+      
       const cartItems: CartItem[] = snapshot.docs.map((doc) => ({
         id: doc.id,
         ...(doc.data() as Omit<CartItem, "id">),
       }));
 
+      setRestaurantName(cartItems[0].restaurantName);
+      setUsername(cartItems[0].username);
       setCartItems(cartItems);
 
       const total = cartItems.reduce((sum, item) => sum + (item.totalPrice || 0), 0);
@@ -87,14 +114,19 @@ export default function Checkout() {
     setLoading(true);
     try {
       const ordersRef = collection(FIREBASE_DB, "orders");
+      // setRestaurantEmail(restaurantSnapshot.docs[0].data().email);
       await addDoc(ordersRef, {
-        email: userEmail,
+        email: restaurantEmail,
+        restaurantName: restaurantName,
+        user: userEmail,
         items: cartItems,
         totalPrice,
         address: selectedAddress,
         receiptImage,
         timestamp: new Date(),
         status: "Pending",
+        username: username,
+        remark: remark,
       });
 
       await clearCartItems();
@@ -125,39 +157,46 @@ export default function Checkout() {
   };
 
   const pickImage = async (setImage: React.Dispatch<React.SetStateAction<string | null>>) => {
-    try {
-      const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
-      if (!permissionResult.granted) {
-        Alert.alert("Permission Denied", "You need to allow access to your photos.");
-        return;
-      }
-
-      const result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ImagePicker.MediaTypeOptions.Images,
-        allowsEditing: true,
-        quality: 1,
-      });
-
-      if (!result.canceled && result.assets?.length > 0) {
-        const uri = result.assets[0].uri;
-        const resizedImage = await ImageManipulator.manipulateAsync(
-          uri,
-          [{ resize: { width: 600 } }],
-          { compress: 0.7, format: ImageManipulator.SaveFormat.JPEG }
-        );
-        const base64 = await FileSystem.readAsStringAsync(resizedImage.uri, {
-          encoding: FileSystem.EncodingType.Base64,
+      try {
+        // Request permission for media library
+        const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
+        if (!permissionResult.granted) {
+          Alert.alert("Permission Denied", "You need to allow access to your photos.");
+          return;
+        }
+  
+        // Launch image picker to select a photo
+        const result = await ImagePicker.launchImageLibraryAsync({
+          mediaTypes: ImagePicker.MediaTypeOptions.Images,
+          allowsEditing: true,
+          quality: 1,
         });
-        setImage(`data:image/jpeg;base64,${base64}`);
-      } else {
-        Alert.alert("Selection Cancelled", "No image was selected.");
+  
+        if (!result.canceled && result.assets && result.assets.length > 0) {
+          const uri = result.assets[0].uri;
+  
+          // Resize the image
+          const resizedImage = await ImageManipulator.manipulateAsync(
+            uri,
+            [{ resize: { width: 600 } }],
+            { compress: 0.7, format: ImageManipulator.SaveFormat.JPEG }
+          );
+  
+          // Convert resized image to Base64
+          const base64 = await FileSystem.readAsStringAsync(resizedImage.uri, {
+            encoding: FileSystem.EncodingType.Base64,
+          });
+  
+          // Set the image as Base64 encoded string
+          setImage(`data:image/jpeg;base64,${base64}`);
+        } else {
+          Alert.alert("Selection Cancelled", "No image was selected.");
+        }
+      } catch (error) {
+        console.error("Error picking image: ", error);
+        Alert.alert("Error", "Failed to pick an image.");
       }
-    } catch (error) {
-      console.error("Error picking image: ", error);
-      Alert.alert("Error", "Failed to pick an image.");
-    }
-  };
-
+    };
   useEffect(() => {
     if (auth.currentUser) {
       fetchCartData();
@@ -166,53 +205,81 @@ export default function Checkout() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <ScrollView contentContainerStyle={styles.scrollViewContent} showsVerticalScrollIndicator={false}>
-        <View style={styles.header}>
-          <Text style={styles.title}>Checkout</Text>
-        </View>
-        <View style={styles.addressContainer}>
-          <Text style={styles.addressTitle}>Delivery Address</Text>
-          <View style={styles.addressWrapper}>
-            <View style={styles.selectedAddressContainer}>
-              <Text style={styles.selectedAddress} numberOfLines={1}>{selectedAddress}</Text>
-            </View>
-            <TouchableOpacity
-              style={styles.newAddressButton}
-              onPress={() =>
-                router.push({
-                  pathname: "../components/ChangeAddress",
-                  params: { currentAddress: selectedAddress },
-                })
-              }
+      <ScrollView contentContainerStyle={{ flexGrow: 1 }}></ScrollView>
+      <View style={styles.header}>
+        <Text style={styles.title}>Checkout</Text>
+      </View>
+
+      {/* Display selected address */}
+      <View style={styles.addressContainer}>
+        <Text style={styles.addressTitle}>Delivery Address</Text>
+        <View style={styles.addressWrapper}>
+          <View style={styles.selectedAddressContainer}>
+            <Text
+              style={styles.selectedAddress}
+              numberOfLines={1}
+              ellipsizeMode="tail"
             >
-              <Text style={styles.newAddressText}>Change Address</Text>
-            </TouchableOpacity>
+              {selectedAddress}
+            </Text>
           </View>
-        </View>
-
-        <View>
-          {cartItems.map((item) => (
-            <View style={styles.item} key={item.id}>
-              <Image source={{ uri: item.imageUrl || "https://via.placeholder.com/150" }} style={styles.itemImage} />
-              <View style={styles.itemDetails}>
-                <Text style={styles.itemName}>{item.name}</Text>
-                <Text style={styles.itemQuantity}>Qty: {item.quantity}</Text>
-                <Text style={styles.itemPrice}>RM {item.totalPrice.toFixed(2)}</Text>
-              </View>
-            </View>
-          ))}
-        </View>
-
-        <View style={styles.qrCodeContainer}>
-          <Text style={styles.qrCodeTitle}>Pay via QR Code</Text>
-          <Image source={{ uri: user?.paymentImage || "https://via.placeholder.com/150" }} style={styles.qrCodeImage} />
-          <Text style={styles.receiptTitle}>Upload Payment Receipt</Text>
-          {receiptImage && <Image source={{ uri: receiptImage }} style={styles.receiptImage} />}
-          <TouchableOpacity style={styles.uploadButton} onPress={() => pickImage(setReceiptImage)}>
-            <Text style={styles.uploadButtonText}>Upload Receipt</Text>
+          <TouchableOpacity
+            style={styles.newAddressButton}
+            onPress={() => router.push({
+              pathname: "../components/ChangeAddress",
+              params: {
+                currentAddress: selectedAddress,
+              },
+            })}
+          >
+            <Text style={styles.newAddressText}>Change Address</Text>
           </TouchableOpacity>
         </View>
-      </ScrollView>
+      </View>
+
+      <FlatList
+        data={cartItems}
+        keyExtractor={(item) => item.id}
+        renderItem={({ item }) => (
+          <View style={styles.item}>
+            <Image
+              source={
+                item.imageUrl
+                  ? { uri: item.imageUrl }
+                  : { uri: "https://via.placeholder.com/150" }
+              }
+              style={styles.itemImage}
+            />
+            <View style={styles.itemDetails}>
+              <Text style={styles.itemName}>{item.name}</Text>
+              <Text style={styles.itemQuantity}>Qty: {item.quantity}</Text>
+              <Text style={styles.itemPrice}>
+                RM {item.totalPrice.toFixed(2)}
+              </Text>
+            </View>
+          </View>
+        )}
+      />
+
+      {/* QR Code Payment Section */}
+      <View style={styles.qrCodeContainer}>
+        <Text style={styles.qrCodeTitle}>Pay via QR Code</Text>
+        <Image
+          source={
+            user?.paymentImage
+              ? { uri: user.paymentImage }
+              : { uri: "https://via.placeholder.com/150" }
+          }
+          style={styles.qrCodeImage}
+        />
+        <Text style={styles.receiptTitle}>Upload Payment Receipt</Text>
+        {receiptImage && (
+          <Image source={{ uri: receiptImage }} style={styles.receiptImage} />
+        )}
+        <TouchableOpacity style={styles.uploadButton} onPress={() => pickImage(setReceiptImage)}>
+          <Text style={styles.uploadButtonText}>Upload Receipt</Text>
+        </TouchableOpacity>
+      </View>
 
       <View style={styles.footer}>
         <Text style={styles.totalPrice}>Total: RM {totalPrice.toFixed(2)}</Text>
@@ -221,26 +288,130 @@ export default function Checkout() {
           onPress={confirmOrder}
           disabled={loading}
         >
-          <Text style={styles.confirmButtonText}>{loading ? "Processing..." : "Confirm Order"}</Text>
+          <Text style={styles.confirmButtonText}>
+            {loading ? "Processing..." : "Confirm Order"}
+          </Text>
         </TouchableOpacity>
       </View>
+      
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#fff" },
-  scrollViewContent: { flexGrow: 1, paddingBottom: 20 },
-  header: { marginBottom: 10 },
-  title: { fontSize: 30, fontWeight: "bold", color: "orange" },
-  addressContainer: { marginBottom: 15, padding: 10, backgroundColor: "#f9f9f9", borderRadius: 8 },
-  footer: { padding: 20, backgroundColor: "#f9f9f9", borderTopWidth: 1, borderTopColor: "#ddd" },
-  totalPrice: { fontSize: 18, fontWeight: "bold", marginBottom: 10 },
-  confirmButton: { backgroundColor: "#FF6F61", padding: 12, borderRadius: 8, alignItems: "center" },
-  confirmButtonText: { color: "#fff", fontSize: 18, fontWeight: "bold" },
-  itemImage: { width: 80, height: 80, borderRadius: 8, marginRight: 10 },
-  itemDetails: { flex: 1 },
-  qrCodeContainer: { alignItems: "center", marginVertical: 20 },
+  container: {
+    flex: 1,
+    padding: 20,
+    backgroundColor: "#fff",
+  },
+  header: {
+    alignItems: "flex-start",
+    justifyContent: "center",
+    marginBottom: 10,
+  },
+  title: {
+    fontFamily: "Poppins-Bold",
+    fontSize: 30,
+    color: "orange",
+    marginBottom: 5,
+  },
+  addressContainer: {
+    marginBottom: 15,
+    padding: 10,
+    backgroundColor: "#f9f9f9",
+    borderRadius: 8,
+  },
+  addressTitle: {
+    fontSize: 18,
+    fontWeight: "bold",
+    color: "#333",
+  },
+  selectedAddress: {
+    fontSize: 16,
+    color: "#555",
+  },
+  item: {
+    flexDirection: "row",
+    paddingVertical: 10,
+    paddingHorizontal: 15,
+    marginVertical: 5,
+    backgroundColor: "#f9f9f9",
+    borderRadius: 8,
+    alignItems: "center",
+  },
+  itemName: {
+    fontSize: 16,
+    fontWeight: "500",
+  },
+  itemQuantity: {
+    fontSize: 14,
+    color: "#555",
+  },
+  itemPrice: {
+    fontSize: 16,
+    fontWeight: "bold",
+  },
+  footer: {
+    padding: 20,
+    backgroundColor: "#f9f9f9",
+    borderTopWidth: 1,
+    borderTopColor: "#ddd",
+    alignItems: "center",
+  },
+  totalPrice: {
+    fontSize: 18,
+    fontWeight: "bold",
+    color: "#333",
+    marginBottom: 20,
+  },
+  confirmButton: {
+    backgroundColor: "#FF6F61",
+    paddingVertical: 12,
+    borderRadius: 8,
+    width: "100%",
+    alignItems: "center",
+  },
+  confirmButtonText: {
+    fontSize: 18,
+    color: "#fff",
+    fontWeight: "600",
+  },
+  itemImage: {
+    width: 80,
+    height: 80,
+    borderRadius: 8,
+    marginRight: 10,
+  },
+  itemDetails: {
+    flex: 1,
+    justifyContent: "space-between",
+  },
+  addressWrapper: {
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
+    width: "100%",
+  },
+  newAddressButton: {
+    paddingVertical: 5,
+    paddingHorizontal: 10,
+    backgroundColor: "orange",
+    borderRadius: 8,
+  },
+  selectedAddressContainer: {
+    flex: 1, // Allow this container to take up remaining space
+    marginRight: 10, // Add spacing between the text and the button
+    flexShrink: 1, // Prevent overflow by shrinking if needed
+  },
+  newAddressText: {
+    fontSize: 16,
+    color: "#fff",
+    fontWeight: "500",
+  },
+  qrCodeContainer: {
+    marginVertical: 20,
+    alignItems: "center",
+  },
   qrCodeTitle: {
     fontSize: 16,
     fontWeight: "bold",
@@ -278,58 +449,4 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     color: "#fff",
   },
-  item: {
-    flexDirection: "row",
-    paddingVertical: 10,
-    paddingHorizontal: 15,
-    marginVertical: 5,
-    backgroundColor: "#f9f9f9",
-    borderRadius: 8,
-    alignItems: "center",
-  },
-  itemName: {
-    fontSize: 16,
-    fontWeight: "500",
-  },
-  itemQuantity: {
-    fontSize: 14,
-    color: "#555",
-  },
-  itemPrice: {
-    fontSize: 16,
-    fontWeight: "bold",
-  },
-  newAddressButton: {
-    paddingVertical: 5,
-    paddingHorizontal: 10,
-    backgroundColor: "orange",
-    borderRadius: 8,
-  },
-  selectedAddressContainer: {
-    flex: 1, // Allow this container to take up remaining space
-    marginRight: 10, // Add spacing between the text and the button
-    flexShrink: 1, // Prevent overflow by shrinking if needed
-  },
-  newAddressText: {
-    fontSize: 16,
-    color: "#fff",
-    fontWeight: "500",
-  },
-  addressWrapper: {
-    flexDirection: "row",
-    justifyContent: "center",
-    alignItems: "center",
-    width: "100%",
-  }, 
-
-  addressTitle: {
-    fontSize: 18,
-    fontWeight: "bold",
-    color: "#333",
-  },
-  selectedAddress: {
-    fontSize: 16,
-    color: "#555",
-  },
 });
-
