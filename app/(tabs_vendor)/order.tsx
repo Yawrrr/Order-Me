@@ -14,7 +14,7 @@ import {
   TextInput,
   TouchableWithoutFeedback,
 } from "react-native-gesture-handler";
-import { getDocs, query, where } from "firebase/firestore";
+import { onSnapshot, getDocs, query, where, doc, updateDoc } from "firebase/firestore";
 import { ordersRef } from "@/FirebaseConfig";
 import { router } from "expo-router";
 import { Picker } from "@react-native-picker/picker";
@@ -36,6 +36,7 @@ export interface OrderItem {
   orderStatus: string;
   address: string;
   remark: string;
+  proveImg:string;
 }
 
 interface Order {
@@ -60,53 +61,47 @@ const Order = () => {
   const [selectedMealType, setSelectedMealType] = useState<string>("All");
 
   useEffect(() => {
-    // Fetch orders from the database
-    fetchOrders();
-    // console.log(orders);
-  }, []);
+    // Real-time updates with onSnapshot
+    const ordersQuery = query(ordersRef, where("email", "==", vendorEmail));
 
-  const fetchOrders = async () => {
-    const orderDocs = await getDocs(
-      query(ordersRef, where("email", "==", vendorEmail))
-    );
+    const unsubscribe = onSnapshot(ordersQuery, (querySnapshot) => {
+      const updatedOrders: Order[] = [];
+      const updatedItems: OrderItem[] = [];
 
-    const orders: Order[] = orderDocs.docs.map((doc) => {
-      const data = doc.data();
-      // console.log(data.items);
-      return {
-        id: doc.id,
-        address: data.address,
-        email: data.user,
-        status: data.status,
-        items: data.items,
-        timestamp: data.timestamp,
-        totalPrice: data.totalPrice,
-        remark: data.remark,
-      };
+      querySnapshot.forEach((doc) => {
+        const data = doc.data();
+        updatedOrders.push({
+          id: doc.id,
+          address: data.address,
+          email: data.user,
+          status: data.status,
+          items: data.items,
+          timestamp: data.timestamp,
+          totalPrice: data.totalPrice,
+          remark: data.remark,
+        });
+
+        data.items.forEach((item: any) => {
+          updatedItems.push({
+            ...item,
+            orderId: doc.id,
+            orderTimestamp: data.timestamp,
+            customerEmail: data.user,
+            orderStatus: data.status,
+            address: data.address,
+            remark: data.remark,
+          });
+        });
+      });
+
+      setOrders(updatedOrders);
+      setOrderItems(updatedItems);
+      setFilteredOrders(updatedItems); // Make sure to update the filtered orders too
     });
 
-    setOrders(orders);
-
-    // Map each order's items to separate array elements
-    const allItems: OrderItem[] = [];
-    orders.forEach((order) => {
-      const itemsWithOrderInfo = order.items.map((item) => ({
-        ...item,
-        orderId: order.id,
-        orderTimestamp: order.timestamp,
-        customerEmail: order.email,
-        orderStatus: order.status,
-        address: order.address,
-        remark: order.remark,
-      }));
-      allItems.push(...itemsWithOrderInfo);
-    });
-
-    // console.log(allItems);
-    setOrderItems(allItems);
-    setFilteredOrders(allItems);
-    // console.log(orderItems);
-  };
+    // Cleanup the listener on component unmount
+    return () => unsubscribe();
+  }, [vendorEmail]);
 
   const handleSearch = (text: string) => {
     if (text.trim() === "") {
@@ -148,6 +143,44 @@ const Order = () => {
 
     setFilteredOrders(filtered);
   };
+  const [isUpdating, setIsUpdating] = useState(false);
+
+  // Inside your `handleStatusUpdate` function, consider adding the Cancelled status if you plan to update it from another part of the app.
+const handleStatusUpdate = async (orderId: string, currentStatus: string) => {
+  if (currentStatus === "Cancelled") return; // Prevent updating a cancelled order
+
+  setIsUpdating(true); // Prevent multiple clicks
+  try {
+    const orderDocRef = doc(ordersRef, orderId); // Reference to the specific order
+    let newStatus = "";
+
+    if (currentStatus === "Pending") {
+      newStatus = "Preparing";
+    } else if (currentStatus === "Preparing") {
+      newStatus = "Out of delivery";
+    }
+
+    await updateDoc(orderDocRef, { status: newStatus }); // Update Firestore
+
+    // Update local state for real-time UI feedback
+    setOrderItems((prevItems) =>
+      prevItems.map((item) =>
+        item.orderId === orderId ? { ...item, orderStatus: newStatus } : item
+      )
+    );
+    setFilteredOrders((prevFiltered) =>
+      prevFiltered.map((item) =>
+        item.orderId === orderId ? { ...item, orderStatus: newStatus } : item
+      )
+    );
+  } catch (error) {
+    console.error("Failed to update status:", error);
+  } finally {
+    setIsUpdating(false); // Allow further interactions
+  }
+};
+
+
 
   return (
     <GestureHandlerRootView style={styles.outerContainer}>
@@ -229,18 +262,32 @@ const Order = () => {
                   >
                     <View style={styles.cardHeader}>
                       <Text style={styles.username}>{order.username}</Text>
-                      <Text
-                        style={[
-                          styles.statusBadge,
-                          order.orderStatus === "Preparing"
-                            ? styles.preparingStatus
-                            : order.orderStatus === "Out of delivery"
-                            ? styles.outForDeliveryStatus
-                            : styles.deliveredStatus,
-                        ]}
+                      <TouchableOpacity
+                        onPress={() =>
+                          (order.orderStatus === "Pending" || order.orderStatus === "Preparing") &&
+                          !isUpdating
+                            ? handleStatusUpdate(order.orderId, order.orderStatus)
+                            : null
+                        }
                       >
-                        {order.orderStatus}
-                      </Text>
+                        <Text
+                          style={[
+                            styles.statusBadge,
+                            order.orderStatus === "Cancelled"
+                              ? styles.cancelStatus
+                              : order.orderStatus === "Pending"
+                              ? styles.pendingStatus
+                              : order.orderStatus === "Preparing"
+                              ? styles.preparingStatus
+                              : order.orderStatus === "Out of delivery"
+                              ? styles.outForDeliveryStatus
+                              : styles.deliveredStatus,
+                          ]}
+                        >
+                          {order.orderStatus}
+                        </Text>
+                      </TouchableOpacity>
+
                     </View>
                     <Text style={styles.address}>{order.address}</Text>
                     <Text style={styles.itemName}>{order.name}</Text>
@@ -323,15 +370,23 @@ const styles = StyleSheet.create({
     textAlign: "center",
     fontWeight: "bold",
   },
-  preparingStatus: {
+  cancelStatus: { 
+    backgroundColor: "#FFE2E2", 
+    color: "#E14949" 
+  },
+  pendingStatus: { 
+    backgroundColor: "#FFE0F1", 
+    color: "#DA1C92" 
+  },
+  preparingStatus: { //purple
     backgroundColor: "#EAE1FB",
     color: "#8A2BE2",
   },
-  outForDeliveryStatus: {
+  outForDeliveryStatus: { //blue
     backgroundColor: "#E3F2FD",
     color: "#2196F3",
   },
-  deliveredStatus: {
+  deliveredStatus: { //green
     backgroundColor: "#E8F5E9",
     color: "#4CAF50",
   },
