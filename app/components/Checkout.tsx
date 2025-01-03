@@ -10,7 +10,14 @@ import {
   SafeAreaView,
 } from "react-native";
 import { FIREBASE_AUTH, FIREBASE_DB } from "../../FirebaseConfig";
-import { collection, query, where, getDocs, addDoc, deleteDoc } from "firebase/firestore";
+import {
+  collection,
+  query,
+  where,
+  getDocs,
+  addDoc,
+  deleteDoc,
+} from "firebase/firestore";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useAuth } from "@/context/AuthContext";
 import * as ImagePicker from "expo-image-picker";
@@ -31,7 +38,8 @@ export default function Checkout() {
   const [totalPrice, setTotalPrice] = useState(0);
   const [loading, setLoading] = useState(false);
   const { user } = useAuth();
-  const [selectedAddress, setSelectedAddress] = useState<string>("No Address Found");
+  const [selectedAddress, setSelectedAddress] =
+    useState<string>("No Address Found");
   const [receiptImage, setReceiptImage] = useState<string | null>(null);
 
   const auth = FIREBASE_AUTH;
@@ -40,7 +48,9 @@ export default function Checkout() {
 
   useEffect(() => {
     if (user?.addresses) {
-      const primary = user.addresses.find((addr) => addr.primary)?.address || "No Address Found";
+      const primary =
+        user.addresses.find((addr) => addr.primary)?.address ||
+        "No Address Found";
       setSelectedAddress(primary);
     }
     if (user?.paymentImage) {
@@ -70,7 +80,10 @@ export default function Checkout() {
 
       setCartItems(cartItems);
 
-      const total = cartItems.reduce((sum, item) => sum + (item.totalPrice || 0), 0);
+      const total = cartItems.reduce(
+        (sum, item) => sum + (item.totalPrice || 0),
+        0
+      );
       setTotalPrice(total);
     } catch (error) {
       console.error("Error fetching cart data: ", error);
@@ -124,11 +137,17 @@ export default function Checkout() {
     }
   };
 
-  const pickImage = async (setImage: React.Dispatch<React.SetStateAction<string | null>>) => {
+  const pickImage = async (
+    setImage: React.Dispatch<React.SetStateAction<string | null>>
+  ) => {
     try {
-      const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      const permissionResult =
+        await ImagePicker.requestMediaLibraryPermissionsAsync();
       if (!permissionResult.granted) {
-        Alert.alert("Permission Denied", "You need to allow access to your photos.");
+        Alert.alert(
+          "Permission Denied",
+          "You need to allow access to your photos."
+        );
         return;
       }
 
@@ -166,7 +185,11 @@ export default function Checkout() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <ScrollView contentContainerStyle={styles.scrollViewContent} showsVerticalScrollIndicator={false}>
+      <ScrollView
+        className="p-5"
+        contentContainerStyle={styles.scrollViewContent}
+        showsVerticalScrollIndicator={false}
+      >
         <View style={styles.header}>
           <Text style={styles.title}>Checkout</Text>
         </View>
@@ -174,7 +197,9 @@ export default function Checkout() {
           <Text style={styles.addressTitle}>Delivery Address</Text>
           <View style={styles.addressWrapper}>
             <View style={styles.selectedAddressContainer}>
-              <Text style={styles.selectedAddress} numberOfLines={1}>{selectedAddress}</Text>
+              <Text style={styles.selectedAddress} numberOfLines={1}>
+                {selectedAddress}
+              </Text>
             </View>
             <TouchableOpacity
               style={styles.newAddressButton}
@@ -193,11 +218,18 @@ export default function Checkout() {
         <View>
           {cartItems.map((item) => (
             <View style={styles.item} key={item.id}>
-              <Image source={{ uri: item.imageUrl || "https://via.placeholder.com/150" }} style={styles.itemImage} />
+              <Image
+                source={{
+                  uri: item.imageUrl || "https://via.placeholder.com/150",
+                }}
+                style={styles.itemImage}
+              />
               <View style={styles.itemDetails}>
                 <Text style={styles.itemName}>{item.name}</Text>
                 <Text style={styles.itemQuantity}>Qty: {item.quantity}</Text>
-                <Text style={styles.itemPrice}>RM {item.totalPrice.toFixed(2)}</Text>
+                <Text style={styles.itemPrice}>
+                  RM {item.totalPrice.toFixed(2)}
+                </Text>
               </View>
             </View>
           ))}
@@ -205,10 +237,20 @@ export default function Checkout() {
 
         <View style={styles.qrCodeContainer}>
           <Text style={styles.qrCodeTitle}>Pay via QR Code</Text>
-          <Image source={{ uri: user?.paymentImage || "https://via.placeholder.com/150" }} style={styles.qrCodeImage} />
+          <Image
+            source={{
+              uri: user?.paymentImage || "https://via.placeholder.com/150",
+            }}
+            style={styles.qrCodeImage}
+          />
           <Text style={styles.receiptTitle}>Upload Payment Receipt</Text>
-          {receiptImage && <Image source={{ uri: receiptImage }} style={styles.receiptImage} />}
-          <TouchableOpacity style={styles.uploadButton} onPress={() => pickImage(setReceiptImage)}>
+          {receiptImage && (
+            <Image source={{ uri: receiptImage }} style={styles.receiptImage} />
+          )}
+          <TouchableOpacity
+            style={styles.uploadButton}
+            onPress={() => pickImage(setReceiptImage)}
+          >
             <Text style={styles.uploadButtonText}>Upload Receipt</Text>
           </TouchableOpacity>
         </View>
@@ -221,7 +263,9 @@ export default function Checkout() {
           onPress={confirmOrder}
           disabled={loading}
         >
-          <Text style={styles.confirmButtonText}>{loading ? "Processing..." : "Confirm Order"}</Text>
+          <Text style={styles.confirmButtonText}>
+            {loading ? "Processing..." : "Confirm Order"}
+          </Text>
         </TouchableOpacity>
       </View>
     </SafeAreaView>
@@ -233,10 +277,25 @@ const styles = StyleSheet.create({
   scrollViewContent: { flexGrow: 1, paddingBottom: 20 },
   header: { marginBottom: 10 },
   title: { fontSize: 30, fontWeight: "bold", color: "orange" },
-  addressContainer: { marginBottom: 15, padding: 10, backgroundColor: "#f9f9f9", borderRadius: 8 },
-  footer: { padding: 20, backgroundColor: "#f9f9f9", borderTopWidth: 1, borderTopColor: "#ddd" },
+  addressContainer: {
+    marginBottom: 15,
+    padding: 10,
+    backgroundColor: "#f9f9f9",
+    borderRadius: 8,
+  },
+  footer: {
+    padding: 20,
+    backgroundColor: "#f9f9f9",
+    borderTopWidth: 1,
+    borderTopColor: "#ddd",
+  },
   totalPrice: { fontSize: 18, fontWeight: "bold", marginBottom: 10 },
-  confirmButton: { backgroundColor: "#FF6F61", padding: 12, borderRadius: 8, alignItems: "center" },
+  confirmButton: {
+    backgroundColor: "#FF6F61",
+    padding: 12,
+    borderRadius: 8,
+    alignItems: "center",
+  },
   confirmButtonText: { color: "#fff", fontSize: 18, fontWeight: "bold" },
   itemImage: { width: 80, height: 80, borderRadius: 8, marginRight: 10 },
   itemDetails: { flex: 1 },
@@ -320,7 +379,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     width: "100%",
-  }, 
+  },
 
   addressTitle: {
     fontSize: 18,
@@ -332,4 +391,3 @@ const styles = StyleSheet.create({
     color: "#555",
   },
 });
-
