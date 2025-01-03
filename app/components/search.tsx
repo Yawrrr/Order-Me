@@ -121,6 +121,10 @@ const SearchScreen = () => {
           <MaterialIcons name="search-off" size={40} color="gray" />
           <Text style={styles.noResultText}>No restaurants found.</Text>
         </View>
+          {/* Add an icon and text */}
+          <MaterialIcons name="search-off" size={40} color="gray" />
+          <Text style={styles.noResultText}>No restaurants found.</Text>
+        </View>
         )
       )}
     </View>
@@ -158,6 +162,11 @@ const styles = StyleSheet.create({
     alignItems: "center", 
     justifyContent: "center", 
     marginTop: 20,
+  },
+  noResultText: {
+    fontSize: 18,
+    color: "gray",
+    marginTop: 10, 
   },
   noResultText: {
     fontSize: 18,
