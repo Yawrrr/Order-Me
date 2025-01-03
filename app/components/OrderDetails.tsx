@@ -1,9 +1,11 @@
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { router, useLocalSearchParams } from "expo-router";
 import Ionicons from "@expo/vector-icons/Ionicons";
+import { doc, getDoc } from "firebase/firestore";
+import { ordersRef } from "@/FirebaseConfig";
 
 const OrderDetails = () => {
   const params = useLocalSearchParams();
@@ -12,13 +14,32 @@ const OrderDetails = () => {
       ? JSON.parse(params.orderItem)
       : null;
 
+  const [orderStatus, setOrderStatus] = useState<string>("");
+
+  const fetchOrderStatus = async () => {
+    if (!orderItem?.orderId) return;
+
+    try {
+      const orderDocRef = doc(ordersRef, orderItem.orderId);
+      const orderDoc = await getDoc(orderDocRef);
+
+      if (orderDoc.exists()) {
+        const data = orderDoc.data();
+        setOrderStatus(data.status || "Pending");
+      }
+    } catch (error) {
+      console.error("Error fetching order status:", error);
+    }
+  };
+
   const goBack = () => {
     router.back();
   };
 
   useEffect(() => {
-    console.log("Order Item:", orderItem);
+    fetchOrderStatus();
   }, []);
+
   return (
     <GestureHandlerRootView>
       <SafeAreaView style={styles.container}>
@@ -42,36 +63,91 @@ const OrderDetails = () => {
 
             <View style={styles.statusContainer}>
               <Text style={styles.statusTitle}>Status:</Text>
-              <Text
-                style={[
-                  styles.status,
-                  orderItem.orderStatus === "Preparing Food"
-                    ? styles.statusActive
-                    : {},
-                ]}
-              >
-                Preparing Food
-              </Text>
-              <Text
-                style={[
-                  styles.status,
-                  orderItem.orderStatus === "Out of Delivery"
-                    ? styles.statusActive
-                    : {},
-                ]}
-              >
-                Out of delivery
-              </Text>
-              <Text
-                style={[
-                  styles.status,
-                  orderItem.orderStatus === "Delivered"
-                    ? styles.statusActive
-                    : {},
-                ]}
-              >
-                Delivered
-              </Text>
+
+              {/* Preparing Food */}
+              <View style={styles.statusRow}>
+                <Ionicons
+                  name={
+                    orderStatus === "Preparing" ||
+                    orderStatus === "Out of delivery" ||
+                    orderStatus === "Delivered"
+                      ? "checkmark-circle"
+                      : "ellipse-outline"
+                  }
+                  size={18}
+                  color={
+                    orderStatus === "Preparing" ||
+                    orderStatus === "Out of delivery" ||
+                    orderStatus === "Delivered"
+                      ? "orange"
+                      : "#555"
+                  }
+                />
+                <Text
+                  style={[
+                    styles.status,
+                    orderStatus === "Preparing" ||
+                    orderStatus === "Out of delivery" ||
+                    orderStatus === "Delivered"
+                      ? styles.statusActive
+                      : {},
+                  ]}
+                >
+                  Preparing Food
+                </Text>
+              </View>
+
+              {/* Out of delivery */}
+              <View style={styles.statusRow}>
+                <Ionicons
+                  name={
+                    orderStatus === "Out of delivery" || orderStatus === "Delivered"
+                      ? "checkmark-circle"
+                      : "ellipse-outline"
+                  }
+                  size={18}
+                  color={
+                    orderStatus === "Out of delivery" || orderStatus === "Delivered"
+                      ? "orange"
+                      : "#555"
+                  }
+                />
+                <Text
+                  style={[
+                    styles.status,
+                    orderStatus === "Out of delivery" || orderStatus === "Delivered"
+                      ? styles.statusActive
+                      : {},
+                  ]}
+                >
+                  Out of delivery
+                </Text>
+              </View>
+
+              {/* Delivered */}
+              <View style={styles.statusRow}>
+                <Ionicons
+                  name={
+                    orderStatus === "Delivered"
+                      ? "checkmark-circle"
+                      : "ellipse-outline"
+                  }
+                  size={18}
+                  color={
+                    orderStatus === "Delivered" ? "orange" : "#555"
+                  }
+                />
+                <Text
+                  style={[
+                    styles.status,
+                    orderStatus === "Delivered"
+                      ? styles.statusActive
+                      : {},
+                  ]}
+                >
+                  Delivered
+                </Text>
+              </View>
             </View>
 
             <TouchableOpacity style={styles.uploadButton}>
@@ -155,6 +231,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: "#555",
     marginBottom: 5,
+    marginLeft: 8,
   },
   statusActive: {
     color: "orange",
@@ -190,5 +267,10 @@ const styles = StyleSheet.create({
     color: "orange",
     textAlign: "right",
     marginTop: 10,
+  },
+  statusRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 5,
   },
 });

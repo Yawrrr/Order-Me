@@ -14,7 +14,7 @@ import {
   TextInput,
   TouchableWithoutFeedback,
 } from "react-native-gesture-handler";
-import { getDocs, query, where } from "firebase/firestore";
+import { getDocs, query, where, doc, updateDoc } from "firebase/firestore";
 import { ordersRef } from "@/FirebaseConfig";
 import { router } from "expo-router";
 import { Picker } from "@react-native-picker/picker";
@@ -148,6 +148,41 @@ const Order = () => {
 
     setFilteredOrders(filtered);
   };
+  const [isUpdating, setIsUpdating] = useState(false);
+
+  const handleStatusUpdate = async (orderId: string, currentStatus: string) => {
+    if (currentStatus !== "Pending" && currentStatus !== "Preparing") return;
+  
+    setIsUpdating(true); // Prevent multiple clicks
+    try {
+      const orderDocRef = doc(ordersRef, orderId); // Reference to the specific order
+      let newStatus = "";
+  
+      if (currentStatus === "Pending") {
+        newStatus = "Preparing";
+      } else if (currentStatus === "Preparing") {
+        newStatus = "Out of delivery";
+      }
+  
+      await updateDoc(orderDocRef, { status: newStatus }); // Update Firestore
+  
+      // Update local state for real-time UI feedback
+      setOrderItems((prevItems) =>
+        prevItems.map((item) =>
+          item.orderId === orderId ? { ...item, orderStatus: newStatus } : item
+        )
+      );
+      setFilteredOrders((prevFiltered) =>
+        prevFiltered.map((item) =>
+          item.orderId === orderId ? { ...item, orderStatus: newStatus } : item
+        )
+      );
+    } catch (error) {
+      console.error("Failed to update status:", error);
+    } finally {
+      setIsUpdating(false); // Allow further interactions
+    }
+  };
 
   return (
     <GestureHandlerRootView style={styles.outerContainer}>
@@ -229,10 +264,20 @@ const Order = () => {
                   >
                     <View style={styles.cardHeader}>
                       <Text style={styles.username}>{order.username}</Text>
+                      <TouchableOpacity
+                      onPress={() =>
+                        (order.orderStatus === "Pending" || order.orderStatus === "Preparing") &&
+                        !isUpdating
+                          ? handleStatusUpdate(order.orderId, order.orderStatus)
+                          : null
+                      }
+                    >
                       <Text
                         style={[
                           styles.statusBadge,
-                          order.orderStatus === "Preparing"
+                          order.orderStatus === "Pending"
+                            ? styles.pendingStatus
+                            : order.orderStatus === "Preparing"
                             ? styles.preparingStatus
                             : order.orderStatus === "Out of delivery"
                             ? styles.outForDeliveryStatus
@@ -241,6 +286,8 @@ const Order = () => {
                       >
                         {order.orderStatus}
                       </Text>
+                    </TouchableOpacity>
+
                     </View>
                     <Text style={styles.address}>{order.address}</Text>
                     <Text style={styles.itemName}>{order.name}</Text>
@@ -323,15 +370,19 @@ const styles = StyleSheet.create({
     textAlign: "center",
     fontWeight: "bold",
   },
-  preparingStatus: {
+  pendingStatus: { //red
+    backgroundColor: "#FFE2E2",
+    color: "#E14949",
+  },
+  preparingStatus: { //purple
     backgroundColor: "#EAE1FB",
     color: "#8A2BE2",
   },
-  outForDeliveryStatus: {
+  outForDeliveryStatus: { //blue
     backgroundColor: "#E3F2FD",
     color: "#2196F3",
   },
-  deliveredStatus: {
+  deliveredStatus: { //green
     backgroundColor: "#E8F5E9",
     color: "#4CAF50",
   },
