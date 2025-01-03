@@ -180,130 +180,123 @@ const handleStatusUpdate = async (orderId: string, currentStatus: string) => {
   }
 };
 
+return (
+  <GestureHandlerRootView style={styles.outerContainer}>
+    <SafeAreaView style={styles.container}>
+      <Text style={styles.title}>Orders</Text>
 
+      <TextInput
+        placeholder="Search for orders"
+        style={styles.searchBar}
+        onChangeText={handleSearch}
+      />
 
-  return (
-    <GestureHandlerRootView style={styles.outerContainer}>
-      <SafeAreaView style={styles.container}>
-        <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-          <View>
-            <Text style={styles.title}>Orders</Text>
-            <View>
-              <TextInput
-                placeholder="Search for orders"
-                style={styles.searchBar}
-                onChangeText={handleSearch}
-              ></TextInput>
+      <View style={styles.filtersContainer}>
+        {/* Status Dropdown */}
+        <Picker
+          selectedValue={selectedStatus}
+          onValueChange={(value) => {
+            setSelectedStatus(value);
+            handleSortAndFilter();
+          }}
+          style={styles.filterPicker}
+        >
+          <Picker.Item label="Status" value="All" />
+          <Picker.Item label="Preparing" value="Preparing" />
+          <Picker.Item label="Out of delivery" value="Out of delivery" />
+          <Picker.Item label="Delivered" value="Delivered" />
+        </Picker>
+
+        {/* Address Dropdown */}
+        <Picker
+          selectedValue={selectedAddress}
+          onValueChange={(value) => {
+            setSelectedAddress(value);
+            handleSortAndFilter();
+          }}
+          style={styles.filterPicker}
+        >
+          <Picker.Item label="Addresses" value="All" />
+          {Array.from(new Set(orderItems.map((item) => item.address))).map(
+            (address) => (
+              <Picker.Item key={address} label={address} value={address} />
+            )
+          )}
+        </Picker>
+
+        {/* Meal Type Dropdown */}
+        <Picker
+          selectedValue={selectedMealType}
+          onValueChange={(value) => {
+            setSelectedMealType(value);
+            handleSortAndFilter();
+          }}
+          style={styles.filterPicker}
+        >
+          <Picker.Item label="Meal Types" value="All" />
+          {Array.from(new Set(orderItems.map((item) => item.name))).map(
+            (name) => (
+              <Picker.Item key={name} label={name} value={name} />
+            )
+          )}
+        </Picker>
+      </View>
+
+      {/* Scrollable mapped items */}
+      <ScrollView style={{ flex: 1 }}>
+        {filteredOrders.map((order) => (
+          <TouchableOpacity
+            key={order.id}
+            style={styles.orderCard}
+            onPress={() =>
+              router.push({
+                pathname: "../components/OrderDetails",
+                params: {
+                  orderItem: JSON.stringify(order),
+                },
+              })
+            }
+          >
+            <View style={styles.cardHeader}>
+              <Text style={styles.username}>{order.username}</Text>
+              <TouchableOpacity
+                onPress={() =>
+                  (order.orderStatus === "Pending" ||
+                    order.orderStatus === "Preparing") &&
+                  !isUpdating
+                    ? handleStatusUpdate(order.orderId, order.orderStatus)
+                    : null
+                }
+              >
+                <Text
+                  style={[
+                    styles.statusBadge,
+                    order.orderStatus === "Cancelled"
+                      ? styles.cancelStatus
+                      : order.orderStatus === "Pending"
+                      ? styles.pendingStatus
+                      : order.orderStatus === "Preparing"
+                      ? styles.preparingStatus
+                      : order.orderStatus === "Out of delivery"
+                      ? styles.outForDeliveryStatus
+                      : styles.deliveredStatus,
+                  ]}
+                >
+                  {order.orderStatus}
+                </Text>
+              </TouchableOpacity>
             </View>
-            <View style={styles.filtersContainer}>
-              {/* Status Dropdown */}
-              <Picker
-                selectedValue={selectedStatus}
-                onValueChange={(value) => {
-                  setSelectedStatus(value);
-                  handleSortAndFilter();
-                }}
-                style={styles.filterPicker}
-              >
-                <Picker.Item label="Status" value="All" />
-                <Picker.Item label="Preparing" value="Preparing" />
-                <Picker.Item label="Out of delivery" value="Out of delivery" />
-                <Picker.Item label="Delivered" value="Delivered" />
-              </Picker>
 
-              {/* Address Dropdown */}
-              <Picker
-                selectedValue={selectedAddress}
-                onValueChange={(value) => {
-                  setSelectedAddress(value);
-                  handleSortAndFilter();
-                }}
-                style={styles.filterPicker}
-              >
-                <Picker.Item label="Addresses" value="All" />
-                {Array.from(
-                  new Set(orderItems.map((item) => item.address))
-                ).map((address) => (
-                  <Picker.Item key={address} label={address} value={address} />
-                ))}
-              </Picker>
-
-              {/* Meal Type Dropdown */}
-              <Picker
-                selectedValue={selectedMealType}
-                onValueChange={(value) => {
-                  setSelectedMealType(value);
-                  handleSortAndFilter();
-                }}
-                style={styles.filterPicker}
-              >
-                <Picker.Item label="Meal Types" value="All" />
-                {Array.from(new Set(orderItems.map((item) => item.name))).map(
-                  (name) => (
-                    <Picker.Item key={name} label={name} value={name} />
-                  )
-                )}
-              </Picker>
-            </View>
-            <ScrollView>
-              <View>
-                {filteredOrders.map((order) => (
-                  <TouchableOpacity
-                    key={order.id}
-                    style={styles.orderCard}
-                    onPress={() =>
-                      router.push({
-                        pathname: "../components/OrderDetails",
-                        params: {
-                          orderItem: JSON.stringify(order),
-                        },
-                      })
-                    }
-                  >
-                    <View style={styles.cardHeader}>
-                      <Text style={styles.username}>{order.username}</Text>
-                      <TouchableOpacity
-                        onPress={() =>
-                          (order.orderStatus === "Pending" || order.orderStatus === "Preparing") &&
-                          !isUpdating
-                            ? handleStatusUpdate(order.orderId, order.orderStatus)
-                            : null
-                        }
-                      >
-                        <Text
-                          style={[
-                            styles.statusBadge,
-                            order.orderStatus === "Cancelled"
-                              ? styles.cancelStatus
-                              : order.orderStatus === "Pending"
-                              ? styles.pendingStatus
-                              : order.orderStatus === "Preparing"
-                              ? styles.preparingStatus
-                              : order.orderStatus === "Out of delivery"
-                              ? styles.outForDeliveryStatus
-                              : styles.deliveredStatus,
-                          ]}
-                        >
-                          {order.orderStatus}
-                        </Text>
-                      </TouchableOpacity>
-
-                    </View>
-                    <Text style={styles.address}>{order.address}</Text>
-                    <Text style={styles.itemName}>{order.name}</Text>
-                    {order.remark && (
-                      <Text style={styles.remark}>"{order.remark}"</Text>
-                    )}
-                    <Text style={styles.totalPrice}>RM{order.totalPrice}</Text>
-                  </TouchableOpacity>
-                ))}
-              </View>
-            </ScrollView>
-          </View>
-        </TouchableWithoutFeedback>
-      </SafeAreaView>
-    </GestureHandlerRootView>
-  );
+            <Text style={styles.address}>{order.address}</Text>
+            <Text style={styles.itemName}>{order.name}</Text>
+            {order.remark && <Text style={styles.remark}>{order.remark}</Text>}
+            <Text style={styles.totalPrice}>RM{order.totalPrice}</Text>
+          </TouchableOpacity>
+        ))}
+      </ScrollView>
+    </SafeAreaView>
+  </GestureHandlerRootView>
+);
 };
 
 const styles = StyleSheet.create({
