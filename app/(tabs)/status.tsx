@@ -17,12 +17,12 @@ import { useAuth } from "@/context/AuthContext";
 interface Order {
   id: string;
   address: string;
-  estimatedTime: string;
-  status: string[];
-  items: { name: string; quantity: number; imageUrl: string }[];
-  total: number;
+  status: string | string[];  // Can be a single string or an array
+  items: { name: string; quantity: number; price: number; imageUrl: string }[];
+  totalPrice: number;
   latitude: number;
   longitude: number;
+  proveImg?: string;  // Optional image URL for proof of delivery
 }
 
 const Status: React.FC = () => {
@@ -40,12 +40,22 @@ const Status: React.FC = () => {
         const ordersQuery = query(ordersRef, where("email", "==", user.email));
         const snapshot = await getDocs(ordersQuery);
 
-        const fetchedOrders: Order[] = snapshot.docs.map((doc) => ({
-          id: doc.id,
-          ...doc.data(),
-          status: Array.isArray(doc.data().status) ? doc.data().status : [],
-          total: typeof doc.data().total === "number" ? doc.data().total : 0,
-        })) as Order[];
+        const fetchedOrders: Order[] = snapshot.docs.map((doc) => {
+          const data = doc.data();
+          const items = Array.isArray(data.items) ? data.items : [];
+          
+          const totalPrice = data.totalPrice || 0;
+          const status = data.status || [];
+
+          const statusArray = Array.isArray(status) ? status : [status];
+
+          return {
+            id: doc.id,
+            ...data,
+            status: statusArray,
+            totalPrice,
+          };
+        }) as Order[];
 
         setOrders(fetchedOrders);
       } catch (error) {
@@ -80,7 +90,6 @@ const Status: React.FC = () => {
               >
                 <Text style={styles.orderCardText}>Order {order.id}</Text>
                 <Text style={styles.orderCardText}>Address: {order.address}</Text>
-                <Text style={styles.orderCardText}>Estimated Time: {order.estimatedTime}</Text>
               </TouchableOpacity>
             ))
           ) : (
@@ -94,7 +103,7 @@ const Status: React.FC = () => {
           </TouchableOpacity>
           <Text style={styles.subHeader}>Order Details</Text>
           <Text style={styles.detailText}>Address: {selectedOrder.address}</Text>
-          <Text style={styles.detailText}>Estimated Time: {selectedOrder.estimatedTime}</Text>
+          
           <Text style={styles.subHeader}>Status</Text>
           {selectedOrder?.status?.length ? (
             selectedOrder.status.map((step, index) => (
@@ -107,6 +116,19 @@ const Status: React.FC = () => {
           ) : (
             <Text style={styles.detailText}>No status available.</Text>
           )}
+
+          {/* Prove Image Section */}
+          {selectedOrder.proveImg && (
+            <>
+              <Text style={styles.subHeader}>Proof of Delivery</Text>
+              <Image
+                source={{ uri: selectedOrder.proveImg }}
+                style={styles.proveImage}
+                resizeMode="contain"
+              />
+            </>
+          )}
+
           <Text style={styles.subHeader}>Items</Text>
           {selectedOrder.items.map((item, index) => (
             <View key={index} style={styles.itemRow}>
@@ -121,7 +143,7 @@ const Status: React.FC = () => {
             </View>
           ))}
           <Text style={styles.totalText}>
-            Total: RM {selectedOrder.total ? selectedOrder.total.toFixed(2) : "0.00"}
+            Total: RM {selectedOrder.totalPrice ? selectedOrder.totalPrice.toFixed(2) : "0.00"}
           </Text>
 
           {/* Map Section */}
@@ -254,6 +276,12 @@ const styles = StyleSheet.create({
     height: 200,
     borderRadius: 8,
     marginTop: 16,
+  },
+  proveImage: {
+    width: "100%",
+    height: 200,
+    marginVertical: 12,
+    borderRadius: 8,
   },
 });
 
