@@ -14,7 +14,6 @@ import { FIREBASE_DB } from "@/FirebaseConfig";
 import { collection, getDocs } from "firebase/firestore";
 import { router } from "expo-router";
 
-// Define the Restaurant type
 type Restaurant = {
   restaurantName: string;
   category: string;
@@ -118,8 +117,10 @@ const SearchScreen = () => {
       ) : (
         inputQuery.trim() && (
           <View style={styles.noResultContainer}>
-            <Text style={styles.noResultText}>No restaurants found.</Text>
-          </View>
+          {/* Add an icon and text */}
+          <MaterialIcons name="search-off" size={40} color="gray" />
+          <Text style={styles.noResultText}>No restaurants found.</Text>
+        </View>
         )
       )}
     </View>
@@ -153,11 +154,15 @@ const styles = StyleSheet.create({
   listContainer: { paddingBottom: 10 },
   loader: { marginTop: 20 },
   noResultContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
+    flexDirection: "column",  
+    alignItems: "center", 
+    justifyContent: "center", 
+    marginTop: 20,
   },
-  noResultText: { fontSize: 16, color: "#888" },
+  noResultText: {
+    fontSize: 18,
+    color: "gray",
+    marginTop: 10, 
+  },
 });
-
 export default SearchScreen;
