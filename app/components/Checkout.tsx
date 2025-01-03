@@ -8,6 +8,7 @@ import {
   Alert,
   Image,
   SafeAreaView,
+  TextInput,
 } from "react-native";
 import { FIREBASE_AUTH, FIREBASE_DB } from "../../FirebaseConfig";
 import {
@@ -25,12 +26,15 @@ import * as ImageManipulator from "expo-image-manipulator";
 import * as FileSystem from "expo-file-system";
 
 type CartItem = {
+  restaurantName: string;
+  restaurantEmail: string; 
   id: string;
   imageUrl: string;
   name: string;
   quantity: number;
   price: number;
   totalPrice: number;
+  username: string;
 };
 
 export default function Checkout() {
@@ -41,6 +45,10 @@ export default function Checkout() {
   const [selectedAddress, setSelectedAddress] =
     useState<string>("No Address Found");
   const [receiptImage, setReceiptImage] = useState<string | null>(null);
+  const [restaurantName, setRestaurantName] = useState<string>("");
+  const [restaurantEmail, setRestaurantEmail] = useState<string>("");
+  const [username, setUsername] = useState<string>("");
+  const [remark, setRemark] = useState<string>("");
 
   const auth = FIREBASE_AUTH;
   const router = useRouter();
@@ -62,7 +70,19 @@ export default function Checkout() {
     if (params.selectedAddress) {
       setSelectedAddress(params.selectedAddress as string);
     }
+    fetchRestaurantName();
   }, [params]);
+  
+  const fetchRestaurantName = async () => {
+    const restaurantRef = collection(FIREBASE_DB, "restaurants");
+    const restaurantQuery = query(
+      restaurantRef,
+      where("restaurantName", "==", restaurantName)
+    );
+    const restaurantSnapshot = await getDocs(restaurantQuery);
+    // console.log(restaurantSnapshot.docs[0].data());
+    setRestaurantEmail(restaurantSnapshot.docs[0].data().owner);
+  };
 
   const fetchCartData = async () => {
     const userEmail = auth.currentUser?.email;
@@ -79,6 +99,8 @@ export default function Checkout() {
       }));
 
       setCartItems(cartItems);
+      setRestaurantName(cartItems[0].restaurantName);
+      setUsername(cartItems[0].username);
 
       const total = cartItems.reduce(
         (sum, item) => sum + (item.totalPrice || 0),
@@ -88,6 +110,7 @@ export default function Checkout() {
     } catch (error) {
       console.error("Error fetching cart data: ", error);
     }
+    
   };
 
   const confirmOrder = async () => {
@@ -101,13 +124,17 @@ export default function Checkout() {
     try {
       const ordersRef = collection(FIREBASE_DB, "orders");
       await addDoc(ordersRef, {
-        email: userEmail,
+        email: restaurantEmail,
+        restaurantName: restaurantName,
+        user: userEmail,
         items: cartItems,
         totalPrice,
         address: selectedAddress,
         receiptImage,
         timestamp: new Date(),
         status: "Pending",
+        username: username,
+        remark: remark,
       });
 
       await clearCartItems();
@@ -235,6 +262,18 @@ export default function Checkout() {
           ))}
         </View>
 
+        <View style={styles.remarkContainer}>
+            <Text style={styles.remarkTitle}>Order Remarks</Text>
+            <TextInput
+              style={styles.remarkInput}
+              placeholder="Add special instructions..."
+              value={remark}
+              onChangeText={setRemark}
+              multiline
+              numberOfLines={3}
+            />
+          </View>
+
         <View style={styles.qrCodeContainer}>
           <Text style={styles.qrCodeTitle}>Pay via QR Code</Text>
           <Image
@@ -299,6 +338,25 @@ const styles = StyleSheet.create({
   confirmButtonText: { color: "#fff", fontSize: 18, fontWeight: "bold" },
   itemImage: { width: 80, height: 80, borderRadius: 8, marginRight: 10 },
   itemDetails: { flex: 1 },
+  remarkContainer: {
+    marginTop: 10,
+    padding: 10,
+    backgroundColor: '#f9f9f9',
+    borderRadius: 8,
+  },
+  remarkTitle: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    marginBottom: 8,
+  },
+  remarkInput: {
+    borderWidth: 1,
+    borderColor: '#ddd',
+    borderRadius: 4,
+    padding: 10,
+    minHeight: 80,
+    textAlignVertical: 'top',
+  },
   qrCodeContainer: { alignItems: "center", marginVertical: 20 },
   qrCodeTitle: {
     fontSize: 16,

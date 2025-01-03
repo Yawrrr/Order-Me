@@ -7,6 +7,7 @@ import {
   ScrollView,
   TouchableOpacity,
   Keyboard,
+  Platform,
 } from "react-native";
 import { useAuth } from "@/context/AuthContext";
 import {
@@ -14,7 +15,14 @@ import {
   TextInput,
   TouchableWithoutFeedback,
 } from "react-native-gesture-handler";
-import { onSnapshot, getDocs, query, where, doc, updateDoc } from "firebase/firestore";
+import {
+  onSnapshot,
+  getDocs,
+  query,
+  where,
+  doc,
+  updateDoc,
+} from "firebase/firestore";
 import { ordersRef } from "@/FirebaseConfig";
 import { router } from "expo-router";
 import { Picker } from "@react-native-picker/picker";
@@ -36,7 +44,7 @@ export interface OrderItem {
   orderStatus: string;
   address: string;
   remark: string;
-  proveImg:string;
+  proveImg: string;
 }
 
 interface Order {
@@ -53,250 +61,236 @@ interface Order {
 const Order = () => {
   const { user } = useAuth();
   const vendorEmail = user?.email;
+
   const [orders, setOrders] = useState<Order[]>([]);
-  const [orderItems, setOrderItems] = useState<OrderItem[]>([]);
-  const [filteredOrders, setFilteredOrders] = useState<OrderItem[]>([]);
+  const [filteredOrders, setFilteredOrders] = useState<Order[]>([]);
+
   const [selectedStatus, setSelectedStatus] = useState<string>("All");
   const [selectedAddress, setSelectedAddress] = useState<string>("All");
   const [selectedMealType, setSelectedMealType] = useState<string>("All");
+  const [isUpdating, setIsUpdating] = useState(false);
 
   useEffect(() => {
-    // Real-time updates with onSnapshot
-    const ordersQuery = query(ordersRef, where("email", "==", vendorEmail));
+    if (!vendorEmail) return;
 
+    const ordersQuery = query(ordersRef, where("email", "==", vendorEmail));
     const unsubscribe = onSnapshot(ordersQuery, (querySnapshot) => {
       const updatedOrders: Order[] = [];
-      const updatedItems: OrderItem[] = [];
 
-      querySnapshot.forEach((doc) => {
-        const data = doc.data();
+      querySnapshot.forEach((docSnap) => {
+        const data = docSnap.data();
         updatedOrders.push({
-          id: doc.id,
+          id: docSnap.id,
           address: data.address,
           email: data.user,
           status: data.status,
-          items: data.items,
+          items: data.items || [],
           timestamp: data.timestamp,
           totalPrice: data.totalPrice,
           remark: data.remark,
         });
-
-        data.items.forEach((item: any) => {
-          updatedItems.push({
-            ...item,
-            orderId: doc.id,
-            orderTimestamp: data.timestamp,
-            customerEmail: data.user,
-            orderStatus: data.status,
-            address: data.address,
-            remark: data.remark,
-          });
-        });
       });
 
       setOrders(updatedOrders);
-      setOrderItems(updatedItems);
-      setFilteredOrders(updatedItems); // Make sure to update the filtered orders too
+      setFilteredOrders(updatedOrders); // show all by default
     });
 
-    // Cleanup the listener on component unmount
     return () => unsubscribe();
   }, [vendorEmail]);
 
+  // 1) Properly close handleSearch and call setFilteredOrders(filtered)
   const handleSearch = (text: string) => {
-    if (text.trim() === "") {
-      setFilteredOrders(orderItems);
+    if (!text.trim()) {
+      setFilteredOrders(orders);
       return;
     }
 
-    const searchText = text.toLowerCase();
-    const filtered = orderItems.filter(
-      (order) =>
-        // Search by status
-        order.orderStatus.toLowerCase().includes(searchText) ||
-        order.name.toLowerCase().includes(searchText) ||
-        order.address.toLowerCase().includes(searchText)
-    );
+    const lower = text.toLowerCase();
+    const filtered = orders.filter((order) => {
+      if (
+        order.status.toLowerCase().includes(lower) ||
+        order.address.toLowerCase().includes(lower)
+      ) {
+        return true;
+      }
+      return order.items.some((item) =>
+        item.name.toLowerCase().includes(lower)
+      );
+    });
 
     setFilteredOrders(filtered);
   };
 
+  // 2) Define handleSortAndFilter outside handleSearch
   const handleSortAndFilter = () => {
-    let filtered = orderItems;
+    let result = [...orders];
 
-    // Filter by status
     if (selectedStatus !== "All") {
-      filtered = filtered.filter(
-        (order) => order.orderStatus === selectedStatus
+      result = result.filter((o) => o.status === selectedStatus);
+    }
+
+    if (selectedAddress !== "All") {
+      result = result.filter((o) => o.address === selectedAddress);
+    }
+
+    if (selectedMealType !== "All") {
+      result = result.filter((o) =>
+        o.items.some((item) => item.name === selectedMealType)
       );
     }
 
-    // Filter by address
-    if (selectedAddress !== "All") {
-      filtered = filtered.filter((order) => order.address === selectedAddress);
-    }
-
-    // Filter by meal type
-    if (selectedMealType !== "All") {
-      filtered = filtered.filter((order) => order.name === selectedMealType);
-    }
-
-    setFilteredOrders(filtered);
+    setFilteredOrders(result);
   };
-  const [isUpdating, setIsUpdating] = useState(false);
 
-  // Inside your `handleStatusUpdate` function, consider adding the Cancelled status if you plan to update it from another part of the app.
-const handleStatusUpdate = async (orderId: string, currentStatus: string) => {
-  if (currentStatus === "Cancelled") return; // Prevent updating a cancelled order
+  const handleStatusUpdate = async (orderId: string, currentStatus: string) => {
+    if (currentStatus === "Cancelled") return;
 
-  setIsUpdating(true); // Prevent multiple clicks
-  try {
-    const orderDocRef = doc(ordersRef, orderId); // Reference to the specific order
-    let newStatus = "";
+    setIsUpdating(true);
+    try {
+      const orderDocRef = doc(ordersRef, orderId);
+      let newStatus = "";
 
-    if (currentStatus === "Pending") {
-      newStatus = "Preparing";
-    } else if (currentStatus === "Preparing") {
-      newStatus = "Out of delivery";
+      if (currentStatus === "Pending") newStatus = "Preparing";
+      else if (currentStatus === "Preparing") newStatus = "Out of delivery";
+
+      await updateDoc(orderDocRef, { status: newStatus });
+
+      // Update local state
+      setOrders((prev) =>
+        prev.map((o) => (o.id === orderId ? { ...o, status: newStatus } : o))
+      );
+      setFilteredOrders((prev) =>
+        prev.map((o) => (o.id === orderId ? { ...o, status: newStatus } : o))
+      );
+    } catch (error) {
+      console.error("Failed to update status:", error);
+    } finally {
+      setIsUpdating(false);
     }
+  };
 
-    await updateDoc(orderDocRef, { status: newStatus }); // Update Firestore
+  return (
+    <GestureHandlerRootView style={styles.outerContainer}>
+      <SafeAreaView style={styles.container}>
+        <Text style={styles.title}>Orders</Text>
 
-    // Update local state for real-time UI feedback
-    setOrderItems((prevItems) =>
-      prevItems.map((item) =>
-        item.orderId === orderId ? { ...item, orderStatus: newStatus } : item
-      )
-    );
-    setFilteredOrders((prevFiltered) =>
-      prevFiltered.map((item) =>
-        item.orderId === orderId ? { ...item, orderStatus: newStatus } : item
-      )
-    );
-  } catch (error) {
-    console.error("Failed to update status:", error);
-  } finally {
-    setIsUpdating(false); // Allow further interactions
-  }
-};
+        <TextInput
+          placeholder="Search for orders"
+          style={styles.searchBar}
+          onChangeText={handleSearch}
+        />
 
-return (
-  <GestureHandlerRootView style={styles.outerContainer}>
-    <SafeAreaView style={styles.container}>
-      <Text style={styles.title}>Orders</Text>
-
-      <TextInput
-        placeholder="Search for orders"
-        style={styles.searchBar}
-        onChangeText={handleSearch}
-      />
-
-      <View style={styles.filtersContainer}>
-        {/* Status Dropdown */}
-        <Picker
-          selectedValue={selectedStatus}
-          onValueChange={(value) => {
-            setSelectedStatus(value);
-            handleSortAndFilter();
-          }}
-          style={styles.filterPicker}
-        >
-          <Picker.Item label="Status" value="All" />
-          <Picker.Item label="Preparing" value="Preparing" />
-          <Picker.Item label="Out of delivery" value="Out of delivery" />
-          <Picker.Item label="Delivered" value="Delivered" />
-        </Picker>
-
-        {/* Address Dropdown */}
-        <Picker
-          selectedValue={selectedAddress}
-          onValueChange={(value) => {
-            setSelectedAddress(value);
-            handleSortAndFilter();
-          }}
-          style={styles.filterPicker}
-        >
-          <Picker.Item label="Addresses" value="All" />
-          {Array.from(new Set(orderItems.map((item) => item.address))).map(
-            (address) => (
-              <Picker.Item key={address} label={address} value={address} />
-            )
-          )}
-        </Picker>
-
-        {/* Meal Type Dropdown */}
-        <Picker
-          selectedValue={selectedMealType}
-          onValueChange={(value) => {
-            setSelectedMealType(value);
-            handleSortAndFilter();
-          }}
-          style={styles.filterPicker}
-        >
-          <Picker.Item label="Meal Types" value="All" />
-          {Array.from(new Set(orderItems.map((item) => item.name))).map(
-            (name) => (
-              <Picker.Item key={name} label={name} value={name} />
-            )
-          )}
-        </Picker>
-      </View>
-
-      {/* Scrollable mapped items */}
-      <ScrollView style={{ flex: 1 }}>
-        {filteredOrders.map((order) => (
-          <TouchableOpacity
-            key={order.id}
-            style={styles.orderCard}
-            onPress={() =>
-              router.push({
-                pathname: "../components/OrderDetails",
-                params: {
-                  orderItem: JSON.stringify(order),
-                },
-              })
-            }
+        <View style={styles.filtersContainer}>
+          <Picker
+            selectedValue={selectedStatus}
+            onValueChange={(value) => {
+              setSelectedStatus(value);
+              handleSortAndFilter();
+            }}
+            style={styles.filterPicker}
           >
-            <View style={styles.cardHeader}>
-              <Text style={styles.username}>{order.username}</Text>
-              <TouchableOpacity
-                onPress={() =>
-                  (order.orderStatus === "Pending" ||
-                    order.orderStatus === "Preparing") &&
-                  !isUpdating
-                    ? handleStatusUpdate(order.orderId, order.orderStatus)
-                    : null
-                }
-              >
-                <Text
-                  style={[
-                    styles.statusBadge,
-                    order.orderStatus === "Cancelled"
-                      ? styles.cancelStatus
-                      : order.orderStatus === "Pending"
-                      ? styles.pendingStatus
-                      : order.orderStatus === "Preparing"
-                      ? styles.preparingStatus
-                      : order.orderStatus === "Out of delivery"
-                      ? styles.outForDeliveryStatus
-                      : styles.deliveredStatus,
-                  ]}
-                >
-                  {order.orderStatus}
-                </Text>
-              </TouchableOpacity>
-            </View>
+            <Picker.Item label="Status" value="All" />
+            <Picker.Item label="Preparing" value="Preparing" />
+            <Picker.Item label="Out of delivery" value="Out of delivery" />
+            <Picker.Item label="Delivered" value="Delivered" />
+          </Picker>
 
-            <Text style={styles.address}>{order.address}</Text>
-            <Text style={styles.itemName}>{order.name}</Text>
-            {order.remark && <Text style={styles.remark}>{order.remark}</Text>}
-            <Text style={styles.totalPrice}>RM{order.totalPrice}</Text>
-          </TouchableOpacity>
-        ))}
-      </ScrollView>
-    </SafeAreaView>
-  </GestureHandlerRootView>
-);
+          <Picker
+            selectedValue={selectedAddress}
+            onValueChange={(value) => {
+              setSelectedAddress(value);
+              handleSortAndFilter();
+            }}
+            style={styles.filterPicker}
+          >
+            <Picker.Item label="Addresses" value="All" />
+            {Array.from(new Set(orders.map((o) => o.address))).map(
+              (address) => (
+                <Picker.Item key={address} label={address} value={address} />
+              )
+            )}
+          </Picker>
+
+          <Picker
+            selectedValue={selectedMealType}
+            onValueChange={(value) => {
+              setSelectedMealType(value);
+              handleSortAndFilter();
+            }}
+            style={styles.filterPicker}
+          >
+            <Picker.Item label="Meal Types" value="All" />
+            {Array.from(
+              new Set(orders.flatMap((o) => o.items.map((i) => i.name)))
+            ).map((name) => (
+              <Picker.Item key={name} label={name} value={name} />
+            ))}
+          </Picker>
+        </View>
+
+        <ScrollView style={{ flex: 1 }}>
+          {filteredOrders.map((order) => (
+            <TouchableOpacity
+              key={order.id}
+              style={styles.orderCard}
+              onPress={() =>
+                router.push({
+                  pathname: "../components/OrderDetails",
+                  params: { orderItem: JSON.stringify(order) },
+                })
+              }
+            >
+              <View style={styles.cardHeader}>
+                <Text style={styles.username}> {order.items?.[0]?.username || order.email}</Text>
+                <TouchableOpacity
+                  onPress={() =>
+                    (order.status === "Pending" ||
+                      order.status === "Preparing") &&
+                    !isUpdating
+                      ? handleStatusUpdate(order.id, order.status)
+                      : null
+                  }
+                >
+                  <Text
+                    style={[
+                      styles.statusBadge,
+                      order.status === "Cancelled"
+                        ? styles.cancelStatus
+                        : order.status === "Pending"
+                        ? styles.pendingStatus
+                        : order.status === "Preparing"
+                        ? styles.preparingStatus
+                        : order.status === "Out of delivery"
+                        ? styles.outForDeliveryStatus
+                        : styles.deliveredStatus,
+                    ]}
+                  >
+                    {order.status}
+                  </Text>
+                </TouchableOpacity>
+              </View>
+
+              <Text style={styles.address}>{order.address}</Text>
+
+              {order.items.map((item) => (
+                <View key={item.id} style={styles.itemRow}>
+                  <Text style={styles.itemText}>
+                    {item.name} x{item.quantity} RM{item.totalPrice}
+                  </Text>
+                </View>
+              ))}
+
+              {order.remark && (
+                <Text style={styles.remark}>{order.remark}</Text>
+              )}
+
+              <Text style={styles.totalPrice}>RM{order.totalPrice}</Text>
+            </TouchableOpacity>
+          ))}
+        </ScrollView>
+      </SafeAreaView>
+    </GestureHandlerRootView>
+  );
 };
 
 const styles = StyleSheet.create({
@@ -308,6 +302,7 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "#f0f0f0",
     padding: 20,
+    paddingBottom: Platform.OS === "ios" ? 50 : 76,
   },
   title: {
     fontFamily: "Poppins-Bold",
@@ -363,23 +358,26 @@ const styles = StyleSheet.create({
     textAlign: "center",
     fontWeight: "bold",
   },
-  cancelStatus: { 
-    backgroundColor: "#FFE2E2", 
-    color: "#E14949" 
+  cancelStatus: {
+    backgroundColor: "#FFE2E2",
+    color: "#E14949",
   },
-  pendingStatus: { 
-    backgroundColor: "#FFE0F1", 
-    color: "#DA1C92" 
+  pendingStatus: {
+    backgroundColor: "#FFE0F1",
+    color: "#DA1C92",
   },
-  preparingStatus: { //purple
+  preparingStatus: {
+    //purple
     backgroundColor: "#EAE1FB",
     color: "#8A2BE2",
   },
-  outForDeliveryStatus: { //blue
+  outForDeliveryStatus: {
+    //blue
     backgroundColor: "#E3F2FD",
     color: "#2196F3",
   },
-  deliveredStatus: { //green
+  deliveredStatus: {
+    //green
     backgroundColor: "#E8F5E9",
     color: "#4CAF50",
   },
@@ -394,11 +392,20 @@ const styles = StyleSheet.create({
     color: "#333",
     marginBottom: 4,
   },
+  itemRow: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  itemText: {
+    fontSize: 14,
+    color: "#333",
+  },
   remark: {
     fontSize: 12,
     color: "#FF5722",
     fontStyle: "italic",
     marginBottom: 4,
+    marginTop: 4,
   },
   totalPrice: {
     fontSize: 16,
@@ -417,7 +424,7 @@ const styles = StyleSheet.create({
     height: 50,
     backgroundColor: "#f5f5f5",
     borderRadius: 10,
-    fontSize: 12
+    fontSize: 12,
   },
   orderCardText: {
     fontSize: 14,
