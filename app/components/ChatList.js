@@ -1,8 +1,7 @@
 import { View, FlatList } from 'react-native';
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { useRouter } from 'expo-router';
-import { FIREBASE_DB } from "@/FirebaseConfig";  // Import Firestore configuration
-import { collection, getDocs } from 'firebase/firestore';
+
 import ChatItem from './ChatItem';
 
 export default function ChatList({ users, currentUser }) {
@@ -15,7 +14,7 @@ export default function ChatList({ users, currentUser }) {
     <View style={{ flex: 1 }}>
       <FlatList
         data={filteredUsers}
-        contentContainerStyle={{ flex: 1, paddingVertical: 25 }}
+        contentContainerStyle={{paddingVertical: 25 }}
         keyExtractor={(item) => item.id}  // Use user ID as the key for each item
         showsVerticalScrollIndicator={false}
         renderItem={({ item, index }) => (
