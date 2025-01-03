@@ -19,6 +19,7 @@ const OrderDetails = () => {
 
   const [orderStatus, setOrderStatus] = useState<string>("");
   const [orderImage, setOrderImage] = useState<string | null>(null);
+  const [cancelStatus, setCancelStatus] = useState<string>("");
 
   const fetchOrderStatus = async () => {
     if (!orderItem?.orderId) return;
@@ -137,6 +138,41 @@ const OrderDetails = () => {
     }
   };
 
+  const cancelOrder = async () => {
+    try {
+      if (!orderItem?.orderId) {
+        Alert.alert("Error", "Order ID is missing.");
+        return;
+      }
+  
+      // Show confirmation alert
+      Alert.alert(
+        "Confirm Cancellation",
+        "Are you sure you want to cancel this order?",
+        [
+          {
+            text: "Cancel",
+            style: "cancel",
+          },
+          {
+            text: "Yes",
+            onPress: async () => {
+              // Proceed with the cancellation if the user confirms
+              const orderDocRef = doc(ordersRef, orderItem.orderId);
+              await updateDoc(orderDocRef, { status: "Cancelled" });
+  
+              setOrderStatus("Cancelled");
+              setCancelStatus("Order being cancelled"); // Set the cancellation message
+              Alert.alert("Success", "Order has been cancelled.");
+            },
+          },
+        ]
+      );
+    } catch (error) {
+      console.error("Error cancelling the order:", error);
+      Alert.alert("Error", "Failed to cancel the order.");
+    }
+  };
   const goBack = () => {
     router.back();
   };
@@ -249,7 +285,20 @@ const OrderDetails = () => {
               <Text style={styles.remarks}>{orderItem.remark || "No remarks"}</Text>
 
               <Text style={styles.total}>Total: RM{orderItem.totalPrice}</Text>
-            </View>
+           {/* Cancel Order Button */}
+           {orderStatus !== "Cancelled" && (
+                <TouchableOpacity style={styles.cancelButton} onPress={cancelOrder}>
+                  <Ionicons name="close-circle-outline" size={20} color="red" />
+                  <Text style={styles.cancelText}>Cancel Order</Text>
+                </TouchableOpacity>
+              )}
+              {/* Display cancellation status */}
+            {cancelStatus && (
+              <View style={styles.cancelStatusContainer}>
+                <Text style={styles.cancelStatusText}>{cancelStatus}</Text>
+              </View>
+            )}
+           </View>
           )}
         </ScrollView>
       </SafeAreaView>
@@ -372,5 +421,30 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     marginBottom: 5,
+  },
+  cancelButton: {
+    borderWidth: 1,
+    borderColor: "red",
+    borderRadius: 5,
+    padding: 10,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    marginVertical: 10,
+  },
+  cancelText: {
+    fontSize: 14,
+    color: "red",
+    marginLeft: 5,
+  },
+  cancelStatusContainer: {
+    marginTop: 10,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  cancelStatusText: {
+    fontSize: 16,
+    fontWeight: "bold",
+    color: "red",
   },
 });

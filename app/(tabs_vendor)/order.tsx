@@ -145,39 +145,42 @@ const Order = () => {
   };
   const [isUpdating, setIsUpdating] = useState(false);
 
-  const handleStatusUpdate = async (orderId: string, currentStatus: string) => {
-    if (currentStatus !== "Pending" && currentStatus !== "Preparing") return;
-  
-    setIsUpdating(true); // Prevent multiple clicks
-    try {
-      const orderDocRef = doc(ordersRef, orderId); // Reference to the specific order
-      let newStatus = "";
-  
-      if (currentStatus === "Pending") {
-        newStatus = "Preparing";
-      } else if (currentStatus === "Preparing") {
-        newStatus = "Out of delivery";
-      }
-  
-      await updateDoc(orderDocRef, { status: newStatus }); // Update Firestore
-  
-      // Update local state for real-time UI feedback
-      setOrderItems((prevItems) =>
-        prevItems.map((item) =>
-          item.orderId === orderId ? { ...item, orderStatus: newStatus } : item
-        )
-      );
-      setFilteredOrders((prevFiltered) =>
-        prevFiltered.map((item) =>
-          item.orderId === orderId ? { ...item, orderStatus: newStatus } : item
-        )
-      );
-    } catch (error) {
-      console.error("Failed to update status:", error);
-    } finally {
-      setIsUpdating(false); // Allow further interactions
+  // Inside your `handleStatusUpdate` function, consider adding the Cancelled status if you plan to update it from another part of the app.
+const handleStatusUpdate = async (orderId: string, currentStatus: string) => {
+  if (currentStatus === "Cancelled") return; // Prevent updating a cancelled order
+
+  setIsUpdating(true); // Prevent multiple clicks
+  try {
+    const orderDocRef = doc(ordersRef, orderId); // Reference to the specific order
+    let newStatus = "";
+
+    if (currentStatus === "Pending") {
+      newStatus = "Preparing";
+    } else if (currentStatus === "Preparing") {
+      newStatus = "Out of delivery";
     }
-  };
+
+    await updateDoc(orderDocRef, { status: newStatus }); // Update Firestore
+
+    // Update local state for real-time UI feedback
+    setOrderItems((prevItems) =>
+      prevItems.map((item) =>
+        item.orderId === orderId ? { ...item, orderStatus: newStatus } : item
+      )
+    );
+    setFilteredOrders((prevFiltered) =>
+      prevFiltered.map((item) =>
+        item.orderId === orderId ? { ...item, orderStatus: newStatus } : item
+      )
+    );
+  } catch (error) {
+    console.error("Failed to update status:", error);
+  } finally {
+    setIsUpdating(false); // Allow further interactions
+  }
+};
+
+
 
   return (
     <GestureHandlerRootView style={styles.outerContainer}>
@@ -260,28 +263,30 @@ const Order = () => {
                     <View style={styles.cardHeader}>
                       <Text style={styles.username}>{order.username}</Text>
                       <TouchableOpacity
-                      onPress={() =>
-                        (order.orderStatus === "Pending" || order.orderStatus === "Preparing") &&
-                        !isUpdating
-                          ? handleStatusUpdate(order.orderId, order.orderStatus)
-                          : null
-                      }
-                    >
-                      <Text
-                        style={[
-                          styles.statusBadge,
-                          order.orderStatus === "Pending"
-                            ? styles.pendingStatus
-                            : order.orderStatus === "Preparing"
-                            ? styles.preparingStatus
-                            : order.orderStatus === "Out of delivery"
-                            ? styles.outForDeliveryStatus
-                            : styles.deliveredStatus,
-                        ]}
+                        onPress={() =>
+                          (order.orderStatus === "Pending" || order.orderStatus === "Preparing") &&
+                          !isUpdating
+                            ? handleStatusUpdate(order.orderId, order.orderStatus)
+                            : null
+                        }
                       >
-                        {order.orderStatus}
-                      </Text>
-                    </TouchableOpacity>
+                        <Text
+                          style={[
+                            styles.statusBadge,
+                            order.orderStatus === "Cancelled"
+                              ? styles.cancelStatus
+                              : order.orderStatus === "Pending"
+                              ? styles.pendingStatus
+                              : order.orderStatus === "Preparing"
+                              ? styles.preparingStatus
+                              : order.orderStatus === "Out of delivery"
+                              ? styles.outForDeliveryStatus
+                              : styles.deliveredStatus,
+                          ]}
+                        >
+                          {order.orderStatus}
+                        </Text>
+                      </TouchableOpacity>
 
                     </View>
                     <Text style={styles.address}>{order.address}</Text>
