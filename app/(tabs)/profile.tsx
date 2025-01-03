@@ -76,6 +76,11 @@ const Profile = () => {
           icon="location-on"
           onPress={() => router.push("../components/Addresses")}
         />
+         <MenuItem
+          title="My Wishlist"
+          icon="favorite"
+          onPress={() => router.push("../components/wishlist")}
+        />
         <MenuItem
           title="My Restaurant"
           icon="store"
