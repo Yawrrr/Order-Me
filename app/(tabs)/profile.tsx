@@ -39,7 +39,9 @@ const Profile = () => {
   const viewAddresses = () => {
     router.push("../components/Addresses");
   };
-
+  const viewHistory = () => {
+    router.push("../components/OrderHistory");
+  };
   const username = user?.username ? user?.username : user?.email;
   const email = user?.email;
   const profileImage = user?.profileImage;
@@ -78,6 +80,9 @@ const Profile = () => {
       <Options receiveFunction={navigateToVendor} title="Change to Vendor" />
       <Breakline />
       <Options receiveFunction={handleLogout} title="Logout" />
+      <Breakline />
+      <Options receiveFunction={viewHistory} title="Order history" />
+      <Breakline />
     </SafeAreaView>
   );
 };

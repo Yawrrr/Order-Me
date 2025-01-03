@@ -36,37 +36,6 @@ const Wishlist = () => {
     loadWishlist();
   }, []);
 
-  const handleWishlistToggle = async (item: ListingType) => {
-    const user = getAuth().currentUser;
-    if (!user) {
-      console.error("User is not authenticated");
-      return;
-    }
-    const currentWishlist = await getWishlist();
-  
-    let updatedWishlist = [...currentWishlist];  
-    
-    const isAlreadyInWishlist = updatedWishlist.some(
-      (wishlistItem) => wishlistItem.id === item.id
-    );
-  
-    if (isAlreadyInWishlist) {
-      updatedWishlist = updatedWishlist.filter(
-        (wishlistItem) => wishlistItem.id !== item.id
-      );
-      Alert.alert(
-        "Removed",
-        `${item.name} has been removed from your wishlist.`
-      );
-    } else {
-      updatedWishlist.push(item);  
-      Alert.alert("Added", `${item.name} has been added to your wishlist.`);
-    }
-  
-    await saveWishlist(updatedWishlist); 
-    setWishlist(updatedWishlist);  
-  };
-
   const handleRestaurantPress = (restaurantName: string) => {
     router.push({
       pathname: "/components/RestaurantMenuScreen",
@@ -127,6 +96,7 @@ const Wishlist = () => {
           renderItem={renderItems}
           keyExtractor={(item) => item.id.toString()}
           showsVerticalScrollIndicator={false}
+          numColumns={1}  
         />
       )}
     </View>
@@ -159,21 +129,23 @@ const styles = StyleSheet.create({
     backgroundColor: "white",
     borderRadius: 10,
     marginBottom: 20,
-    width: 220,
+    width: "85%", 
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 3,
     elevation: 2,
     position: "relative",
-    margin: 20,
+    margin: 5,
     padding: 10, 
+    alignSelf: 'center',
+    paddingLeft:5
   },
   image: {
-    width: 200,
-    height: 200,
+    width: "100%",  
+    height: 150,
     borderRadius: 10,
-    marginBottom: 30,
+    marginBottom: 20,
   },
   itemTxt: {
     fontSize: 16,
