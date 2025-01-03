@@ -118,8 +118,10 @@ const SearchScreen = () => {
       ) : (
         inputQuery.trim() && (
           <View style={styles.noResultContainer}>
-            <Text style={styles.noResultText}>No restaurants found.</Text>
-          </View>
+          {/* Add an icon and text */}
+          <MaterialIcons name="search-off" size={40} color="gray" />
+          <Text style={styles.noResultText}>No restaurants found.</Text>
+        </View>
         )
       )}
     </View>
@@ -153,11 +155,15 @@ const styles = StyleSheet.create({
   listContainer: { paddingBottom: 10 },
   loader: { marginTop: 20 },
   noResultContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
+    flexDirection: "column", // Ensure that the icon and text are vertically aligned
+    alignItems: "center", // Center the content horizontally
+    justifyContent: "center", // Center the content vertically
+    marginTop: 20, // Space above the no result container
   },
-  noResultText: { fontSize: 16, color: "#888" },
+  noResultText: {
+    fontSize: 18,
+    color: "gray",
+    marginTop: 10, 
+  },
 });
-
 export default SearchScreen;
