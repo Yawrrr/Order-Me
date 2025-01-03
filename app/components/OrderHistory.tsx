@@ -23,7 +23,7 @@ type OrderItem = {
     imageUrl: string;
     price: number;
     totalPrice: number;
-    restaurantName: string;
+    restaurantName: string;  // Ensure this field is properly populated
   }>;
   totalPrice: number;
   status: string;
@@ -164,6 +164,7 @@ export default function Orders() {
       Alert.alert("Error", "Failed to add some items to cart. Please try again.");
     }
   };
+
   const toggleOrderExpansion = (orderId: string) => {
     setExpandedOrder(expandedOrder === orderId ? null : orderId);
   };
@@ -176,6 +177,7 @@ export default function Orders() {
       minute: '2-digit',
     });
   };
+
   const groupedOrders = orders.reduce((acc, order) => {
     if (!acc[order.status]) acc[order.status] = [];
     acc[order.status].push(order);
@@ -204,7 +206,6 @@ export default function Orders() {
                 <View style={styles.orderHeader}>
                   <View style={styles.orderBasicInfo}>
                     <Text style={styles.orderDate}>{formatDate(order.timestamp)}</Text>
-                   
                   </View>
                   <Text style={styles.orderAmount}>RM {order.totalPrice.toFixed(2)}</Text>
                 </View>
@@ -242,13 +243,11 @@ export default function Orders() {
                     </View>
 
                     <TouchableOpacity
-      style={styles.receivedButton}
-      onPress={() => {
-        router.push("../components/Feedback");
-      }}
-    >
-      <Text style={styles.receivedButtonText}>Order Received</Text>
-    </TouchableOpacity>
+                      style={styles.receivedButton}
+                      onPress={() => router.push("../components/Feedback")}
+                    >
+                      <Text style={styles.receivedButtonText}>Order Received</Text>
+                    </TouchableOpacity>
 
                     <TouchableOpacity
                       style={styles.buyAgainButton}
@@ -406,5 +405,4 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  
 });
