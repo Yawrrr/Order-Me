@@ -65,7 +65,7 @@ const SearchScreen = () => {
   const handleRestaurantPress = (restaurantName: string) => {
     router.push({
       pathname: "/components/RestaurantMenuScreen",
-      params: { name: restaurantName }
+      params: { name: restaurantName },
     });
   };
 
@@ -117,14 +117,10 @@ const SearchScreen = () => {
       ) : (
         inputQuery.trim() && (
           <View style={styles.noResultContainer}>
-          {/* Add an icon and text */}
-          <MaterialIcons name="search-off" size={40} color="gray" />
-          <Text style={styles.noResultText}>No restaurants found.</Text>
-        </View>
-          {/* Add an icon and text */}
-          <MaterialIcons name="search-off" size={40} color="gray" />
-          <Text style={styles.noResultText}>No restaurants found.</Text>
-        </View>
+            {/* Add an icon and text */}
+            <MaterialIcons name="search-off" size={40} color="gray" />
+            <Text style={styles.noResultText}>No restaurants found.</Text>
+          </View>
         )
       )}
     </View>
@@ -158,20 +154,16 @@ const styles = StyleSheet.create({
   listContainer: { paddingBottom: 10 },
   loader: { marginTop: 20 },
   noResultContainer: {
-    flexDirection: "column",  
-    alignItems: "center", 
-    justifyContent: "center", 
+    flexDirection: "column",
+    alignItems: "center",
+    justifyContent: "center",
     marginTop: 20,
   },
   noResultText: {
     fontSize: 18,
     color: "gray",
-    marginTop: 10, 
-  },
-  noResultText: {
-    fontSize: 18,
-    color: "gray",
-    marginTop: 10, 
+    marginTop: 10,
   },
 });
+
 export default SearchScreen;
