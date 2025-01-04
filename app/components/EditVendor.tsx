@@ -237,7 +237,7 @@ const EditDetails: React.FC = () => {
               style={styles.picker}
             >
               <Picker.Item label="Mix Rice" value="Mix Rice" />
-              <Picker.Item label="Indian Food" value="Indian Food" />
+              <Picker.Item label="Dessert" value="Dessert" />
               <Picker.Item label="Western Food" value="Western Food" />
               <Picker.Item label="Vegetarian" value="Vegetarian" />
               <Picker.Item label="Others" value="Others" />
