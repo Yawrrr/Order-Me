@@ -24,7 +24,6 @@ const OrderDetails = () => {
 
   const fetchOrderStatus = async () => {
 
-    console.log(orderItem);
     if (!orderItem?.orderId) return;
 
     try {
