@@ -236,7 +236,7 @@ const OrderDetails = () => {
                   <Ionicons
                     name={
                       orderStatus === "Preparing" ||
-                      orderStatus === "Out of delivery" ||
+                      orderStatus === "Out for delivery" ||
                       orderStatus === "Delivered"
                         ? "checkmark-circle"
                         : "ellipse-outline"
@@ -244,38 +244,38 @@ const OrderDetails = () => {
                     size={18}
                     color={
                       orderStatus === "Preparing" ||
-                      orderStatus === "Out of delivery" ||
+                      orderStatus === "Out for delivery" ||
                       orderStatus === "Delivered"
                         ? "orange"
                         : "#555"
                     }
                   />
                   <Text
-                    style={[styles.status, orderStatus === "Preparing" || orderStatus === "Out of delivery" || orderStatus === "Delivered" ? styles.statusActive : {}]}
+                    style={[styles.status, orderStatus === "Preparing" || orderStatus === "Out for delivery" || orderStatus === "Delivered" ? styles.statusActive : {}]}
                   >
                     Preparing Food
                   </Text>
                 </View>
 
-                {/* Out of delivery */}
+                {/* Out for delivery */}
                 <View style={styles.statusRow}>
                   <Ionicons
                     name={
-                      orderStatus === "Out of delivery" || orderStatus === "Delivered"
+                      orderStatus === "Out for delivery" || orderStatus === "Delivered"
                         ? "checkmark-circle"
                         : "ellipse-outline"
                     }
                     size={18}
                     color={
-                      orderStatus === "Out of delivery" || orderStatus === "Delivered"
+                      orderStatus === "Out for delivery" || orderStatus === "Delivered"
                         ? "orange"
                         : "#555"
                     }
                   />
                   <Text
-                    style={[styles.status, orderStatus === "Out of delivery" || orderStatus === "Delivered" ? styles.statusActive : {}]}
+                    style={[styles.status, orderStatus === "Out for delivery" || orderStatus === "Delivered" ? styles.statusActive : {}]}
                   >
-                    Out of delivery
+                    Out for delivery
                   </Text>
                 </View>
 

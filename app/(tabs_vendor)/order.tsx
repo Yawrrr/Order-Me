@@ -169,7 +169,7 @@ const Order = () => {
       if (currentStatus === "Pending") {
         newStatus = "Preparing";
       } else if (currentStatus === "Preparing") {
-        newStatus = "Out of delivery";
+        newStatus = "Out for delivery";
       }
 
       await updateDoc(orderDocRef, { status: newStatus }); // Update Firestore
@@ -286,7 +286,7 @@ const Order = () => {
                               ? styles.pendingStatus
                               : order.orderStatus === "Preparing"
                               ? styles.preparingStatus
-                              : order.orderStatus === "Out of delivery"
+                              : order.orderStatus === "Out for delivery"
                               ? styles.outForDeliveryStatus
                               : styles.deliveredStatus,
                           ]}
