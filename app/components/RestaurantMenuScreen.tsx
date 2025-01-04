@@ -108,6 +108,8 @@ const RestaurantMenuScreen = () => {
         }
       });
 
+      const itemsToAdd = menuItems.filter(item => quantities[item.id] > 0).length;
+
       if (differentRestaurantInCart) {
         Alert.alert(
           "Adding this item will clear your cart. Add anyway?",
@@ -126,7 +128,7 @@ const RestaurantMenuScreen = () => {
                 await addItemsToCart(userEmail);
                 Alert.alert(
                   "Cart Updated",
-                  `${menuItems.length} item(s) added to your cart.`
+                  `${itemsToAdd} item(s) added to your cart.`
                 );
               },
             },
@@ -136,7 +138,7 @@ const RestaurantMenuScreen = () => {
         await addItemsToCart(userEmail);
         Alert.alert(
           "Cart Updated",
-          `${menuItems.length} item(s) added to your cart.`
+          `${itemsToAdd} item(s) added to your cart.`
         );
       }
     } catch (error) {

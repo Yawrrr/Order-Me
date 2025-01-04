@@ -52,7 +52,7 @@ const Profile = () => {
 
   return (
     
-    <SafeAreaView style={{ flex: 1 }}>
+    <SafeAreaView style={{ flex: 1, paddingBottom: 68 }}>
       <PaperProvider> 
       <ScrollView
         contentContainerStyle={{ padding: 25, paddingTop: 15 }}
