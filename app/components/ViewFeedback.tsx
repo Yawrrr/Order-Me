@@ -41,6 +41,7 @@ export default function ViewFeedback() {
   const [loading, setLoading] = useState(true);
   const { user } = useAuth();
   const navigation = useNavigation();
+  const defaultProfile = require("../../assets/images/defaultProfile.png")
   const fetchUserProfiles = async (emails: string[]) => {
     const userRef = collection(FIREBASE_DB, "users");
     const uniqueEmails = [...new Set(emails)];
@@ -127,13 +128,16 @@ export default function ViewFeedback() {
       <View style={[styles.listTile, { width }]}>
         <View style={styles.listTileContent}>
           <Image 
-            source={{ uri: userProfiles[item.email] || "https://via.placeholder.com/40" }}
+            source={userProfiles[item.email] 
+              ? { uri: userProfiles[item.email] } 
+              : defaultProfile}
             style={styles.userImage} 
+
           />
           <View style={styles.textContent}>
             <View style={styles.topRow}>
               <Text style={styles.userName}>
-                {item.showName ? item.email.split('@')[0] : 'Anonymous'}
+                {item.email}
               </Text>
               <Text style={styles.reviewDate}>{formatDate(item.timestamp)}</Text>
             </View>

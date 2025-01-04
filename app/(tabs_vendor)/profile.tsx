@@ -5,6 +5,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { useAuth } from "@/context/AuthContext";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import { Menu, PaperProvider } from 'react-native-paper'; 
+import RestaurantStatusToggle from '../components/RestaurantStatusToggle';
 
 const Profile = () => {
   const { logout, user } = useAuth();
@@ -104,7 +105,7 @@ const Profile = () => {
           />
           <Text className="mt-4" style={styles.infoText}>{username}</Text>
         </View>
-
+        <RestaurantStatusToggle restaurantName={restaurantName} />    
         <View style={styles.infoContainer}>
           <Text style={styles.label}>Email</Text>
           <Text style={styles.infoText}>{email}</Text>

@@ -30,6 +30,7 @@ type OrderItem = {
   timestamp: Date;
   address: string;
   receiptImage: string;
+  remark: string;
 };
 
 export default function Orders() {
@@ -46,7 +47,8 @@ export default function Orders() {
     const ordersRef = collection(FIREBASE_DB, 'orders');
     const orderQuery = query(
       ordersRef,
-      where('email', '==', userEmail),
+      where('user', '==', userEmail),
+      where('status', '==', 'Delivered'),
       orderBy('timestamp', 'desc')
     );
 
@@ -221,6 +223,7 @@ export default function Orders() {
                       <Text style={styles.orderDate}>{formatDate(order.timestamp)}</Text>
                     </View>
                     <Text style={styles.orderAmount}>RM {order.totalPrice.toFixed(2)}</Text>
+                   
                   </View>
 
                   {expandedOrder === order.id && (
@@ -236,6 +239,9 @@ export default function Orders() {
                               <Text style={styles.itemName}>{item.name}</Text>
                               <Text style={styles.itemQuantity}>Quantity: {item.quantity}</Text>
                               <Text style={styles.itemPrice}>RM {item.totalPrice.toFixed(2)}</Text>
+                              {order.remark && (
+                      <Text style={styles.itemQuantity}>Remarks: {order.remark} </Text>
+                    )}
                             </View>
                           </View>
                         ))}
