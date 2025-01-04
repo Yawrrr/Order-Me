@@ -16,6 +16,7 @@ import { useAuth } from "@/context/AuthContext";
 
 interface Order {
   id: string;
+  restaurantName: string;
   address: string;
   status: string | string[];
   items: { name: string; quantity: number; price: number; imageUrl: string }[];
@@ -87,6 +88,9 @@ const Status: React.FC = () => {
               >
                 <Text style={styles.orderCardText}>
                   Order ID: {order.id}
+                </Text>
+                <Text style={styles.orderCardText}>
+                  Restaurant: {order.restaurantName}
                 </Text>
                 <Text style={styles.orderCardText}>
                   Address: {order.address}
