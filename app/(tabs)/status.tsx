@@ -294,10 +294,11 @@ const styles = StyleSheet.create({
     color: "#FF8C00",
   },
   map: {
-    height: 200,
+    height: 200, // Adjust based on your layout
     borderRadius: 8,
     marginTop: 16,
-  },
+    marginBottom: 50, // Creates space to avoid overlap with the menu tab
+  },  
   proveImage: {
     width: "100%",
     height: 200,
