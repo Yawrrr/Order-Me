@@ -271,14 +271,13 @@ export default function Cart() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 20,
+    // padding: 20,
     backgroundColor: "#fff",
-    paddingBottom: Platform.OS === 'android' ? 88 : 60,
   },
   header: {
     alignItems: "flex-start",
     justifyContent: "center",
-    marginBottom: 10,
+    padding: 20,
   },
   title: {
     fontFamily: "Poppins-Bold",
@@ -289,7 +288,7 @@ const styles = StyleSheet.create({
   cartItem: {
     flexDirection: "row",
     alignItems: "center",
-    padding: 10,
+    padding: 20,
     borderBottomWidth: 1,
     borderColor: "#ddd",
   },
@@ -331,17 +330,18 @@ const styles = StyleSheet.create({
     fontFamily: "Poppins-Bold",
     fontSize: 16,
     color: "gray",
-    paddingLeft: 10,
-    marginBottom: -12,
+    marginBottom: -20,
   },
   footer: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
     padding: 10,
+    paddingHorizontal: 20,
     borderTopWidth: 1,
     borderColor: "#ddd",
     backgroundColor: "#f9f9f9",
+    paddingBottom: Platform.OS === 'android' ? 86 : 60,
   },
   totalPrice: {
     fontSize: 18,
