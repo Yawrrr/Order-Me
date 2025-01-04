@@ -4,11 +4,12 @@ import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { router, useLocalSearchParams } from "expo-router";
 import Ionicons from "@expo/vector-icons/Ionicons";
-import { doc, getDoc, updateDoc, query, where, getDocs } from "firebase/firestore";
+import { doc, getDoc, updateDoc, query, where, getDocs,Timestamp } from "firebase/firestore";
 import { ordersRef } from "@/FirebaseConfig";
 import * as ImagePicker from "expo-image-picker";
 import * as FileSystem from "expo-file-system";
 import * as ImageManipulator from "expo-image-manipulator";
+import { format } from 'date-fns';
 
 const OrderDetails = () => {
   const params = useLocalSearchParams();
@@ -22,6 +23,7 @@ const OrderDetails = () => {
   const [cancelStatus, setCancelStatus] = useState<string>("");
 
   const fetchOrderStatus = async () => {
+
     if (!orderItem?.orderId) return;
 
     try {
@@ -32,9 +34,35 @@ const OrderDetails = () => {
         const data = orderDoc.data();
         setOrderStatus(data.status || "Pending");
         setOrderImage(data.proveImg || null);
+        orderItem.timestamp = data.timestamp;
       }
     } catch (error) {
       console.error("Error fetching order status:", error);
+    }
+  };
+
+  const formatDate = (timestamp: any): string => {
+    try {
+      if (!timestamp) return "N/A";
+
+      let date: Date;
+
+      // If timestamp is in Firestore Timestamp format (has seconds and nanoseconds)
+      if (timestamp.seconds && timestamp.nanoseconds) {
+        date = new Date(timestamp.seconds * 1000 + timestamp.nanoseconds / 1e6);
+      } else if (timestamp instanceof Date) {
+        date = timestamp; // Already a JavaScript Date object
+      } else if (typeof timestamp === "string") {
+        date = new Date(timestamp); // Parse ISO date string
+      } else {
+        throw new Error("Unsupported timestamp format");
+      }
+
+      // Format the date using date-fns
+      return format(date, "MMM d, yyyy h:mm:ss a");
+    } catch (error) {
+      console.error("Error formatting date:", error);
+      return "Invalid Date";
     }
   };
 
@@ -196,7 +224,7 @@ const OrderDetails = () => {
             <View style={styles.card}>
               <Text style={styles.username}>{orderItem.username}</Text>
               <Text style={styles.details}>Address: {orderItem.address}</Text>
-              <Text style={styles.details}>Date: {orderItem.date || "N/A"}</Text>
+              <Text style={styles.details}>Date: {orderItem.timestamp ? formatDate(orderItem.timestamp) : "N/A"}</Text>
               <Text style={styles.details}>Order ID: {orderItem.orderId || "N/A"}</Text>
 
               <View style={styles.statusContainer}>
@@ -207,7 +235,7 @@ const OrderDetails = () => {
                   <Ionicons
                     name={
                       orderStatus === "Preparing" ||
-                      orderStatus === "Out of delivery" ||
+                      orderStatus === "Out for delivery" ||
                       orderStatus === "Delivered"
                         ? "checkmark-circle"
                         : "ellipse-outline"
@@ -215,38 +243,38 @@ const OrderDetails = () => {
                     size={18}
                     color={
                       orderStatus === "Preparing" ||
-                      orderStatus === "Out of delivery" ||
+                      orderStatus === "Out for delivery" ||
                       orderStatus === "Delivered"
                         ? "orange"
                         : "#555"
                     }
                   />
                   <Text
-                    style={[styles.status, orderStatus === "Preparing" || orderStatus === "Out of delivery" || orderStatus === "Delivered" ? styles.statusActive : {}]}
+                    style={[styles.status, orderStatus === "Preparing" || orderStatus === "Out for delivery" || orderStatus === "Delivered" ? styles.statusActive : {}]}
                   >
                     Preparing Food
                   </Text>
                 </View>
 
-                {/* Out of delivery */}
+                {/* Out for delivery */}
                 <View style={styles.statusRow}>
                   <Ionicons
                     name={
-                      orderStatus === "Out of delivery" || orderStatus === "Delivered"
+                      orderStatus === "Out for delivery" || orderStatus === "Delivered"
                         ? "checkmark-circle"
                         : "ellipse-outline"
                     }
                     size={18}
                     color={
-                      orderStatus === "Out of delivery" || orderStatus === "Delivered"
+                      orderStatus === "Out for delivery" || orderStatus === "Delivered"
                         ? "orange"
                         : "#555"
                     }
                   />
                   <Text
-                    style={[styles.status, orderStatus === "Out of delivery" || orderStatus === "Delivered" ? styles.statusActive : {}]}
+                    style={[styles.status, orderStatus === "Out for delivery" || orderStatus === "Delivered" ? styles.statusActive : {}]}
                   >
-                    Out of delivery
+                    Out for delivery
                   </Text>
                 </View>
 

@@ -31,6 +31,7 @@ import {
   ScrollView,
   TouchableWithoutFeedback,
 } from "react-native-gesture-handler";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 interface Item {
   id: string;
@@ -225,7 +226,7 @@ const MenuScreen = () => {
 
   return (
     <GestureHandlerRootView>
-      <View style={styles.container}>
+      <SafeAreaView style={styles.container}>
         <Text style={styles.header}>Menu</Text>
         {editingItem ? (
           <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
@@ -313,7 +314,7 @@ const MenuScreen = () => {
             )}
           />
         )}
-      </View>
+      </SafeAreaView>
     </GestureHandlerRootView>
   );
 };
@@ -326,15 +327,16 @@ const styles = StyleSheet.create({
   },
   container: {
     flex: 1,
-    padding: 16,
+    padding: 20,
     backgroundColor: "#fff",
   },
   header: {
+    fontFamily: "Poppins-Bold",
     fontSize: 30,
     fontWeight: "bold",
     color: "#FFA500",
-    textAlign: "center",
-    marginVertical: 20,
+    textAlign: "left",
+    marginBottom: 20,
   },
   editForm: {
     marginBottom: 16,

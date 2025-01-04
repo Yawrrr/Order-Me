@@ -46,16 +46,6 @@ const Home = () => {
           <View style={styles.content}>
             <View style={styles.title}>
               <Text style={styles.heading}>Order Me</Text>
-              <TouchableOpacity
-                onPress={() => router.push("/components/wishlist")}
-              >
-                <Ionicons
-                  name="heart"
-                  size={30}
-                  color="red"
-                  style={styles.testImage}
-                />
-              </TouchableOpacity>
             </View>
             <TouchableOpacity onPress={() => router.push("/components/search")}>
             <View style={styles.searchWrapper}>
@@ -93,6 +83,7 @@ export default Home;
 
 const styles = StyleSheet.create({
   container: {
+    fontFamily: "Poppins-Bold",
     flex: 1,
     backgroundColor: "#f0f0f0",
   },
