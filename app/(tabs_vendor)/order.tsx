@@ -14,7 +14,15 @@ import {
   TextInput,
   TouchableWithoutFeedback,
 } from "react-native-gesture-handler";
-import { onSnapshot, getDocs, query, where, doc, updateDoc, Timestamp } from "firebase/firestore";
+import {
+  onSnapshot,
+  getDocs,
+  query,
+  where,
+  doc,
+  updateDoc,
+  Timestamp,
+} from "firebase/firestore";
 import { ordersRef } from "@/FirebaseConfig";
 import { router } from "expo-router";
 import { Picker } from "@react-native-picker/picker";
@@ -36,7 +44,7 @@ export interface OrderItem {
   orderStatus: string;
   address: string;
   remark: string;
-  proveImg:string;
+  proveImg: string;
 }
 
 interface Order {
@@ -145,42 +153,44 @@ const Order = () => {
   };
   const [isUpdating, setIsUpdating] = useState(false);
 
+  useEffect(() => {
+    handleSortAndFilter();
+  }, [selectedStatus, selectedAddress, selectedMealType]);
+
   // Inside your `handleStatusUpdate` function, consider adding the Cancelled status if you plan to update it from another part of the app.
-const handleStatusUpdate = async (orderId: string, currentStatus: string) => {
-  if (currentStatus === "Cancelled") return; // Prevent updating a cancelled order
+  const handleStatusUpdate = async (orderId: string, currentStatus: string) => {
+    if (currentStatus === "Cancelled") return; // Prevent updating a cancelled order
 
-  setIsUpdating(true); // Prevent multiple clicks
-  try {
-    const orderDocRef = doc(ordersRef, orderId); // Reference to the specific order
-    let newStatus = "";
+    setIsUpdating(true); // Prevent multiple clicks
+    try {
+      const orderDocRef = doc(ordersRef, orderId); // Reference to the specific order
+      let newStatus = "";
 
-    if (currentStatus === "Pending") {
-      newStatus = "Preparing";
-    } else if (currentStatus === "Preparing") {
-      newStatus = "Out of delivery";
+      if (currentStatus === "Pending") {
+        newStatus = "Preparing";
+      } else if (currentStatus === "Preparing") {
+        newStatus = "Out of delivery";
+      }
+
+      await updateDoc(orderDocRef, { status: newStatus }); // Update Firestore
+
+      // Update local state for real-time UI feedback
+      setOrderItems((prevItems) =>
+        prevItems.map((item) =>
+          item.orderId === orderId ? { ...item, orderStatus: newStatus } : item
+        )
+      );
+      setFilteredOrders((prevFiltered) =>
+        prevFiltered.map((item) =>
+          item.orderId === orderId ? { ...item, orderStatus: newStatus } : item
+        )
+      );
+    } catch (error) {
+      console.error("Failed to update status:", error);
+    } finally {
+      setIsUpdating(false); // Allow further interactions
     }
-
-    await updateDoc(orderDocRef, { status: newStatus }); // Update Firestore
-
-    // Update local state for real-time UI feedback
-    setOrderItems((prevItems) =>
-      prevItems.map((item) =>
-        item.orderId === orderId ? { ...item, orderStatus: newStatus } : item
-      )
-    );
-    setFilteredOrders((prevFiltered) =>
-      prevFiltered.map((item) =>
-        item.orderId === orderId ? { ...item, orderStatus: newStatus } : item
-      )
-    );
-  } catch (error) {
-    console.error("Failed to update status:", error);
-  } finally {
-    setIsUpdating(false); // Allow further interactions
-  }
-};
-
-
+  };
 
   return (
     <GestureHandlerRootView style={styles.outerContainer}>
@@ -207,17 +217,14 @@ const handleStatusUpdate = async (orderId: string, currentStatus: string) => {
               >
                 <Picker.Item label="Status" value="All" />
                 <Picker.Item label="Preparing" value="Preparing" />
-                <Picker.Item label="Out of delivery" value="Out of delivery" />
+                <Picker.Item label="Out for delivery" value="Out for delivery" />
                 <Picker.Item label="Delivered" value="Delivered" />
               </Picker>
 
               {/* Address Dropdown */}
               <Picker
                 selectedValue={selectedAddress}
-                onValueChange={(value) => {
-                  setSelectedAddress(value);
-                  handleSortAndFilter();
-                }}
+                onValueChange={setSelectedAddress}
                 style={styles.filterPicker}
               >
                 <Picker.Item label="Addresses" value="All" />
@@ -228,13 +235,9 @@ const handleStatusUpdate = async (orderId: string, currentStatus: string) => {
                 ))}
               </Picker>
 
-              {/* Meal Type Dropdown */}
               <Picker
                 selectedValue={selectedMealType}
-                onValueChange={(value) => {
-                  setSelectedMealType(value);
-                  handleSortAndFilter();
-                }}
+                onValueChange={setSelectedMealType}
                 style={styles.filterPicker}
               >
                 <Picker.Item label="Meal Types" value="All" />
@@ -245,7 +248,7 @@ const handleStatusUpdate = async (orderId: string, currentStatus: string) => {
                 )}
               </Picker>
             </View>
-            <ScrollView>
+            <ScrollView style={{ height: "72%" }}>
               <View>
                 {filteredOrders.map((order) => (
                   <TouchableOpacity
@@ -264,9 +267,13 @@ const handleStatusUpdate = async (orderId: string, currentStatus: string) => {
                       <Text style={styles.username}>{order.username}</Text>
                       <TouchableOpacity
                         onPress={() =>
-                          (order.orderStatus === "Pending" || order.orderStatus === "Preparing") &&
+                          (order.orderStatus === "Pending" ||
+                            order.orderStatus === "Preparing") &&
                           !isUpdating
-                            ? handleStatusUpdate(order.orderId, order.orderStatus)
+                            ? handleStatusUpdate(
+                                order.orderId,
+                                order.orderStatus
+                              )
                             : null
                         }
                       >
@@ -287,7 +294,6 @@ const handleStatusUpdate = async (orderId: string, currentStatus: string) => {
                           {order.orderStatus}
                         </Text>
                       </TouchableOpacity>
-
                     </View>
                     <Text style={styles.address}>{order.address}</Text>
                     <Text style={styles.itemName}>{order.name}</Text>
@@ -370,23 +376,26 @@ const styles = StyleSheet.create({
     textAlign: "center",
     fontWeight: "bold",
   },
-  cancelStatus: { 
-    backgroundColor: "#FFE2E2", 
-    color: "#E14949" 
+  cancelStatus: {
+    backgroundColor: "#FFE2E2",
+    color: "#E14949",
   },
-  pendingStatus: { 
-    backgroundColor: "#FFE0F1", 
-    color: "#DA1C92" 
+  pendingStatus: {
+    backgroundColor: "#FFE0F1",
+    color: "#DA1C92",
   },
-  preparingStatus: { //purple
+  preparingStatus: {
+    //purple
     backgroundColor: "#EAE1FB",
     color: "#8A2BE2",
   },
-  outForDeliveryStatus: { //blue
+  outForDeliveryStatus: {
+    //blue
     backgroundColor: "#E3F2FD",
     color: "#2196F3",
   },
-  deliveredStatus: { //green
+  deliveredStatus: {
+    //green
     backgroundColor: "#E8F5E9",
     color: "#4CAF50",
   },
@@ -424,7 +433,7 @@ const styles = StyleSheet.create({
     height: 50,
     backgroundColor: "#f5f5f5",
     borderRadius: 10,
-    fontSize: 12
+    fontSize: 12,
   },
   orderCardText: {
     fontSize: 14,
