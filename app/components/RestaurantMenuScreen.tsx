@@ -5,6 +5,7 @@ import { collection, getDocs, query, where, deleteDoc, setDoc, doc, updateDoc } 
 import { getAuth } from "firebase/auth";
 import { useLocalSearchParams } from "expo-router";
 import { useAuth } from "@/context/AuthContext";
+import { MaterialIcons } from "@expo/vector-icons";
 
 interface MenuItem {
   id: string;
@@ -162,12 +163,16 @@ const RestaurantMenuScreen = () => {
       }
     }
   };
-
   return (
     <View style={styles.container}>
       <Text style={styles.header}>{name} Menu</Text>
       {loading ? (
         <ActivityIndicator size="large" color="#0000ff" />
+      ) : menuItems.length === 0 ? (
+        <View style={styles.noMenuContainer}>
+          <MaterialIcons name="restaurant-menu" size={100} color="#ccc" />
+          <Text style={styles.noMenuText}>No menu available for this restaurant</Text>
+        </View>
       ) : (
         <FlatList
           data={menuItems}
@@ -193,9 +198,11 @@ const RestaurantMenuScreen = () => {
           )}
         />
       )}
-      <TouchableOpacity style={styles.addToCartButton} onPress={handleAddToCart}>
-        <Text style={styles.addToCartText}>Add To Cart</Text>
-      </TouchableOpacity>
+      {menuItems.length > 0 && (
+        <TouchableOpacity style={styles.addToCartButton} onPress={handleAddToCart}>
+          <Text style={styles.addToCartText}>Add To Cart</Text>
+        </TouchableOpacity>
+      )}
     </View>
   );
 };
@@ -283,6 +290,17 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: "bold",
   },
+  noMenuText: {
+    fontSize: 18,
+    textAlign: "center",
+    marginTop: 20,
+    color: "#555",
+  },
+  noMenuContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+  }
 });
 
 export default RestaurantMenuScreen;

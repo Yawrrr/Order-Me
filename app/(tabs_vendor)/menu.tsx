@@ -31,6 +31,7 @@ import {
   ScrollView,
   TouchableWithoutFeedback,
 } from "react-native-gesture-handler";
+import { MaterialIcons } from "@expo/vector-icons";
 
 interface Item {
   id: string;
@@ -283,7 +284,11 @@ const MenuScreen = () => {
               />
             </View>
           </TouchableWithoutFeedback>
-        ) : (
+        ) :items.length === 0 ?(  <View style={styles.noMenuContainer}>
+          <MaterialIcons name="restaurant-menu" size={100} color="#ccc" />
+          <Text style={styles.noMenuText}>No menu available for this restaurant</Text>
+        </View>):
+         (
           <FlatList
             data={items}
             keyExtractor={(item) => item.id}
@@ -415,6 +420,17 @@ const styles = StyleSheet.create({
     marginVertical: 10,
     color: "#888",
   },
+    noMenuText: {
+    fontSize: 18,
+    textAlign: "center",
+    marginTop: 20,
+    color: "#555",
+  },
+  noMenuContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+  }
 });
 
 export default MenuScreen;
