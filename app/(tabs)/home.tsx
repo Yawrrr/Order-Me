@@ -83,6 +83,7 @@ export default Home;
 
 const styles = StyleSheet.create({
   container: {
+    fontFamily: "Poppins-Bold",
     flex: 1,
     backgroundColor: "#f0f0f0",
   },
