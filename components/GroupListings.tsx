@@ -29,15 +29,8 @@ const GroupListings = ({ listings }: { listings: GroupType[] }) => {
   };
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
-      <View style={{ marginVertical: 20 }}>
-        <Text style={styles.title}>Best Sellers</Text>
-        <FlatList
-          data={listings}
-          renderItem={renderItem}
-          horizontal
-          showsHorizontalScrollIndicator={false}
-        ></FlatList>
-      </View>
+
+     
     </GestureHandlerRootView>
   );
 };
