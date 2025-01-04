@@ -14,6 +14,7 @@ import { FIREBASE_DB } from "@/FirebaseConfig";
 import { collection, getDocs } from "firebase/firestore";
 import { router } from "expo-router";
 
+// Define the Restaurant type
 type Restaurant = {
   restaurantName: string;
   category: string;
@@ -65,7 +66,7 @@ const SearchScreen = () => {
   const handleRestaurantPress = (restaurantName: string) => {
     router.push({
       pathname: "/components/RestaurantMenuScreen",
-      params: { name: restaurantName },
+      params: { name: restaurantName }
     });
   };
 
@@ -117,8 +118,6 @@ const SearchScreen = () => {
       ) : (
         inputQuery.trim() && (
           <View style={styles.noResultContainer}>
-            {/* Add an icon and text */}
-            <MaterialIcons name="search-off" size={40} color="gray" />
             <Text style={styles.noResultText}>No restaurants found.</Text>
           </View>
         )
@@ -154,16 +153,11 @@ const styles = StyleSheet.create({
   listContainer: { paddingBottom: 10 },
   loader: { marginTop: 20 },
   noResultContainer: {
-    flexDirection: "column",
-    alignItems: "center",
+    flex: 1,
     justifyContent: "center",
-    marginTop: 20,
+    alignItems: "center",
   },
-  noResultText: {
-    fontSize: 18,
-    color: "gray",
-    marginTop: 10,
-  },
+  noResultText: { fontSize: 16, color: "#888" },
 });
 
 export default SearchScreen;

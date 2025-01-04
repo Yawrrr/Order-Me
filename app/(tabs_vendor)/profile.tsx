@@ -10,6 +10,8 @@ const Profile = () => {
   const { logout, user } = useAuth();
   const [paymentImage, setPaymentImage] = useState<string | null>(null);
   const [visible, setVisible] = useState(false);
+
+  // Fetch payment image (if not included in user data)
   useEffect(() => {
     const fetchPaymentImage = async () => {
       if (user?.paymentImage) {
@@ -60,36 +62,23 @@ const Profile = () => {
         <View style={styles.header}>
           <Text style={styles.title}>Profile</Text>
           <View style={styles.headerActions}>
-          <Menu
-      visible={visible}
-      onDismiss={handleMenuVisibility}
-      anchor={
-        <MaterialIcons
-          name="more-vert"
-          size={30}
-          color="black"
-          onPress={handleMenuVisibility}
-        />
-      }
-      style={styles.menu}
-    >
-      <Menu.Item
-        onPress={navigateToCustomer}
-        title="Switch to Customer"
-        leadingIcon={() => <MaterialIcons name="person" size={20} color="black" />} 
-      />
-      <Menu.Item
-        onPress={viewFeedbacks}
-        title="View Customer Feedbacks"
-        leadingIcon={() => <MaterialIcons name="feedback" size={20} color="black" />}
-      />
-      <View style={styles.menuDivider} />
-      <Menu.Item
-        onPress={handleLogout}
-        title="Logout"
-        leadingIcon={() => <MaterialIcons name="exit-to-app" size={20} color="black" />} 
-      />
-    </Menu>
+            <Menu
+              visible={visible}
+              onDismiss={handleMenuVisibility}
+              anchor={
+                <MaterialIcons
+                  name="more-vert"
+                  size={30}
+                  color="black"
+                  onPress={handleMenuVisibility}
+                />
+              }
+            >
+              <Menu.Item onPress={navigateToCustomer} title="Switch to Customer" />
+              <Menu.Item onPress={viewFeedbacks} title="View Customer Feedbacks" />
+              <View style={styles.menuDivider} />
+              <Menu.Item onPress={handleLogout} title="Logout" />
+            </Menu>
           </View>
         </View>
 
@@ -235,11 +224,4 @@ const styles = StyleSheet.create({
     backgroundColor: '#ddd',
     marginVertical: 5,
   },
-  menu:{
-    borderRadius: 50, 
-    maxWidth: '65%', 
-    marginLeft:-10,
-    marginTop:40
- 
-  }
 });

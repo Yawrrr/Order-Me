@@ -3,33 +3,26 @@ import React from "react";
 import { router } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useAuth } from "@/context/AuthContext";
-import MaterialIcons from "@expo/vector-icons/MaterialIcons";
+import images from "@/constants/images";
+import MaterialIcons from "@expo/vector-icons/MaterialIcons"; // Import FontAwesome for the vendor icon
 
-const MenuItem = ({
-  onPress,
+const Breakline = () => {
+  return <View style={styles.breakline}></View>;
+};
+
+const Options = ({
+  receiveFunction,
   title,
-  icon,
-  badge,
 }: {
-  onPress: () => void;
-  title: string;
-  icon: keyof typeof MaterialIcons.glyphMap;
-  badge?: string;
-}) => (
-  <TouchableOpacity onPress={onPress} style={styles.menuItem}>
-    <View style={styles.menuItemLeft}>
-      <MaterialIcons name={icon} size={24} color="#666" style={styles.menuIcon} />
-      <Text style={styles.menuText}>{title}</Text>
-    </View>
-    {badge ? (
-      <View style={styles.badge}>
-        <Text style={styles.badgeText}>{badge}</Text>
-      </View>
-    ) : (
-      <MaterialIcons name="chevron-right" size={24} color="#666" />
-    )}
-  </TouchableOpacity>
-);
+  receiveFunction: () => void;
+  title: String;
+}) => {
+  return (
+    <TouchableOpacity onPress={receiveFunction}>
+      <Text style={styles.label}>{title}</Text>
+    </TouchableOpacity>
+  );
+};
 
 const Profile = () => {
   const { logout, user } = useAuth();
@@ -39,13 +32,24 @@ const Profile = () => {
     router.replace("/sign-in");
   };
 
-  const username = user?.username || user?.email;
+  const navigateToVendor = () => {
+    router.push("/menu"); // Replace with the correct vendor-side route
+  };
+
+  const viewAddresses = () => {
+    router.push("../components/Addresses");
+  };
+  const viewHistory = () => {
+    router.push("../components/OrderHistory");
+  };
+  const username = user?.username ? user?.username : user?.email;
   const email = user?.email;
   const profileImage = user?.profileImage;
   const phoneNumber = user?.phoneNumber;
+  const address = user?.addresses?.find((addr) => addr.primary)?.address;
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={{ height: "100%", padding: 25, paddingTop: 15 }}>
       <View style={styles.header}>
         <Text style={styles.title}>Profile</Text>
       </View>
@@ -59,44 +63,26 @@ const Profile = () => {
             source={
               profileImage
                 ? { uri: profileImage }
-                : require("../../assets/images/defaultProfile.png")
+                : require("../../assets/images/defaultProfile.png") // Use a placeholder URL
             }
             style={styles.profileImage}
           />
         </View>
         <View style={styles.infoDetail}>
-          <Text style={styles.username}>{username}</Text>
+          <Text className="mt-4" style={styles.username}>
+            {username ? username : email}
+          </Text>
           <Text style={styles.userEmail}>{username ? email : phoneNumber}</Text>
         </View>
       </TouchableOpacity>
-
-      <View style={styles.menuContainer}>
-        <MenuItem
-          title="My Addresses"
-          icon="location-on"
-          onPress={() => router.push("../components/Addresses")}
-        />
-         <MenuItem
-          title="My Wishlist"
-          icon="favorite"
-          onPress={() => router.push("../components/wishlist")}
-        />
-        <MenuItem
-          title="My Restaurant"
-          icon="store"
-          onPress={() => router.push("/menu")}
-        />
-        <MenuItem
-          title="Order History"
-          icon="receipt-long"
-          onPress={() => router.push("../components/OrderHistory")}
-        />
-        <MenuItem
-          title="Logout"
-          icon="logout"
-          onPress={handleLogout}
-        />
-      </View>
+      <Options receiveFunction={viewAddresses} title="My Addresses" />
+      <Breakline />
+      <Options receiveFunction={navigateToVendor} title="Change to Vendor" />
+      <Breakline />
+      <Options receiveFunction={handleLogout} title="Logout" />
+      <Breakline />
+      <Options receiveFunction={viewHistory} title="Order history" />
+      <Breakline />
     </SafeAreaView>
   );
 };
@@ -104,94 +90,90 @@ const Profile = () => {
 export default Profile;
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#F7F7F7",
+  breakline: {
+    width: "100%",
+    backgroundColor: "#CCC",
+    height: 1.5,
+    marginVertical: 16,
   },
   header: {
-    padding: 20,
-    paddingTop: 15,
-  },
-  title: {
-    fontFamily: "Poppins-Bold",
-    fontSize: 32,
-    color: "#333",
-    letterSpacing: 1,
-  },
-  profileImageContainer: {
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  profileImage: {
-    width: 90,
-    height: 90,
-    borderRadius: 45,
-    marginRight: 24,
-  },
-  infoContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "#fff",
-    padding: 20,
-    marginHorizontal: 20,
-    borderRadius: 12,
-    marginBottom: 24,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 3,
-  },
-  infoDetail: {
-    flex: 1,
-  },
-  username: {
-    fontSize: 24,
-    fontWeight: "bold",
-    color: "#333",
-  },
-  userEmail: {
-    fontSize: 16,
-    color: "#777",
-  },
-  menuContainer: {
-    backgroundColor: "#fff",
-    borderRadius: 12,
-    marginHorizontal: 20,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 3,
-  },
-  menuItem: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    paddingVertical: 16,
-    paddingHorizontal: 20,
-    borderBottomWidth: 1,
-    borderBottomColor: "#f0f0f0",
   },
-  menuItemLeft: {
+  headerActions: {
     flexDirection: "row",
     alignItems: "center",
   },
-  menuIcon: {
-    marginRight: 16,
+  title: {
+    fontFamily: "Poppins-Bold",
+    fontSize: 30,
+    color: "orange",
   },
-  menuText: {
+  profileImageContainer: {
+    justifyContent: "center",
+  },
+  profileImage: {
+    width: 80,
+    height: 80,
+    borderRadius: 60,
+    borderWidth: 2,
+    borderColor: "#ddd",
+    marginRight: 24,
+  },
+  infoContainer: {
+    flex: 1,
+    flexDirection: "row",
+    width: "100%",
+    maxHeight: "16%",
+    backgroundColor: "#fff",
+    borderRadius: 16,
+    padding: 20,
+    marginBottom: 32,
+    marginTop: 8,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 5,
+  },
+  infoDetail: {
+    // backgroundColor: "red",
+    flex: 1,
+    justifyContent: "space-around",
+  },
+  label: {
+    fontSize: 16,
+    marginLeft: 16,
+    fontWeight: "500",
+  },
+  username: {
+    // backgroundColor: "blue",
+    fontSize: 28,
+    fontWeight: "bold",
+    color: "#333",
+    marginTop: 0,
+  },
+  userEmail: {
     fontSize: 16,
     color: "#333",
   },
-  badge: {
-    backgroundColor: "#FF4B4B",
-    paddingHorizontal: 8,
-    paddingVertical: 2,
-    borderRadius: 12,
+  editButton: {
+    paddingVertical: 10,
+    backgroundColor: "orange",
+    borderRadius: 15,
+    alignItems: "center",
+    marginTop: 8,
   },
-  badgeText: {
-    color: "#fff",
-    fontSize: 12,
+  editText: {
+    fontSize: 18,
+    color: "white",
+    fontWeight: "bold",
+  },
+  headerIcon: {
+    marginLeft: 15,
+  },
+  iconSpacing: {
+    marginRight: 20, // Space between the two icons
   },
 });

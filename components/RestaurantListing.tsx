@@ -1,38 +1,29 @@
 import { StyleSheet, View, Text, Image } from "react-native";
 import React, { useEffect, useState } from "react";
-import { FlatList, TouchableOpacity, Alert, ActivityIndicator } from "react-native";
+import {
+  FlatList,
+  TouchableOpacity,
+  Alert,
+  ActivityIndicator,
+} from "react-native";
 import { ListingType } from "@/type/listingType";
 import { saveWishlist, getWishlist } from "@/app/utility/storage";
 import { Ionicons, FontAwesome5 } from "@expo/vector-icons";
 import { colors } from "@/constants/colors";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { FIREBASE_DB } from "@/FirebaseConfig";
-import { collection, getDocs, query, where, Timestamp } from "firebase/firestore";
+import { collection, getDocs, query, where } from "firebase/firestore";
 import { router } from "expo-router";
 
-interface Props {
+type Props = {
   listings: ListingType[];
   category: string;
-}
+};
 
 const RestaurantListing = ({ listings, category }: Props) => {
   const [filteredListings, setFilteredListings] = useState<ListingType[]>(listings);
   const [wishlist, setWishlist] = useState<ListingType[]>([]);
   const [loading, setLoading] = useState(false);
-  const [restaurantRatings, setRestaurantRatings] = useState<Record<string, number>>({});
-
-  const fetchRatingsForRestaurant = async (restaurantName: string) => {
-    const feedbackRef = collection(FIREBASE_DB, "feedback");
-    const q = query(feedbackRef, where("restaurantName", "==", restaurantName));
-    const querySnapshot = await getDocs(q);
-    const reviews = querySnapshot.docs.map(doc => doc.data());
-    
-    if (reviews.length > 0) {
-      const totalRating = reviews.reduce((sum, review) => sum + (review.rating || 0), 0);
-      return parseFloat((totalRating / reviews.length).toFixed(1));
-    }
-    return 0;
-  };
 
   useEffect(() => {
     const loadWishlist = async () => {
@@ -54,31 +45,22 @@ const RestaurantListing = ({ listings, category }: Props) => {
         }
 
         const snapshot = await getDocs(q);
-        const restaurantsData = await Promise.all(
-          snapshot.docs.map(async (doc) => {
-            const data = doc.data();
-            const rating = await fetchRatingsForRestaurant(data.restaurantName);
-            
-            setRestaurantRatings(prev => ({
-              ...prev,
-              [data.restaurantName]: rating
-            }));
-
-            return {
-              id: doc.id,
-              name: data.restaurantName,
-              imageUrl: data.restaurantImage,
-              category: data.category,
-              location: data.restaurantAddress || "Unknown",
-              rating: rating,
-              cuisine: data.cuisine || "Unknown",
-              priceRange: data.priceRange || "Unknown",
-              isOpen: data.isOpen || false,
-              description: data.description || "No description available",
-              owner: data.owner,
-            };
-          })
-        );
+        const restaurantsData = snapshot.docs.map((doc) => {
+          const data = doc.data();
+          return {
+            id: doc.id,
+            name: data.restaurantName,
+            imageUrl: data.restaurantImage,
+            category: data.category,
+            location: data.location || "Unknown",
+            rating: data.rating || "No ratings",
+            cuisine: data.cuisine || "Unknown",
+            priceRange: data.priceRange || "Unknown",
+            isOpen: data.isOpen || false,
+            description: data.description || "No description available",
+            owner: data.owner,
+          };
+        });
 
         setFilteredListings(restaurantsData);
       } catch (error) {
@@ -113,22 +95,25 @@ const RestaurantListing = ({ listings, category }: Props) => {
     const isInWishlist = wishlist.some(
       (wishlistItem) => wishlistItem.id === item.id
     );
-
+  
     return (
       <GestureHandlerRootView style={{ flex: 1 }}>
         <TouchableOpacity
-          style={[styles.card, !item.isOpen && { opacity: 0.6 }]}
+          style={[
+            styles.card,
+            !item.isOpen && { opacity: 0.6 }, // Dim the card if closed
+          ]}
           onPress={() => {
             if (item.isOpen) {
               router.push({
                 pathname: "/components/RestaurantMenuScreen",
-                params: { name: item.name },
-              });
+                params: { name: item.name }, // Pass the restaurant name as a parameter
+              });// Allow interaction only if open
             } else {
               Alert.alert("Closed", `${item.name} is currently closed.`);
             }
           }}
-          disabled={!item.isOpen}
+          disabled={!item.isOpen} // Disable touch interaction for closed restaurants
         >
           <Image source={{ uri: item.imageUrl }} style={styles.restaurantImage} />
           <Text style={styles.itemTxt} numberOfLines={1}>
@@ -141,21 +126,22 @@ const RestaurantListing = ({ listings, category }: Props) => {
                 size={18}
                 color={colors.secondary[200]}
               />
-              <Text style={styles.itemLocationTxt} numberOfLines={1}>
+              <Text
+                style={styles.itemLocationTxt}
+                numberOfLines={1}
+                ellipsizeMode="tail"
+              >
                 {item.location}
               </Text>
             </View>
-
+  
             <View style={styles.ratingContainer}>
-              <Text style={styles.ratingText}>
-              {restaurantRatings[item.name] && restaurantRatings[item.name] !== 0 
-  ? restaurantRatings[item.name].toFixed(1) 
-  : "No ratings yet"}
-              </Text>
+              <Text style={styles.ratingText}>{item.rating}</Text>
               <Ionicons name="star" size={16} color={colors.secondary[200]} />
             </View>
           </View>
-
+  
+          {/* Display "Closed" overlay if restaurant is not open */}
           {!item.isOpen && (
             <View style={styles.closedOverlay}>
               <Text style={styles.closedText}>Closed</Text>
@@ -175,6 +161,7 @@ const RestaurantListing = ({ listings, category }: Props) => {
       </GestureHandlerRootView>
     );
   };
+  
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
@@ -187,13 +174,12 @@ const RestaurantListing = ({ listings, category }: Props) => {
         data={loading ? [] : filteredListings}
         renderItem={renderItems}
         keyExtractor={(item) => item.id.toString()}
-        horizontal={false}
+        horizontal
         showsHorizontalScrollIndicator={false}
       />
     </GestureHandlerRootView>
   );
 };
-
 export default RestaurantListing;
 const styles = StyleSheet.create({
   loader: {
@@ -204,8 +190,9 @@ const styles = StyleSheet.create({
   card: {
     backgroundColor: "white",
     borderRadius: 10,
-    marginBottom: 20,  
-    width: '100%',    
+    marginRight: 20,
+    marginBottom: 20,
+    width: 220,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
@@ -214,12 +201,12 @@ const styles = StyleSheet.create({
     padding: 10,
   },
   restaurantImage: {
-    width: "100%",      
-    height: 180,        
-    borderRadius: 10,   
-    alignSelf: 'center', 
-    resizeMode: 'cover', 
-    marginBottom: 10,  
+    width: 180,
+    height: 180,
+    borderRadius: 10,
+    margin: 15,
+    alignSelf: 'center',
+    resizeMode: 'cover',
   },
   itemTxt: {
     fontSize: 16,
@@ -258,8 +245,8 @@ const styles = StyleSheet.create({
   },
   favorite: {
     position: "absolute",
-    top: 165,
-    right: 15,
+    top: 185,
+    right: 30,
     backgroundColor: colors.secondary[100],
     padding: 10,
     borderRadius: 30,
@@ -286,11 +273,11 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     bottom: 0,
-    backgroundColor: "rgba(0, 0, 0, 0.6)", 
+    backgroundColor: "rgba(0, 0, 0, 0.6)", // Semi-transparent grey
     justifyContent: "center",
     alignItems: "center",
-    zIndex: 1, 
-    borderRadius: 10,  
+    zIndex: 1, // Ensure overlay is above other content
+    borderRadius: 10, // Match the card border radius
   },
   closedText: {
     color: "white",

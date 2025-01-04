@@ -1,355 +1,91 @@
 import React, { useEffect, useState } from 'react';
-import { 
-  View, 
-  Text, 
-  FlatList, 
-  StyleSheet, 
-  Image,
-  useWindowDimensions,
-  ActivityIndicator,
-  TouchableOpacity
-} from 'react-native';
-import { FIREBASE_DB } from '../../FirebaseConfig';
-import { collection, query, where, onSnapshot, orderBy, Timestamp, getDocs } from 'firebase/firestore';
-import { useAuth } from '@/context/AuthContext';
-import { format } from 'date-fns';
-import { Ionicons } from '@expo/vector-icons';
-import { useNavigation } from 'expo-router';
-
-interface Feedback {
-  id: string;
-  email: string;
-  rating: number;
-  comment: string;
-  tip: string;
-  showName: boolean;
-  restaurantName: string;
-  timestamp: Timestamp;
-  profileImage?: string;
-}
-
-interface UserProfile {
-  email: string;
-  profileImage: string;
-}
+import { View, Text, FlatList, StyleSheet, Image } from 'react-native';
+import { FIREBASE_DB, FIREBASE_AUTH } from '../../FirebaseConfig';
+import { collection, query, where, onSnapshot } from 'firebase/firestore';
 
 export default function ViewFeedback() {
-  const { width } = useWindowDimensions();
-  const [feedbacks, setFeedbacks] = useState<Feedback[]>([]);
-  const [userProfiles, setUserProfiles] = useState<Record<string, string>>({});
-  const [averageRating, setAverageRating] = useState<number>(0);
-  const [loading, setLoading] = useState(true);
-  const { user } = useAuth();
-  const navigation = useNavigation();
-  const fetchUserProfiles = async (emails: string[]) => {
-    const userRef = collection(FIREBASE_DB, "users");
-    const uniqueEmails = [...new Set(emails)];
-    const profiles: Record<string, string> = {};
+  const [feedbacks, setFeedbacks] = useState([]);
+  const [averageRating, setAverageRating] = useState(0);
 
-    for (const email of uniqueEmails) {
-      const q = query(userRef, where("email", "==", email));
-      const querySnapshot = await getDocs(q);
-      querySnapshot.forEach((doc) => {
-        const userData = doc.data() as UserProfile;
-        if (userData.profileImage) {
-          profiles[email] = userData.profileImage;
-        }
-      });
-    }
-    setUserProfiles(profiles);
-  };
+  const fetchFeedback = () => {
+    const vendorEmail = FIREBASE_AUTH.currentUser?.email;
+    if (!vendorEmail) return;
 
-  const calculateAverageRating = (reviews: Feedback[]) => {
-    if (reviews.length === 0) return 0;
-    const totalRating = reviews.reduce((sum, review) => sum + review.rating, 0);
-    return parseFloat((totalRating / reviews.length).toFixed(1));
+    const feedbackRef = collection(FIREBASE_DB, "feedback");
+    const vendorQuery = query(feedbackRef, where("restaurantName", "==", "Your Restaurant Name")); // Replace dynamically
+
+    const unsubscribe = onSnapshot(vendorQuery, (snapshot) => {
+      const reviews = snapshot.docs.map(doc => doc.data());
+      setFeedbacks(feedbacks);
+
+      // Calculate average rating
+      const totalRatings = reviews.reduce((acc, curr) => acc + curr.rating, 0);
+      const avgRating = reviews.length ? (totalRatings / reviews.length).toFixed(1) : 0;
+    //   setAverageRating(avgRating);
+    });
+
+    return unsubscribe;
   };
 
   useEffect(() => {
-    if (!user?.restaurantName) return;
+    const unsubscribe = fetchFeedback();
+    return () => unsubscribe && unsubscribe();
+  }, []);
 
-    const feedbackRef = collection(FIREBASE_DB, "feedback");
-    const vendorQuery = query(
-      feedbackRef,
-      where("restaurantName", "==", user.restaurantName),
-      orderBy("timestamp", "desc")
-    );
-
-    const unsubscribe = onSnapshot(vendorQuery, (snapshot) => {
-      const reviews = snapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data() as Omit<Feedback, 'id'>
-      }));
-
-      setFeedbacks(reviews);
-      setAverageRating(calculateAverageRating(reviews));
-      setLoading(false);
-
-      const userEmails = reviews.map(review => review.email);
-      fetchUserProfiles(userEmails);
-    });
-
-    return () => unsubscribe();
-  }, [user?.restaurantName]);
-
-  const renderStars = (rating: number) => (
-    <View style={styles.starsContainer}>
-      {[...Array(5)].map((_, index) => (
-        <Text key={index} style={[styles.star, index < rating && styles.starFilled]}>
-          ★
-        </Text>
-      ))}
-    </View>
-  );
-
-  const formatDate = (timestamp: Timestamp): string => {
-    if (!timestamp) return '';
-    return format(timestamp.toDate(), 'MMM d, yyyy');
-  };
-
-  const RatingHeader = () => (
-    <View style={[styles.headerContainer, { width: width - 32 }]}>
-      <View style={styles.ratingBox}>
-        <Text style={styles.averageRatingNumber}>{averageRating.toFixed(1)}</Text>
-        <Text style={styles.outOf}>/5</Text>
-      </View>
-      <View style={styles.ratingInfo}>
-        <Text style={styles.totalReviews}>
-          {feedbacks.length} {feedbacks.length === 1 ? 'Review' : 'Reviews'}
-        </Text>
-        {renderStars(averageRating)}
-      </View>
-    </View>
-  );
-
-  const renderItem = ({ item, index }: { item: Feedback; index: number }) => (
-    <>
-      <View style={[styles.listTile, { width }]}>
-        <View style={styles.listTileContent}>
-          <Image 
-            source={{ uri: userProfiles[item.email] || "https://via.placeholder.com/40" }}
-            style={styles.userImage} 
-          />
-          <View style={styles.textContent}>
-            <View style={styles.topRow}>
-              <Text style={styles.userName}>
-                {item.showName ? item.email.split('@')[0] : 'Anonymous'}
-              </Text>
-              <Text style={styles.reviewDate}>{formatDate(item.timestamp)}</Text>
-            </View>
-            {renderStars(item.rating)}
-            <Text style={styles.comment}>{item.comment}</Text>
-            {item.tip && (
-              <View style={styles.tipContainer}>
-                <Text style={styles.tipLabel}>Tip</Text>
-                <Text style={styles.tipText}>{item.tip}</Text>
-              </View>
-            )}
-          </View>
-        </View>
-      </View>
-      {index < feedbacks.length - 1 && <View style={styles.divider} />}
-    </>
-  );
-
-  if (loading) {
-    return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#FFB800" />
-      </View>
-    );
-  }
-
-  const Header = () => (
-    <View style={styles.navigationHeader}>
-      <TouchableOpacity 
-        onPress={() => navigation.goBack()} 
-        style={styles.backButton}
-      >
-        <Ionicons name="chevron-back" size={24} color="#333" />
-        <Text style={styles.backText}>Back</Text>
-      </TouchableOpacity>
-    </View>
-  );
   return (
     <View style={styles.container}>
-      <Header />
-      {feedbacks.length === 0 ? (
-      <>
-        <RatingHeader />
-        <View style={styles.noReviewsContainer}>
-          <Ionicons name="chatbubble-ellipses-outline" size={50} color="#999" />
-          <Text style={styles.noReviewsText}>No reviews found yet.</Text>
-        </View>
-      </>
-    ) : (
-        <FlatList
-          data={feedbacks}
-          keyExtractor={(item) => item.id}
-          renderItem={renderItem}
-          ListHeaderComponent={RatingHeader}
-          contentContainerStyle={styles.listContainer}
-          showsVerticalScrollIndicator={false}
-        />
-      )}
+      {/* Overall Rating Section */}
+      <View style={styles.overallRating}>
+        <Text style={styles.ratingScore}>{averageRating}</Text>
+        <Text style={styles.ratingLabel}>Overall Rating</Text>
+        <Text style={styles.reviewCount}>{feedbacks.length} Reviews</Text>
+      </View>
+  
+      {/* Ratings Breakdown */}
+      <View style={styles.breakdown}>
+        <Text style={styles.breakdownLabel}>Ratings Breakdown</Text>
+        {["Excellent", "Good", "Average", "Poor"].map((label, index) => (
+          <View key={index} style={styles.breakdownRow}>
+            <Text>{label}</Text>
+            <View style={styles.progressBar}>
+              {/* Replace with dynamic progress based on feedbacks */}
+              <View style={{ ...styles.progressFill, width: `${Math.random() * 100}%` }} />
+            </View>
+          </View>
+        ))}
+      </View>
+  
+      {/* Customer Reviews */}
+      <FlatList
+        data={feedbacks}
+        keyExtractor={(item, index) => index.toString()}
+        renderItem={({ item }) => (
+          <View style={styles.reviewCard}>
+            {/* <Image source={{ uri: item.userImage || "https://via.placeholder.com/50" }} style={styles.userImage} /> */}
+            <View style={styles.reviewContent}>
+              {/* <Text style={styles.userName}>{item.userName || "Anonymous"}</Text>
+              <Text style={styles.reviewText}>{item.feedbackText}</Text> */}
+            </View>
+          </View>
+        )}
+      />
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#F8F9FA',
-  },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#F8F9FA',
-  },
-  headerContainer: {
-    flexDirection: 'row',
-    backgroundColor: '#FFFFFF',
-    padding: 16,
-    borderRadius: 12,
-    marginHorizontal: 16,
-    marginBottom: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 8,
-    elevation: 3,
-  },
-  ratingBox: {
-    flexDirection: 'row',
-    alignItems: 'baseline',
-    marginRight: 24,
-  },
-  averageRatingNumber: {
-    fontSize: 32,
-    fontWeight: '700',
-    color: '#1A1A1A',
-  },
-  outOf: {
-    fontSize: 16,
-    color: '#666',
-    marginLeft: 4,
-  },
-  ratingInfo: {
-    flex: 1,
-    justifyContent: 'center',
-  },
-  totalReviews: {
-    fontSize: 14,
-    color: '#666',
-    marginBottom: 4,
-  },
-  listTile: {
-    backgroundColor: '#FFFFFF',
-    paddingVertical: 16,
-    paddingHorizontal: 16,
-  },
-  listTileContent: {
-    flexDirection: 'row',
-  },
-  textContent: {
-    flex: 1,
-    marginLeft: 12,
-  },
-  topRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 4,
-  },
-  userImage: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-  },
-  userName: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#1A1A1A',
-  },
-  reviewDate: {
-    fontSize: 12,
-    color: '#666',
-  },
-  starsContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginVertical: 4,
-  },
-  star: {
-    fontSize: 16,
-    marginRight: 2,
-    color: '#DDD',
-  },
-  starFilled: {
-    color: '#FFB800',
-  },
-  comment: {
-    fontSize: 15,
-    lineHeight: 22,
-    color: '#333',
-    marginTop: 8,
-  },
-  tipContainer: {
-    backgroundColor: '#F8F9FA',
-    padding: 12,
-    borderRadius: 8,
-    marginTop: 8,
-  },
-  tipLabel: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: '#666',
-    marginBottom: 4,
-  },
-  tipText: {
-    fontSize: 14,
-    color: '#333',
-    fontStyle: 'italic',
-  },
-  divider: {
-    height: 1,
-    backgroundColor: '#E0E0E0',
-    width: '100%',
-  },
-  navigationHeader: {
-    height: 100,
-   
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 8,
-   
-    
-  },
-  backButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: 8,
-  },
-  backText: {
-    fontSize: 16,
-    color: '#333',
-    marginLeft: 4,
-  },
-  listContainer: {
-    paddingTop: 8, // Reduced from 16 to account for header
-    paddingBottom: 32,
-    alignItems: 'center',
-  },
-  noReviewsContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 20,
-  },
-  noReviewsText: {
-    marginTop: 10,
-    fontSize: 16,
-    color: '#999',
-  },
-});
+  const styles = StyleSheet.create({
+    container: { flex: 1, padding: 20, backgroundColor: "#fff" },
+    overallRating: { alignItems: "center", marginVertical: 20 },
+    ratingScore: { fontSize: 48, fontWeight: "bold" },
+    ratingLabel: { fontSize: 18, color: "#666" },
+    reviewCount: { fontSize: 14, color: "#999" },
+    breakdown: { marginVertical: 20 },
+    breakdownLabel: { fontSize: 18, fontWeight: "bold", marginBottom: 10 },
+    breakdownRow: { flexDirection: "row", alignItems: "center", marginBottom: 10 },
+    progressBar: { flex: 1, height: 8, backgroundColor: "#eee", marginHorizontal: 10, borderRadius: 4 },
+    progressFill: { height: 8, backgroundColor: "#4CAF50", borderRadius: 4 },
+    reviewCard: { flexDirection: "row", marginVertical: 10, padding: 10, borderRadius: 8, backgroundColor: "#f9f9f9" },
+    userImage: { width: 50, height: 50, borderRadius: 25, marginRight: 10 },
+    reviewContent: { flex: 1 },
+    userName: { fontSize: 16, fontWeight: "bold" },
+    reviewText: { fontSize: 14, color: "#666" },
+  });

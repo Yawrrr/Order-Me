@@ -211,7 +211,6 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     marginBottom: 20,
     textAlign: "center",
-    marginTop:30
   },
   menuItemCard: {
     marginBottom: 16,
