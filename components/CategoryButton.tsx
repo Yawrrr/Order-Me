@@ -12,7 +12,7 @@ type Category = {
 const Categories: Category[] = [
   { title: "All", iconName: "food" },
   { title: "Mix Rice", iconName: "rice" },
-  { title: "Indian Food", iconName: "food" },
+  { title: "Dessert", iconName: "cake" },
   { title: "Western Food", iconName: "food" },
   { title: "Vegetarian", iconName: "food" },
   { title: "Others", iconName: "fruit-watermelon" },
