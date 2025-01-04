@@ -1,10 +1,30 @@
-import { StyleSheet, View, Text, Image, FlatList, TouchableOpacity, Alert, ActivityIndicator } from "react-native";
+import {
+  StyleSheet,
+  View,
+  Text,
+  Image,
+  FlatList,
+  TouchableOpacity,
+  Alert,
+  ActivityIndicator,
+} from "react-native";
 import React, { useState, useEffect } from "react";
 import { FIREBASE_DB } from "@/FirebaseConfig";
-import { collection, getDocs, query, where, deleteDoc, setDoc, doc, updateDoc } from "firebase/firestore";
+import {
+  collection,
+  getDocs,
+  query,
+  where,
+  deleteDoc,
+  setDoc,
+  doc,
+  updateDoc,
+} from "firebase/firestore";
 import { getAuth } from "firebase/auth";
-import { useLocalSearchParams } from "expo-router";
+import { router, useLocalSearchParams } from "expo-router";
 import { useAuth } from "@/context/AuthContext";
+import { Ionicons } from "@expo/vector-icons";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 interface MenuItem {
   id: string;
@@ -20,7 +40,7 @@ const RestaurantMenuScreen = () => {
   const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
   const [quantities, setQuantities] = useState<{ [key: string]: number }>({});
   const auth = getAuth();
-  const {user} = useAuth();
+  const { user } = useAuth();
 
   useEffect(() => {
     if (name) {
@@ -104,14 +124,20 @@ const RestaurantMenuScreen = () => {
                   await deleteDoc(doc.ref);
                 });
                 await addItemsToCart(userEmail);
-                Alert.alert("Cart Updated", `${menuItems.length} item(s) added to your cart.`);
+                Alert.alert(
+                  "Cart Updated",
+                  `${menuItems.length} item(s) added to your cart.`
+                );
               },
             },
           ]
         );
       } else {
         await addItemsToCart(userEmail);
-        Alert.alert("Cart Updated", `${menuItems.length} item(s) added to your cart.`);
+        Alert.alert(
+          "Cart Updated",
+          `${menuItems.length} item(s) added to your cart.`
+        );
       }
     } catch (error) {
       console.error("Error adding to cart: ", error);
@@ -143,7 +169,7 @@ const RestaurantMenuScreen = () => {
 
           await updateDoc(existingDoc.ref, {
             quantity: newQuantity,
-            totalPrice: newTotalPrice
+            totalPrice: newTotalPrice,
           });
         } else {
           const newCartItem = {
@@ -162,10 +188,18 @@ const RestaurantMenuScreen = () => {
       }
     }
   };
+  const goBack = () => {
+    router.back();
+  };
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
+      <TouchableOpacity style={styles.backbtn} onPress={goBack}>
+        <Ionicons name="chevron-back-outline" size={16} color="orange" />
+        <Text style={styles.backText}>Back</Text>
+      </TouchableOpacity>
       <Text style={styles.header}>{name} Menu</Text>
+
       {loading ? (
         <ActivityIndicator size="large" color="#0000ff" />
       ) : (
@@ -177,7 +211,9 @@ const RestaurantMenuScreen = () => {
               <Image source={{ uri: item.imageUrl }} style={styles.image} />
               <View style={styles.menuItemInfo}>
                 <Text style={styles.menuItemName}>{item.name}</Text>
-                <Text style={styles.menuItemDescription}>{item.description}</Text>
+                <Text style={styles.menuItemDescription}>
+                  {item.description}
+                </Text>
                 <Text style={styles.menuItemPrice}>RM {item.price}</Text>
               </View>
               <View style={styles.quantityContainer}>
@@ -193,10 +229,13 @@ const RestaurantMenuScreen = () => {
           )}
         />
       )}
-      <TouchableOpacity style={styles.addToCartButton} onPress={handleAddToCart}>
+      <TouchableOpacity
+        style={styles.addToCartButton}
+        onPress={handleAddToCart}
+      >
         <Text style={styles.addToCartText}>Add To Cart</Text>
       </TouchableOpacity>
-    </View>
+    </SafeAreaView>
   );
 };
 
@@ -211,7 +250,17 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     marginBottom: 20,
     textAlign: "center",
-    marginTop:30
+    marginTop: 10,
+  },
+  backbtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    maxWidth: "20%",
+  },
+  backText: {
+    fontSize: 14,
+    color: "orange",
+    marginLeft: 5,
   },
   menuItemCard: {
     marginBottom: 16,

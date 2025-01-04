@@ -27,6 +27,7 @@ import { useAuth } from "@/context/AuthContext";
 import * as ImagePicker from "expo-image-picker";
 import * as ImageManipulator from "expo-image-manipulator";
 import * as FileSystem from "expo-file-system";
+import { Ionicons } from "@expo/vector-icons";
 
 // Define types for cart items
 type CartItem = {
@@ -237,6 +238,9 @@ export default function Checkout() {
       console.log("No address found in user context");
     }
   }, [auth.currentUser, user]);
+  const goBack = () => {
+    router.back();
+  };
 
   return (
     <SafeAreaView style={styles.container}>
@@ -248,6 +252,10 @@ export default function Checkout() {
           <View style={styles.header}>
             <Text style={styles.title}>Checkout</Text>
           </View>
+          <TouchableOpacity style={styles.backbtn} onPress={goBack}>
+            <Ionicons name="chevron-back-outline" size={16} color="orange" />
+            <Text style={styles.backText}>Back</Text>
+          </TouchableOpacity>
 
           <View style={styles.addressContainer}>
             <Text style={styles.addressTitle}>Delivery Address</Text>
@@ -370,6 +378,17 @@ const styles = StyleSheet.create({
     fontSize: 30,
     color: "orange",
     marginBottom: 5,
+  },
+  backbtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    maxWidth: "20%",
+    marginBottom: 10,
+  },
+  backText: {
+    fontSize: 14,
+    color: "orange",
+    marginLeft: 5,
   },
   addressContainer: {
     marginBottom: 15,
