@@ -9,7 +9,7 @@ import {
   Image,
   ActivityIndicator,
 } from "react-native";
-import MapView, { Marker, Polyline } from "react-native-maps";
+import MapView, { Marker } from "react-native-maps";
 import { FIREBASE_DB } from "../../FirebaseConfig";
 import { collection, query, where, getDocs, orderBy } from "firebase/firestore";
 import { useAuth } from "@/context/AuthContext";
@@ -18,8 +18,16 @@ interface Order {
   id: string;
   restaurantName: string;
   address: string;
+  email: string; // email of the restaurant
+  restaurantName: string; // name of the restaurant
   status: string | string[];
-  items: { name: string; quantity: number; price: number; imageUrl: string }[];
+  items: {
+    email: string; // email of the buyer
+    name: string;
+    quantity: number;
+    price: number;
+    imageUrl: string;
+  }[];
   totalPrice: number;
   latitude: number;
   longitude: number;
@@ -41,7 +49,6 @@ const Status: React.FC = () => {
         const ordersRef = collection(FIREBASE_DB, "orders");
         const ordersQuery = query(
           ordersRef,
-          where("email", "==", user.email),
           orderBy("timestamp", "desc")
         );
         const snapshot = await getDocs(ordersQuery);
@@ -55,7 +62,12 @@ const Status: React.FC = () => {
           } as Order;
         });
 
-        setOrders(fetchedOrders);
+        // Filter the orders by checking if the buyer's email matches the logged-in user's email
+        const filteredOrders = fetchedOrders.filter((order) =>
+          order.items.some((item) => item.email === user.email)
+        );
+
+        setOrders(filteredOrders);
       } catch (error) {
         console.error("Error fetching orders: ", error);
       } finally {
@@ -120,6 +132,9 @@ const Status: React.FC = () => {
           </TouchableOpacity>
           <Text style={styles.subHeader}>Order Details</Text>
           <Text style={styles.detailText}>
+            Restaurant: {selectedOrder.restaurantName}
+          </Text>
+          <Text style={styles.detailText}>
             Address: {selectedOrder.address}
           </Text>
           <Text style={styles.detailText}>
@@ -127,21 +142,19 @@ const Status: React.FC = () => {
           </Text>
 
           <Text style={styles.subHeader}>Status</Text>
-{Array.isArray(selectedOrder?.status) ? (
-  selectedOrder.status.map((step, index) => (
-    <View key={index} style={styles.statusContainer}>
-      <View style={styles.statusDot} />
+          {Array.isArray(selectedOrder?.status) ? (
+            selectedOrder.status.map((step, index) => (
+              <View key={index} style={styles.statusContainer}>
+                <View style={styles.statusDot} />
                 <View style={styles.statusLine} />
                 <Text style={styles.statusStep}>{step}</Text>
-    </View>
-  ))
-) : (
-  <Text style={styles.detailText}>
-    {selectedOrder?.status || "No status available."}
-  </Text>
-)}
-
-
+              </View>
+            ))
+          ) : (
+            <Text style={styles.detailText}>
+              {selectedOrder?.status || "No status available."}
+            </Text>
+          )}
 
           {selectedOrder.proveImg && (
             <>
@@ -302,7 +315,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     marginTop: 16,
     marginBottom: 50, // Creates space to avoid overlap with the menu tab
-  },  
+  },
   proveImage: {
     width: "100%",
     height: 200,
