@@ -14,7 +14,7 @@ import {
   TextInput,
   TouchableWithoutFeedback,
 } from "react-native-gesture-handler";
-import { onSnapshot, getDocs, query, where, doc, updateDoc } from "firebase/firestore";
+import { onSnapshot, getDocs, query, where, doc, updateDoc, Timestamp } from "firebase/firestore";
 import { ordersRef } from "@/FirebaseConfig";
 import { router } from "expo-router";
 import { Picker } from "@react-native-picker/picker";
@@ -31,7 +31,7 @@ export interface OrderItem {
   totalPrice: number;
   username: string;
   orderId: string;
-  orderTimestamp: string;
+  timestamp: Timestamp;
   customerEmail: string;
   orderStatus: string;
   address: string;
@@ -45,7 +45,7 @@ interface Order {
   email: string;
   status: string;
   items: OrderItem[];
-  timestamp: string;
+  timestamp: Timestamp;
   totalPrice: number;
   remark: string;
 }
@@ -85,7 +85,7 @@ const Order = () => {
           updatedItems.push({
             ...item,
             orderId: doc.id,
-            orderTimestamp: data.timestamp,
+            timestamp: data.timestamp,
             customerEmail: data.user,
             orderStatus: data.status,
             address: data.address,
