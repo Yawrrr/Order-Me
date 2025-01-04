@@ -9,20 +9,21 @@ import {
   Image,
   ActivityIndicator,
 } from "react-native";
-import MapView, { Marker } from "react-native-maps";
+import MapView, { Marker, Polyline } from "react-native-maps";
 import { FIREBASE_DB } from "../../FirebaseConfig";
-import { collection, query, where, getDocs } from "firebase/firestore";
+import { collection, query, where, getDocs, orderBy } from "firebase/firestore";
 import { useAuth } from "@/context/AuthContext";
 
 interface Order {
   id: string;
   address: string;
-  status: string | string[];  // Can be a single string or an array
+  status: string | string[];
   items: { name: string; quantity: number; price: number; imageUrl: string }[];
   totalPrice: number;
   latitude: number;
   longitude: number;
-  proveImg?: string;  // Optional image URL for proof of delivery
+  proveImg?: string;
+  timestamp: Date;
 }
 
 const Status: React.FC = () => {
@@ -37,25 +38,21 @@ const Status: React.FC = () => {
 
       try {
         const ordersRef = collection(FIREBASE_DB, "orders");
-        const ordersQuery = query(ordersRef, where("email", "==", user.email));
+        const ordersQuery = query(
+          ordersRef,
+          where("email", "==", user.email),
+          orderBy("timestamp", "desc")
+        );
         const snapshot = await getDocs(ordersQuery);
 
         const fetchedOrders: Order[] = snapshot.docs.map((doc) => {
           const data = doc.data();
-          const items = Array.isArray(data.items) ? data.items : [];
-          
-          const totalPrice = data.totalPrice || 0;
-          const status = data.status || [];
-
-          const statusArray = Array.isArray(status) ? status : [status];
-
           return {
             id: doc.id,
             ...data,
-            status: statusArray,
-            totalPrice,
-          };
-        }) as Order[];
+            timestamp: data.timestamp.toDate(),
+          } as Order;
+        });
 
         setOrders(fetchedOrders);
       } catch (error) {
@@ -88,36 +85,60 @@ const Status: React.FC = () => {
                 style={styles.orderCard}
                 onPress={() => setSelectedOrder(order)}
               >
-                <Text style={styles.orderCardText}>Order {order.id}</Text>
-                <Text style={styles.orderCardText}>Address: {order.address}</Text>
+                <Text style={styles.orderCardText}>
+                  Order ID: {order.id}
+                </Text>
+                <Text style={styles.orderCardText}>
+                  Address: {order.address}
+                </Text>
+                <Text style={styles.orderCardText}>
+                  Date: {order.timestamp.toLocaleString('en-US', {
+                    month: 'short',
+                    day: 'numeric',
+                    year: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    hour12: true,
+                  }).replace(":", ".")}
+                </Text>
               </TouchableOpacity>
             ))
           ) : (
-            <Text style={styles.noOrdersText}>No orders found for your account.</Text>
+            <Text style={styles.noOrdersText}>
+              No orders found.
+            </Text>
           )}
         </ScrollView>
       ) : (
-        <ScrollView showsVerticalScrollIndicator={false}>
+        <ScrollView>
           <TouchableOpacity onPress={() => setSelectedOrder(null)}>
             <Text style={styles.backButton}>Back</Text>
           </TouchableOpacity>
           <Text style={styles.subHeader}>Order Details</Text>
-          <Text style={styles.detailText}>Address: {selectedOrder.address}</Text>
-          
+          <Text style={styles.detailText}>
+            Address: {selectedOrder.address}
+          </Text>
+          <Text style={styles.detailText}>
+            Date: {selectedOrder.timestamp.toLocaleString()}
+          </Text>
+
           <Text style={styles.subHeader}>Status</Text>
-          {selectedOrder?.status?.length ? (
-            selectedOrder.status.map((step, index) => (
-              <View key={index} style={styles.statusContainer}>
-                <View style={styles.statusDot} />
+{Array.isArray(selectedOrder?.status) ? (
+  selectedOrder.status.map((step, index) => (
+    <View key={index} style={styles.statusContainer}>
+      <View style={styles.statusDot} />
                 <View style={styles.statusLine} />
                 <Text style={styles.statusStep}>{step}</Text>
-              </View>
-            ))
-          ) : (
-            <Text style={styles.detailText}>No status available.</Text>
-          )}
+    </View>
+  ))
+) : (
+  <Text style={styles.detailText}>
+    {selectedOrder?.status || "No status available."}
+  </Text>
+)}
 
-          {/* Prove Image Section */}
+
+
           {selectedOrder.proveImg && (
             <>
               <Text style={styles.subHeader}>Proof of Delivery</Text>
@@ -143,14 +164,13 @@ const Status: React.FC = () => {
             </View>
           ))}
           <Text style={styles.totalText}>
-            Total: RM {selectedOrder.totalPrice ? selectedOrder.totalPrice.toFixed(2) : "0.00"}
+            Total: RM {selectedOrder.totalPrice.toFixed(2)}
           </Text>
 
-          {/* Map Section */}
           <Text style={styles.subHeader}>Delivery Location</Text>
           <MapView
             style={styles.map}
-            region={{
+            initialRegion={{
               latitude: selectedOrder.latitude,
               longitude: selectedOrder.longitude,
               latitudeDelta: 0.05,
@@ -162,7 +182,8 @@ const Status: React.FC = () => {
                 latitude: selectedOrder.latitude,
                 longitude: selectedOrder.longitude,
               }}
-              title={selectedOrder.address}
+              title="Delivery Address"
+              description={selectedOrder.address}
             />
           </MapView>
         </ScrollView>
@@ -180,7 +201,7 @@ const styles = StyleSheet.create({
   header: {
     fontSize: 30,
     fontFamily: "Poppins-Bold",
-    color: "#FF8C00",
+    color: "orange",
     marginBottom: 16,
     textAlign: "center",
   },
@@ -189,7 +210,7 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     marginTop: 16,
     marginBottom: 8,
-    color: "#FF8C00",
+    color: "orange",
   },
   orderCard: {
     borderWidth: 1,
@@ -273,10 +294,11 @@ const styles = StyleSheet.create({
     color: "#FF8C00",
   },
   map: {
-    height: 200,
+    height: 200, // Adjust based on your layout
     borderRadius: 8,
     marginTop: 16,
-  },
+    marginBottom: 50, // Creates space to avoid overlap with the menu tab
+  },  
   proveImage: {
     width: "100%",
     height: 200,
