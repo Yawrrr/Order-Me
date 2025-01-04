@@ -16,7 +16,6 @@ import { useAuth } from "@/context/AuthContext";
 
 interface Order {
   id: string;
-  restaurantName: string;
   address: string;
   email: string; // email of the restaurant
   restaurantName: string; // name of the restaurant
