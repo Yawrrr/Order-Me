@@ -67,21 +67,30 @@ export default function Checkout() {
         "No Address Found";
       setSelectedAddress(primary);
     }
-    if (user?.paymentImage) {
-      setPaymentImage(user.paymentImage);
-    }
+   
   }, [user]);
 
   const fetchRestaurantName = async () => {
-    const restaurantRef = collection(FIREBASE_DB, "restaurants");
-    const restaurantQuery = query(
-      restaurantRef,
-      where("restaurantName", "==", restaurantName)
-    );
-    const restaurantSnapshot = await getDocs(restaurantQuery);
-    // console.log(restaurantSnapshot.docs[0].data());
-    setRestaurantEmail(restaurantSnapshot.docs[0].data().owner);
+    try {
+      const restaurantRef = collection(FIREBASE_DB, "restaurants");
+      const restaurantQuery = query(
+        restaurantRef,
+        where("restaurantName", "==", restaurantName)
+      );
+      const restaurantSnapshot = await getDocs(restaurantQuery);
+  
+      if (!restaurantSnapshot.empty) {
+        const restaurantData = restaurantSnapshot.docs[0].data();
+  
+        setRestaurantEmail(restaurantData.owner); // Set the restaurant email
+        setPaymentImage(restaurantData.paymentImage); // Set the restaurant-specific payment image
+      }
+    } catch (error) {
+      console.error("Error fetching restaurant details: ", error);
+      Alert.alert("Error", "Failed to fetch restaurant details.");
+    }
   };
+  
   useEffect(() => {
     if (params.selectedAddress) {
       setSelectedAddress(params.selectedAddress as string);
@@ -321,29 +330,32 @@ export default function Checkout() {
             />
           </View>
           <View style={styles.qrCodeContainer}>
-            <Text style={styles.qrCodeTitle}>Pay via QR Code</Text>
-            <Image
-              source={
-                user?.paymentImage
-                  ? { uri: user.paymentImage }
-                  : { uri: "https://via.placeholder.com/150" }
-              }
-              style={styles.qrCodeImage}
-            />
-            <Text style={styles.receiptTitle}>Upload Payment Receipt</Text>
-            {receiptImage && (
-              <Image
-                source={{ uri: receiptImage }}
-                style={styles.receiptImage}
-              />
-            )}
-            <TouchableOpacity
-              style={styles.uploadButton}
-              onPress={() => pickImage(setReceiptImage)}
-            >
-              <Text style={styles.uploadButtonText}>Upload Receipt</Text>
-            </TouchableOpacity>
-          </View>
+  <Text style={styles.qrCodeTitle}>Pay via QR Code</Text>
+  <Image
+    source={
+      paymentImage
+        ? { uri: paymentImage }
+        : { uri: "https://via.placeholder.com/150" }
+    }
+    style={styles.qrCodeImage}
+  />
+  <Text style={styles.receiptTitle}>Upload Payment Receipt</Text>
+  {receiptImage && (
+    <Image
+      source={{ uri: receiptImage }}
+      style={styles.receiptImage}
+    />
+  )}
+
+
+  <TouchableOpacity
+    style={styles.uploadButton}
+    onPress={() => pickImage(setReceiptImage)}
+  >
+    <Ionicons name="cloud-upload-outline" size={20} color="orange" />
+    <Text style={styles.uploadButtonText}>Upload Receipt</Text>
+  </TouchableOpacity>
+</View>
 
           <View style={styles.footer}>
             <Text style={styles.totalPrice}>
@@ -508,6 +520,11 @@ const styles = StyleSheet.create({
   qrCodeContainer: {
     marginVertical: 20,
     alignItems: "center",
+    marginTop: 10,
+    padding: 10,
+    backgroundColor: "#f9f9f9",
+    borderRadius: 8,
+
   },
   qrCodeTitle: {
     fontSize: 16,
@@ -535,16 +552,19 @@ const styles = StyleSheet.create({
     borderColor: "#ccc",
   },
   uploadButton: {
-    marginTop: 10,
-    backgroundColor: "orange",
-    paddingVertical: 12,
-    paddingHorizontal: 20,
-    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: "orange",
+    borderRadius: 5,
+    padding: 10,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    marginVertical: 10,
   },
   uploadButtonText: {
     fontSize: 16,
-    fontWeight: "bold",
-    color: "#fff",
+    color: "orange",
+    marginLeft: 5,
   },
   restaurantContainer: {
     marginVertical: 10, // Space above and below the container
