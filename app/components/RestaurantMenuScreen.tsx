@@ -23,6 +23,7 @@ import {
 import { getAuth } from "firebase/auth";
 import { router, useLocalSearchParams } from "expo-router";
 import { useAuth } from "@/context/AuthContext";
+import { MaterialIcons } from "@expo/vector-icons";
 import { Ionicons } from "@expo/vector-icons";
 import { SafeAreaView } from "react-native-safe-area-context";
 
@@ -193,7 +194,6 @@ const RestaurantMenuScreen = () => {
   const goBack = () => {
     router.back();
   };
-
   return (
     <SafeAreaView style={styles.container}>
       <TouchableOpacity style={styles.backbtn} onPress={goBack}>
@@ -204,6 +204,11 @@ const RestaurantMenuScreen = () => {
 
       {loading ? (
         <ActivityIndicator size="large" color="#0000ff" />
+      ) : menuItems.length === 0 ? (
+        <View style={styles.noMenuContainer}>
+          <MaterialIcons name="restaurant-menu" size={100} color="#ccc" />
+          <Text style={styles.noMenuText}>No menu available for this restaurant</Text>
+        </View>
       ) : (
         <FlatList
           data={menuItems}
@@ -231,12 +236,14 @@ const RestaurantMenuScreen = () => {
           )}
         />
       )}
-      <TouchableOpacity
+      {menuItems.length > 0 && (
+        <TouchableOpacity
         style={styles.addToCartButton}
         onPress={handleAddToCart}
       >
-        <Text style={styles.addToCartText}>Add To Cart</Text>
-      </TouchableOpacity>
+          <Text style={styles.addToCartText}>Add To Cart</Text>
+        </TouchableOpacity>
+      )}
     </SafeAreaView>
   );
 };
@@ -334,6 +341,17 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: "bold",
   },
+  noMenuText: {
+    fontSize: 18,
+    textAlign: "center",
+    marginTop: 20,
+    color: "#555",
+  },
+  noMenuContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+  }
 });
 
 export default RestaurantMenuScreen;
