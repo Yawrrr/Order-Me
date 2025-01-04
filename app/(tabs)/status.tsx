@@ -9,7 +9,7 @@ import {
   Image,
   ActivityIndicator,
 } from "react-native";
-import MapView, { Marker, Polyline } from "react-native-maps";
+import MapView, { Marker } from "react-native-maps";
 import { FIREBASE_DB } from "../../FirebaseConfig";
 import { collection, query, where, getDocs, orderBy } from "firebase/firestore";
 import { useAuth } from "@/context/AuthContext";
@@ -18,6 +18,7 @@ interface Order {
   id: string;
   address: string;
   email: string; // email of the restaurant
+  restaurantName: string; // name of the restaurant
   status: string | string[];
   items: {
     email: string; // email of the buyer
@@ -100,6 +101,9 @@ const Status: React.FC = () => {
                   Order ID: {order.id}
                 </Text>
                 <Text style={styles.orderCardText}>
+                  Restaurant: {order.restaurantName}
+                </Text>
+                <Text style={styles.orderCardText}>
                   Address: {order.address}
                 </Text>
                 <Text style={styles.orderCardText}>
@@ -126,6 +130,9 @@ const Status: React.FC = () => {
             <Text style={styles.backButton}>Back</Text>
           </TouchableOpacity>
           <Text style={styles.subHeader}>Order Details</Text>
+          <Text style={styles.detailText}>
+            Restaurant: {selectedOrder.restaurantName}
+          </Text>
           <Text style={styles.detailText}>
             Address: {selectedOrder.address}
           </Text>
