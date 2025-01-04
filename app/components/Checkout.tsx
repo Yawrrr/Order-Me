@@ -284,6 +284,9 @@ export default function Checkout() {
               </TouchableOpacity>
             </View>
           </View>
+          <View style={styles.restaurantContainer}>
+            <Text style={styles.restaurantName}>{restaurantName}</Text>
+          </View>
           {cartItems.map((item) => (
             <View key={item.id} style={styles.item}>
               <View style={styles.item}>
@@ -542,5 +545,15 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "bold",
     color: "#fff",
+  },
+  restaurantContainer: {
+    marginVertical: 10, // Space above and below the container
+    padding: 10, // Inner spacing for better readability
+    borderRadius: 4, // Slightly rounded corners
+  },
+  restaurantName: {
+    fontSize: 18, // Standard font size
+    fontWeight: "bold", // Slightly bold for emphasis
+    color: "#000", // Plain black text
   },
 });
