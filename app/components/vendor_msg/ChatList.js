@@ -1,4 +1,4 @@
-import { View, FlatList } from 'react-native';
+import { View, FlatList, ActivityIndicator } from 'react-native';
 import React from 'react';
 import { useRouter } from 'expo-router';
 import ChatItem from './ChatItem';
