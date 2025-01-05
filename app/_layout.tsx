@@ -102,6 +102,18 @@ const MainLayout = () => {
         }}
       />
         <Stack.Screen
+        name="components/Announcements"
+        options={{
+          headerShown: false,
+        }}
+      />
+        <Stack.Screen
+        name="components/CreateAnnouncements"
+        options={{
+          headerShown: false,
+        }}
+      />
+        <Stack.Screen
   name="components/RestaurantMenuScreen"
   options={{
     headerShown: false,

@@ -13,6 +13,7 @@ import { FIREBASE_AUTH, FIREBASE_DB } from '../../FirebaseConfig';
 import { collection, query, where, onSnapshot, orderBy, getDocs, setDoc, doc, deleteDoc } from 'firebase/firestore';
 import { useRouter } from "expo-router";
 import { MaterialIcons } from "@expo/vector-icons";
+import { colors } from '@/constants/colors';
 
 type OrderItem = {
   id: string;
@@ -156,7 +157,7 @@ export default function Orders() {
             onPress: () => router.push("/(tabs)/cart")
           },
           {
-            text: "Continue Shopping",
+            text: "Continue Ordering",
             style: "cancel"
           }
         ]
@@ -273,7 +274,7 @@ export default function Orders() {
   onPress={() => handleBuyAgain(order)}
   disabled={loading}
 >
-  <Text style={styles.buttonText}>
+  <Text style={styles.buyAgainText}>
     {loading ? 'Adding to Cart...' : 'Order Again'}
   </Text>
 </TouchableOpacity>
@@ -386,7 +387,7 @@ const styles = StyleSheet.create({
     marginTop: 20,
     paddingVertical: 14,
     paddingHorizontal: 24,
-    backgroundColor: '#4CAF50',
+    backgroundColor: colors.secondary["DEFAULT"],
     borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center',
@@ -405,7 +406,7 @@ const styles = StyleSheet.create({
     marginTop: 20,
     paddingVertical: 14,
     paddingHorizontal: 24,
-    backgroundColor: '#2196F3',
+    backgroundColor: colors.white.DEFAULT,
     borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center',
@@ -414,6 +415,8 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.2,
     shadowRadius: 4,
+    borderWidth:1.5,
+    borderColor:colors.secondary["DEFAULT"],
   },
   container: { 
     flex: 1, 
@@ -457,5 +460,11 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
     letterSpacing: 0.5,
+  },
+  buyAgainText:{
+    color:colors.secondary.DEFAULT,
+      fontWeight: 'bold',
+      letterSpacing: 0.5,
+      fontSize: 16,
   }
 });
