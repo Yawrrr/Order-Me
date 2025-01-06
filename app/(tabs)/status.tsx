@@ -34,11 +34,12 @@ interface Order {
   timestamp: Date;
 }
 
-const Status: React.FC = () => {
+const Status: React.FC = ({ navigation }: any) => {
   const { user } = useAuth();
   const [orders, setOrders] = useState<Order[]>([]);
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [loading, setLoading] = useState(true);
+  const [isFullScreenMap, setIsFullScreenMap] = useState(false);
 
   useEffect(() => {
     const fetchOrders = async () => {
@@ -85,6 +86,43 @@ const Status: React.FC = () => {
     );
   }
 
+  const renderFullScreenMap = () => {
+    return (
+      <SafeAreaView style={styles.container}>
+        <TouchableOpacity
+          style={styles.mapBackButton}
+          onPress={() => setIsFullScreenMap(false)}
+        >
+          <Text style={styles.mapBackButtonText}>Back</Text>
+        </TouchableOpacity>
+        <View style={{ flex: 1 }}>
+          <MapView
+            style={styles.fullScreenMap}
+            initialRegion={{
+              latitude: selectedOrder?.latitude || 0,
+              longitude: selectedOrder?.longitude || 0,
+              latitudeDelta: 0.01,
+              longitudeDelta: 0.01,
+            }}
+          >
+            <Marker
+              coordinate={{
+                latitude: selectedOrder?.latitude || 0,
+                longitude: selectedOrder?.longitude || 0,
+              }}
+              title="Delivery Address"
+              description={selectedOrder?.address}
+            />
+          </MapView>
+        </View>
+      </SafeAreaView>
+    );
+  };
+
+  if (isFullScreenMap) {
+    return renderFullScreenMap();
+  }
+
   return (
     <SafeAreaView style={styles.container}>
       <Text style={styles.header}>Order Status</Text>
@@ -126,9 +164,11 @@ const Status: React.FC = () => {
         </ScrollView>
       ) : (
         <ScrollView>
-          <TouchableOpacity onPress={() => setSelectedOrder(null)}>
-            <Text style={styles.backButton}>Back</Text>
-          </TouchableOpacity>
+          <SafeAreaView>
+            <TouchableOpacity onPress={() => setSelectedOrder(null)}>
+              <Text style={styles.orderBackButton}>Back</Text>
+            </TouchableOpacity>
+          </SafeAreaView>
           <Text style={styles.subHeader}>Order Details</Text>
           <Text style={styles.detailText}>
             Restaurant: {selectedOrder.restaurantName}
@@ -184,24 +224,32 @@ const Status: React.FC = () => {
           </Text>
 
           <Text style={styles.subHeader}>Delivery Location</Text>
-          <MapView
-            style={styles.map}
-            initialRegion={{
-              latitude: selectedOrder.latitude,
-              longitude: selectedOrder.longitude,
-              latitudeDelta: 0.05,
-              longitudeDelta: 0.05,
-            }}
-          >
-            <Marker
-              coordinate={{
+          <View style={styles.mapContainer}>
+            <MapView
+              style={styles.map}
+              initialRegion={{
                 latitude: selectedOrder.latitude,
                 longitude: selectedOrder.longitude,
+                latitudeDelta: 0.01,
+                longitudeDelta: 0.01,
               }}
-              title="Delivery Address"
-              description={selectedOrder.address}
-            />
-          </MapView>
+            >
+              <Marker
+                coordinate={{
+                  latitude: selectedOrder.latitude,
+                  longitude: selectedOrder.longitude,
+                }}
+                title="Delivery Address"
+                description={selectedOrder.address}
+              />
+            </MapView>
+            <TouchableOpacity
+              style={styles.fullScreenButton}
+              onPress={() => setIsFullScreenMap(true)}
+            >
+              <Text style={styles.fullScreenButtonText}>Full Screen</Text>
+            </TouchableOpacity>
+          </View>
         </ScrollView>
       )}
     </SafeAreaView>
@@ -218,13 +266,12 @@ const styles = StyleSheet.create({
     fontSize: 30,
     fontFamily: "Poppins-Bold",
     color: "orange",
-    marginBottom: 16,
     textAlign: "center",
   },
   subHeader: {
     fontSize: 20,
     fontWeight: "bold",
-    marginTop: 16,
+    marginTop:5,
     marginBottom: 8,
     color: "orange",
   },
@@ -251,12 +298,23 @@ const styles = StyleSheet.create({
     color: "#999",
     marginTop: 20,
   },
-  backButton: {
+  orderBackButton: {
     color: "#FF4500",
     fontSize: 16,
-    marginBottom: 16,
     textAlign: "left",
     fontWeight: "600",
+    bottom:0,
+  },
+  mapBackButton: {
+    position: "absolute",
+    top: 90,
+    left: 30,
+    zIndex: 10,
+  },
+  mapBackButtonText: {
+    color: "#FFF",
+    fontSize: 16,
+    fontWeight: "bold",
   },
   detailText: {
     fontSize: 16,
@@ -309,11 +367,33 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: "#FF8C00",
   },
+  mapContainer: {
+    height: 200, 
+    borderRadius: 8,
+    marginBottom: 50,
+  },
   map: {
-    height: 200, // Adjust based on your layout
+    height: 200,
     borderRadius: 8,
     marginTop: 16,
-    marginBottom: 50, // Creates space to avoid overlap with the menu tab
+    marginBottom: 16,
+  },
+  fullScreenMap: {
+    ...StyleSheet.absoluteFillObject,
+  },
+  fullScreenButton: {
+    position: "absolute",
+    bottom: 10,
+    right: 10,
+    backgroundColor: "#FF4500",
+    padding: 10,
+    borderRadius: 8,
+    zIndex: 5,
+  },
+  fullScreenButtonText: {
+    color: "#FFF",
+    fontSize: 14,
+    fontWeight: "bold",
   },
   proveImage: {
     width: "100%",
