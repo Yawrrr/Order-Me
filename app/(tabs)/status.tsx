@@ -99,21 +99,34 @@ const Status: React.FC = ({ navigation }: any) => {
         <MapView
   style={styles.fullScreenMap}
   region={{
-    latitude: 1.5577, // Hardcoded latitude
-    longitude: 103.6381, // Hardcoded longitude
-    latitudeDelta: 0.01,
-    longitudeDelta: 0.01,
+    latitude: 1.5577, // Hardcoded latitude for UTM
+    longitude: 103.6381, // Hardcoded longitude for UTM
+    latitudeDelta: 0.02, // Adjusted for both markers
+    longitudeDelta: 0.02, // Adjusted for both markers
   }}
 >
+  {/* Marker for Delivery Address */}
   <Marker
     coordinate={{
-      latitude: 1.5577, // Hardcoded latitude
-    longitude: 103.6381, // Hardcoded longitude
+      latitude: 1.5577, // UTM Latitude
+      longitude: 103.6381, // UTM Longitude
     }}
     title="Delivery Address"
     description="Universiti Teknologi Malaysia"
   />
+
+  {/* Marker for Restaurant Position */}
+  <Marker
+    coordinate={{
+      latitude: 1.5353, // Taman Universiti Latitude
+      longitude: 103.6299, // Taman Universiti Longitude
+    }}
+    title="Restaurant Location"
+    description="Taman Universiti"
+    pinColor="green" // Optional: Change pin color to distinguish
+  />
 </MapView>
+
 
 
         </View>
@@ -236,13 +249,24 @@ const Status: React.FC = ({ navigation }: any) => {
     longitudeDelta: 0.01,
   }}
 >
-  <Marker
+<Marker
     coordinate={{
-      latitude: 1.5577, 
-    longitude: 103.6381, 
+      latitude: 1.5577, // UTM Latitude
+      longitude: 103.6381, // UTM Longitude
     }}
     title="Delivery Address"
     description="Universiti Teknologi Malaysia"
+  />
+
+  {/* Marker for Restaurant Position */}
+  <Marker
+    coordinate={{
+      latitude: 1.5353, // Taman Universiti Latitude
+      longitude: 103.6299, // Taman Universiti Longitude
+    }}
+    title="Restaurant Location"
+    description="Taman Universiti"
+    pinColor="green" // Optional: Change pin color to distinguish
   />
 </MapView>
 
