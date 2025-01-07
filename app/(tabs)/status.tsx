@@ -96,24 +96,26 @@ const Status: React.FC = ({ navigation }: any) => {
           <Text style={styles.mapBackButtonText}>Back</Text>
         </TouchableOpacity>
         <View style={{ flex: 1 }}>
-          <MapView
-            style={styles.fullScreenMap}
-            initialRegion={{
-              latitude: selectedOrder?.latitude || 0,
-              longitude: selectedOrder?.longitude || 0,
-              latitudeDelta: 0.01,
-              longitudeDelta: 0.01,
-            }}
-          >
-            <Marker
-              coordinate={{
-                latitude: selectedOrder?.latitude || 0,
-                longitude: selectedOrder?.longitude || 0,
-              }}
-              title="Delivery Address"
-              description={selectedOrder?.address}
-            />
-          </MapView>
+        <MapView
+  style={styles.fullScreenMap}
+  region={{
+    latitude: 1.5577, // Hardcoded latitude
+    longitude: 103.6381, // Hardcoded longitude
+    latitudeDelta: 0.01,
+    longitudeDelta: 0.01,
+  }}
+>
+  <Marker
+    coordinate={{
+      latitude: 1.5577, // Hardcoded latitude
+    longitude: 103.6381, // Hardcoded longitude
+    }}
+    title="Delivery Address"
+    description="Universiti Teknologi Malaysia"
+  />
+</MapView>
+
+
         </View>
       </SafeAreaView>
     );
@@ -225,24 +227,26 @@ const Status: React.FC = ({ navigation }: any) => {
 
           <Text style={styles.subHeader}>Delivery Location</Text>
           <View style={styles.mapContainer}>
-            <MapView
-              style={styles.map}
-              initialRegion={{
-                latitude: selectedOrder.latitude,
-                longitude: selectedOrder.longitude,
-                latitudeDelta: 0.01,
-                longitudeDelta: 0.01,
-              }}
-            >
-              <Marker
-                coordinate={{
-                  latitude: selectedOrder.latitude,
-                  longitude: selectedOrder.longitude,
-                }}
-                title="Delivery Address"
-                description={selectedOrder.address}
-              />
-            </MapView>
+          <MapView
+  style={styles.map}
+  region={{
+    latitude: 1.5577, // Hardcoded latitude
+    longitude: 103.6381, // Hardcoded longitude
+    latitudeDelta: 0.01,
+    longitudeDelta: 0.01,
+  }}
+>
+  <Marker
+    coordinate={{
+      latitude: 1.5577, 
+    longitude: 103.6381, 
+    }}
+    title="Delivery Address"
+    description="Universiti Teknologi Malaysia"
+  />
+</MapView>
+
+
             <TouchableOpacity
               style={styles.fullScreenButton}
               onPress={() => setIsFullScreenMap(true)}
