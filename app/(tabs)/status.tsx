@@ -47,10 +47,7 @@ const Status: React.FC = ({ navigation }: any) => {
 
       try {
         const ordersRef = collection(FIREBASE_DB, "orders");
-        const ordersQuery = query(
-          ordersRef,
-          orderBy("timestamp", "desc")
-        );
+        const ordersQuery = query(ordersRef, orderBy("timestamp", "desc"));
         const snapshot = await getDocs(ordersQuery);
 
         const fetchedOrders: Order[] = snapshot.docs.map((doc) => {
@@ -96,26 +93,24 @@ const Status: React.FC = ({ navigation }: any) => {
           <Text style={styles.mapBackButtonText}>Back</Text>
         </TouchableOpacity>
         <View style={{ flex: 1 }}>
-        <MapView
-  style={styles.fullScreenMap}
-  region={{
-    latitude: 1.5577, // Hardcoded latitude
-    longitude: 103.6381, // Hardcoded longitude
-    latitudeDelta: 0.01,
-    longitudeDelta: 0.01,
-  }}
->
-  <Marker
-    coordinate={{
-      latitude: 1.5577, // Hardcoded latitude
-    longitude: 103.6381, // Hardcoded longitude
-    }}
-    title="Delivery Address"
-    description="Universiti Teknologi Malaysia"
-  />
-</MapView>
-
-
+          <MapView
+            style={styles.fullScreenMap}
+            region={{
+              latitude: 1.5577, // Hardcoded latitude
+              longitude: 103.6381, // Hardcoded longitude
+              latitudeDelta: 0.01,
+              longitudeDelta: 0.01,
+            }}
+          >
+            <Marker
+              coordinate={{
+                latitude: 1.5577, // Hardcoded latitude
+                longitude: 103.6381, // Hardcoded longitude
+              }}
+              title="Delivery Address"
+              description="Universiti Teknologi Malaysia"
+            />
+          </MapView>
         </View>
       </SafeAreaView>
     );
@@ -137,9 +132,7 @@ const Status: React.FC = ({ navigation }: any) => {
                 style={styles.orderCard}
                 onPress={() => setSelectedOrder(order)}
               >
-                <Text style={styles.orderCardText}>
-                  Order ID: {order.id}
-                </Text>
+                <Text style={styles.orderCardText}>Order ID: {order.id}</Text>
                 <Text style={styles.orderCardText}>
                   Restaurant: {order.restaurantName}
                 </Text>
@@ -147,21 +140,24 @@ const Status: React.FC = ({ navigation }: any) => {
                   Address: {order.address}
                 </Text>
                 <Text style={styles.orderCardText}>
-                  Date: {order.timestamp.toLocaleString('en-US', {
-                    month: 'short',
-                    day: 'numeric',
-                    year: 'numeric',
-                    hour: '2-digit',
-                    minute: '2-digit',
-                    hour12: true,
-                  }).replace(":", ".")}
+                  Date:{" "}
+                  {order.timestamp instanceof Date
+                    ? order.timestamp
+                        .toLocaleString("en-US", {
+                          month: "short",
+                          day: "numeric",
+                          year: "numeric",
+                          hour: "2-digit",
+                          minute: "2-digit",
+                          hour12: true,
+                        })
+                        .replace(":", ".")
+                    : "No date available"}
                 </Text>
               </TouchableOpacity>
             ))
           ) : (
-            <Text style={styles.noOrdersText}>
-              No orders found.
-            </Text>
+            <Text style={styles.noOrdersText}>No orders found.</Text>
           )}
         </ScrollView>
       ) : (
@@ -179,7 +175,10 @@ const Status: React.FC = ({ navigation }: any) => {
             Address: {selectedOrder.address}
           </Text>
           <Text style={styles.detailText}>
-            Date: {selectedOrder.timestamp.toLocaleString()}
+            Date:{" "}
+            {selectedOrder.timestamp instanceof Date
+              ? selectedOrder.timestamp.toLocaleString()
+              : "No date available"}
           </Text>
 
           <Text style={styles.subHeader}>Status</Text>
@@ -227,25 +226,24 @@ const Status: React.FC = ({ navigation }: any) => {
 
           <Text style={styles.subHeader}>Delivery Location</Text>
           <View style={styles.mapContainer}>
-          <MapView
-  style={styles.map}
-  region={{
-    latitude: 1.5577, // Hardcoded latitude
-    longitude: 103.6381, // Hardcoded longitude
-    latitudeDelta: 0.01,
-    longitudeDelta: 0.01,
-  }}
->
-  <Marker
-    coordinate={{
-      latitude: 1.5577, 
-    longitude: 103.6381, 
-    }}
-    title="Delivery Address"
-    description="Universiti Teknologi Malaysia"
-  />
-</MapView>
-
+            <MapView
+              style={styles.map}
+              region={{
+                latitude: 1.5577, // Hardcoded latitude
+                longitude: 103.6381, // Hardcoded longitude
+                latitudeDelta: 0.01,
+                longitudeDelta: 0.01,
+              }}
+            >
+              <Marker
+                coordinate={{
+                  latitude: 1.5577,
+                  longitude: 103.6381,
+                }}
+                title="Delivery Address"
+                description="Universiti Teknologi Malaysia"
+              />
+            </MapView>
 
             <TouchableOpacity
               style={styles.fullScreenButton}
@@ -275,7 +273,7 @@ const styles = StyleSheet.create({
   subHeader: {
     fontSize: 20,
     fontWeight: "bold",
-    marginTop:5,
+    marginTop: 5,
     marginBottom: 8,
     color: "orange",
   },
@@ -307,7 +305,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     textAlign: "left",
     fontWeight: "600",
-    bottom:0,
+    bottom: 0,
   },
   mapBackButton: {
     position: "absolute",
@@ -372,7 +370,7 @@ const styles = StyleSheet.create({
     color: "#FF8C00",
   },
   mapContainer: {
-    height: 200, 
+    height: 200,
     borderRadius: 8,
     marginBottom: 50,
   },
