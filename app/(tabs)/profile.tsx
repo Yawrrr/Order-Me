@@ -1,24 +1,32 @@
 import { StyleSheet, Text, TouchableOpacity, View, Image } from "react-native";
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { router } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useAuth } from "@/context/AuthContext";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
+import { FIREBASE_DB } from '@/FirebaseConfig';
+import { collection, query, orderBy, onSnapshot, where, doc, setDoc, getDoc } from 'firebase/firestore';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const MenuItem = ({
   onPress,
   title,
   icon,
   badge,
+  showNotification,
 }: {
   onPress: () => void;
   title: string;
   icon: keyof typeof MaterialIcons.glyphMap;
   badge?: string;
+  showNotification?: boolean;
 }) => (
   <TouchableOpacity onPress={onPress} style={styles.menuItem}>
     <View style={styles.menuItemLeft}>
-      <MaterialIcons name={icon} size={24} color="#666" style={styles.menuIcon} />
+      <View style={styles.iconContainer}>
+        <MaterialIcons name={icon} size={24} color="#666" style={styles.menuIcon} />
+        {showNotification && <View style={styles.notificationDot} />}
+      </View>
       <Text style={styles.menuText}>{title}</Text>
     </View>
     {badge ? (
@@ -33,6 +41,41 @@ const MenuItem = ({
 
 const Profile = () => {
   const { logout, user } = useAuth();
+  const [hasNewAnnouncements, setHasNewAnnouncements] = useState(false);
+
+  useEffect(() => {
+    if (!user) return;
+
+    const checkNewAnnouncements = async () => {
+      const lastViewedKey = `lastViewed_${user.username}`;
+      const lastViewed = await AsyncStorage.getItem(lastViewedKey);
+      const lastViewedDate = lastViewed ? new Date(lastViewed) : new Date(0);
+      const announcementsRef = collection(FIREBASE_DB, 'announcements');
+      const q = query(
+        announcementsRef,
+        orderBy('timestamp', 'desc'),
+        where('timestamp', '>', lastViewedDate)
+      );
+
+      return onSnapshot(q, (snapshot) => {
+        const hasNew = !snapshot.empty;
+        setHasNewAnnouncements(hasNew);
+      });
+    };
+
+    const unsubscribe = checkNewAnnouncements();
+   
+  }, [user]);
+
+  const handleAnnouncementsPress = async () => {
+    if (user) {
+      const lastViewedKey = `lastViewed_${user.username}`;
+      const now = new Date().toISOString();
+      await AsyncStorage.setItem(lastViewedKey, now);
+      setHasNewAnnouncements(false);
+    }
+    router.push("/components/Announcements");
+  };
 
   const handleLogout = async () => {
     await logout();
@@ -76,7 +119,13 @@ const Profile = () => {
           icon="location-on"
           onPress={() => router.push("../components/Addresses")}
         />
-         <MenuItem
+        <MenuItem
+          title="Announcements"
+          icon="campaign"
+          onPress={handleAnnouncementsPress}
+          showNotification={hasNewAnnouncements}
+        />
+        <MenuItem
           title="My Wishlist"
           icon="favorite"
           onPress={() => router.push("../components/wishlist")}
@@ -100,7 +149,6 @@ const Profile = () => {
     </SafeAreaView>
   );
 };
-
 export default Profile;
 
 const styles = StyleSheet.create({
@@ -178,9 +226,10 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   menuIcon: {
-    marginRight: 16,
+    
   },
   menuText: {
+
     fontSize: 16,
     color: "#333",
   },
@@ -193,5 +242,20 @@ const styles = StyleSheet.create({
   badgeText: {
     color: "#fff",
     fontSize: 12,
+  },
+  iconContainer: {
+    position: 'relative',
+    width: 24,
+    height: 24,
+    marginRight: 16,
+  },
+  notificationDot: {
+    position: 'absolute',
+    top: -6,
+    right: -2,
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: '#FF4B4B',
   },
 });

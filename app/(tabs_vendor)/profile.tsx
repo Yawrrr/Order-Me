@@ -33,7 +33,9 @@ const Profile = () => {
   const navigateToCustomer = () => {
     router.push("/home");
   };
-
+  const navigateToCreateAnnouncements = () => {
+    router.push("../components/CreateAnnouncements");
+  };
   const viewFeedbacks = () => {
     router.push("../components/ViewFeedback");
   };
@@ -83,6 +85,11 @@ const Profile = () => {
         onPress={viewFeedbacks}
         title="View Customer Feedbacks"
         leadingIcon={() => <MaterialIcons name="feedback" size={20} color="black" />}
+      />
+      <Menu.Item
+        onPress={navigateToCreateAnnouncements}
+        title="Create announcement"
+        leadingIcon={() => <MaterialIcons name="notifications" size={20} color="black" />}
       />
       <View style={styles.menuDivider} />
       <Menu.Item
@@ -240,7 +247,7 @@ const styles = StyleSheet.create({
     borderRadius: 50, 
     maxWidth: '65%', 
     marginLeft:-10,
-    marginTop:40
+  
  
   }
 });

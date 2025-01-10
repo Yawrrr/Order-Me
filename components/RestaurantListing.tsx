@@ -99,10 +99,10 @@ const RestaurantListing = ({ listings, category }: Props) => {
 
     if (isAlreadyInWishlist) {
       updatedWishlist = wishlist.filter((wishlistItem) => wishlistItem.id !== item.id);
-      Alert.alert("Removed", `${item.name} has been removed from your wishlist.`);
+      Alert.alert("Removed", `${item.name} has been removed from your wishlist. You are no longer receiving announcements from them.`);
     } else {
       updatedWishlist = [...wishlist, item];
-      Alert.alert("Added", `${item.name} has been added to your wishlist.`);
+      Alert.alert("Added", `${item.name} has been added to your wishlist. You are now subscribed to receive announcements from them.`);
     }
 
     setWishlist(updatedWishlist);
