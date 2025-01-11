@@ -9,7 +9,7 @@ import {
   Image,
   ActivityIndicator,
 } from "react-native";
-import MapView, { Marker } from "react-native-maps";
+import MapView, { Marker, Polyline } from "react-native-maps";
 import { FIREBASE_DB } from "../../FirebaseConfig";
 import { collection, query, where, getDocs, orderBy } from "firebase/firestore";
 import { useAuth } from "@/context/AuthContext";
@@ -93,24 +93,46 @@ const Status: React.FC = ({ navigation }: any) => {
           <Text style={styles.mapBackButtonText}>Back</Text>
         </TouchableOpacity>
         <View style={{ flex: 1 }}>
-          <MapView
-            style={styles.fullScreenMap}
-            region={{
-              latitude: 1.5577, // Hardcoded latitude
-              longitude: 103.6381, // Hardcoded longitude
-              latitudeDelta: 0.01,
-              longitudeDelta: 0.01,
-            }}
-          >
-            <Marker
-              coordinate={{
-                latitude: 1.5577, // Hardcoded latitude
-                longitude: 103.6381, // Hardcoded longitude
-              }}
-              title="Delivery Address"
-              description="Universiti Teknologi Malaysia"
-            />
-          </MapView>
+        <MapView
+  style={styles.fullScreenMap}
+  region={{
+    latitude: 1.5577, // Hardcoded latitude for UTM
+    longitude: 103.6381, // Hardcoded longitude for UTM
+    latitudeDelta: 0.02, // Adjusted for both markers
+    longitudeDelta: 0.02, // Adjusted for both markers
+  }}
+>
+  {/* Marker for Delivery Address */}
+  <Marker
+    coordinate={{
+      latitude: 1.5577, // UTM Latitude
+      longitude: 103.6381, // UTM Longitude
+    }}
+    title="Delivery Address"
+    description="Universiti Teknologi Malaysia"
+  />
+
+  {/* Marker for Restaurant Location */}
+  <Marker
+    coordinate={{
+      latitude: 1.5353, // Taman Universiti Latitude
+      longitude: 103.6299, // Taman Universiti Longitude
+    }}
+    title="Restaurant Location"
+    description="Taman Universiti"
+    pinColor="green" // Optional: Change pin color to distinguish
+  />
+
+  {/* Polyline between the two locations */}
+  <Polyline
+    coordinates={[
+      { latitude: 1.5577, longitude: 103.6381 }, // Delivery Address
+      { latitude: 1.5353, longitude: 103.6299 }, // Restaurant Location
+    ]}
+    strokeColor="#FF4500" // Color of the polyline
+    strokeWidth={3} // Thickness of the polyline
+  />
+</MapView>
         </View>
       </SafeAreaView>
     );
@@ -243,6 +265,24 @@ const Status: React.FC = ({ navigation }: any) => {
                 title="Delivery Address"
                 description="Universiti Teknologi Malaysia"
               />
+              {/* Marker for Restaurant Position */}
+              <Marker
+                coordinate={{
+                  latitude: 1.5353, // Taman Universiti Latitude
+                  longitude: 103.6299, // Taman Universiti Longitude
+                }}
+                title="Restaurant Location"
+                description="Taman Universiti"
+                pinColor="green" // Optional: Change pin color to distinguish
+              />
+              <Polyline
+    coordinates={[
+      { latitude: 1.5577, longitude: 103.6381 }, // Delivery Address
+      { latitude: 1.5353, longitude: 103.6299 }, // Restaurant Location
+    ]}
+    strokeColor="#FF4500" // Color of the polyline
+    strokeWidth={3} // Thickness of the polyline
+  />
             </MapView>
 
             <TouchableOpacity
