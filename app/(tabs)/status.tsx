@@ -9,7 +9,7 @@ import {
   Image,
   ActivityIndicator,
 } from "react-native";
-import MapView, { Marker, Polyline } from "react-native-maps";
+import MapView, { Marker} from "react-native-maps";
 import { FIREBASE_DB } from "../../FirebaseConfig";
 import { collection, query, where, getDocs, orderBy } from "firebase/firestore";
 import { useAuth } from "@/context/AuthContext";
@@ -121,16 +121,6 @@ const Status: React.FC = ({ navigation }: any) => {
     title="Restaurant Location"
     description="Taman Universiti"
     pinColor="green" // Optional: Change pin color to distinguish
-  />
-
-  {/* Polyline between the two locations */}
-  <Polyline
-    coordinates={[
-      { latitude: 1.5577, longitude: 103.6381 }, // Delivery Address
-      { latitude: 1.5353, longitude: 103.6299 }, // Restaurant Location
-    ]}
-    strokeColor="#FF4500" // Color of the polyline
-    strokeWidth={3} // Thickness of the polyline
   />
 </MapView>
         </View>
@@ -275,14 +265,6 @@ const Status: React.FC = ({ navigation }: any) => {
                 description="Taman Universiti"
                 pinColor="green" // Optional: Change pin color to distinguish
               />
-              <Polyline
-    coordinates={[
-      { latitude: 1.5577, longitude: 103.6381 }, // Delivery Address
-      { latitude: 1.5353, longitude: 103.6299 }, // Restaurant Location
-    ]}
-    strokeColor="#FF4500" // Color of the polyline
-    strokeWidth={3} // Thickness of the polyline
-  />
             </MapView>
 
             <TouchableOpacity
