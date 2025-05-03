@@ -15,7 +15,7 @@ import {
 import React, { useState } from "react";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { Ionicons } from "@expo/vector-icons";
+import Ionicons from "@expo/vector-icons/Ionicons";
 import { router } from "expo-router";
 import { useAuth } from "@/context/AuthContext";
 import { FIREBASE_DB } from "@/FirebaseConfig";
@@ -32,11 +32,22 @@ const Addresses = () => {
   const [newState, setNewState] = useState("");
   const [newPostcode, setNewPostcode] = useState("");
 
-  const handleSetPrimaryOrDelete = async (selectedAddress: {
-    address: string;
-  }) => {
-    Alert.alert("Address Options", "Choose an option for this address:", [
-      { text: "Cancel", style: "cancel" },
+  const goBack = () => {
+    router.back();
+  };
+
+  const Breakline = () => {
+    return <View style={styles.breakline}></View>;
+  };
+const handleSetPrimaryOrDelete = async (selectedAddress: { address: string }) => {
+  Alert.alert(
+    "Address Options",
+    "Choose an option for this address:",
+    [
+      {
+        text: "Cancel",
+        style: "cancel",
+      },
       {
         text: "Set as Primary",
         onPress: async () => {
@@ -56,9 +67,7 @@ const Addresses = () => {
       {
         text: "Delete",
         onPress: async () => {
-          const updatedAddresses = user?.addresses.filter(
-            (addr) => addr.address !== selectedAddress.address
-          );
+          const updatedAddresses = user?.addresses.filter((addr) => addr.address !== selectedAddress.address);
           if (user && userUid) {
             const userRef = doc(FIREBASE_DB, "users", userUid);
             await updateDoc(userRef, { addresses: updatedAddresses });
@@ -69,9 +78,9 @@ const Addresses = () => {
         },
         style: "destructive",
       },
-    ]);
-  };
-
+    ]
+  );
+};
   const handleAddAddress = async () => {
     const newAddressInfo = {
       address: newAddress,
@@ -92,63 +101,55 @@ const Addresses = () => {
   };
 
   return (
-    <GestureHandlerRootView style={styles.container}>
-      <SafeAreaView style={styles.safeArea}>
+    <GestureHandlerRootView>
+      <SafeAreaView style={styles.container}>
         <View style={styles.header}>
-          <Text style={styles.title}>My Addresses</Text>
-        </View>
-        <TouchableOpacity style={styles.backbtn} onPress={() => router.back()}>
-          <Ionicons name="chevron-back-outline" size={16} color="orange" />
-          <Text style={styles.backText}>Back</Text>
-        </TouchableOpacity>
-
-        <View style={styles.addButtonContainer}>
-          <TouchableOpacity
-            style={styles.addButton}
-            onPress={() => setModalVisible(true)}
-          >
-            <Ionicons name="add-circle-outline" size={20} color="#fff" />
-            <Text style={styles.addButtonText}>Add New Address</Text>
+          <TouchableOpacity style={styles.backbtn} onPress={goBack}>
+            <Ionicons name="chevron-back-outline" size={16} color="black" />
+            <Text>Back</Text>
+          </TouchableOpacity>
+          <TouchableOpacity onPress={() => setModalVisible(true)}>
+            <Text >Add New Address</Text>
           </TouchableOpacity>
         </View>
-
-        <View style={styles.addressesContainer}>
-          <Text style={styles.sectionTitle}>Primary Address</Text>
-          {primaryAddress && (
-            <View style={styles.primaryAddressCard}>
-              <Text style={styles.addressText}>{primaryAddress}</Text>
-            </View>
-          )}
-
-          <Text style={styles.sectionTitle}>Other Addresses</Text>
+        <View>
+          <Text>Primary Address</Text>
+          <View style={styles.infoContainer}>
+            <Text style={styles.phoneNum}>{user?.phoneNumber}</Text>
+            <Text style={styles.address}>{primaryAddress}</Text>
+          </View>
+          <Text>Secondary Addresses</Text>
           {secondaryAddresses?.map((address, index) => (
-            <TouchableOpacity
-              key={index}
-              style={styles.addressCard}
-              onPress={() => handleSetPrimaryOrDelete(address)}
-            >
-              <Text style={styles.addressText}>{address.address}</Text>
-              {address.state && (
-                <Text style={styles.addressDetail}>{address.state}</Text>
-              )}
-              {address.postcode && (
-                <Text style={styles.addressDetail}>{address.postcode}</Text>
-              )}
-            </TouchableOpacity>
+            <View key={index}>
+              <Breakline />
+              <TouchableOpacity
+                style={styles.secondaryAddresses}
+                onPress={() => handleSetPrimaryOrDelete(address)}
+              >
+                <Text style={styles.address}>{address.address}</Text>
+                {address.state && (
+                  <Text className="text-sm">{address.state}</Text>
+                )}
+                {address.postcode && (
+                  <Text className="text-sm">{address.postcode}</Text>
+                )}
+              </TouchableOpacity>
+            </View>
           ))}
         </View>
-
         <Modal
           animationType="slide"
           transparent={true}
           visible={modalVisible}
-          onRequestClose={() => setModalVisible(false)}
+          onRequestClose={() => {
+            setModalVisible(!modalVisible);
+          }}
         >
           <TouchableWithoutFeedback onPress={() => setModalVisible(false)}>
-            <View style={styles.modalOverlay}>
-              <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-                <View style={styles.modalContent}>
-                  <Text style={styles.modalTitle}>Add New Address</Text>
+            <View style={styles.centeredView}>
+              <TouchableWithoutFeedback onPress={() => Keyboard.dismiss()}>
+                <View style={styles.modalView}>
+                  <Text style={styles.modalText}>Add New Address</Text>
                   <TextInput
                     style={styles.input}
                     placeholder="Address"
@@ -166,13 +167,9 @@ const Addresses = () => {
                     placeholder="Postcode"
                     value={newPostcode}
                     onChangeText={setNewPostcode}
-                    keyboardType="numeric"
                   />
-                  <TouchableOpacity
-                    style={styles.modalAddButton}
-                    onPress={handleAddAddress}
-                  >
-                    <Text style={styles.modalAddButtonText}>Add Address</Text>
+                  <TouchableOpacity style={styles.addButton} onPress={handleAddAddress}>
+                    <Text style={styles.addBtnText}>Add New Address</Text>
                   </TouchableOpacity>
                 </View>
               </TouchableWithoutFeedback>
@@ -184,160 +181,104 @@ const Addresses = () => {
   );
 };
 
+export default Addresses;
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#fff",
-  },
-  safeArea: {
-    flex: 1,
-    padding: 20,
+    flexDirection: "column",
+    padding: 16,
   },
   header: {
-    alignItems: "flex-start",
-    justifyContent: "center",
-    marginBottom: 10,
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 24,
   },
-  title: {
-    fontFamily: "Poppins-Bold",
-    fontSize: 30,
-    color: "orange",
-    marginBottom: 5,
+  infoContainer: {
+    width: "100%",
+    backgroundColor: "#fff",
+    borderRadius: 16,
+    padding: 16,
+    marginBottom: 16,
+    marginTop: 12,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 5,
+    gap: 4,
   },
   backbtn: {
     flexDirection: "row",
     alignItems: "center",
     maxWidth: "20%",
-    marginBottom: 10,
   },
-  backText: {
+  icon: {
+    // height: 16,
+    // width: 16,
+  },
+  phoneNum: {
+    fontSize: 16,
+    fontWeight: "600",
+  },
+  address: {
     fontSize: 14,
-    color: "orange",
-    marginLeft: 5,
+    fontWeight: "400",
   },
-  addButtonContainer: {
-    marginVertical: 15,
+  breakline: {
+    width: "100%",
+    backgroundColor: "#CCC",
+    height: 1.5,
+    marginVertical: 8,
+  },
+  secondaryAddresses: {
+    padding: 12,
+  },
+  centeredView: {
+    flex: 1,
+    justifyContent: "center",
+    marginTop: 22,
+  },
+  modalView: {
+    margin: 20,
+    backgroundColor: "white",
+    borderRadius: 20,
+    padding: 35,
+    alignItems: "center",
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+    elevation: 5,
+  },
+  modalText: {
+    marginBottom: 15,
+    textAlign: "center",
+    fontSize: 18,
+    fontWeight: "bold",
+  },
+  input: {
+    width: "100%",
+    height: 40,
+    borderColor: "gray",
+    borderWidth: 1,
+    marginTop: 12,
+    paddingLeft: 8,
+    borderRadius: 5,
   },
   addButton: {
     backgroundColor: "orange",
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
     padding: 12,
     borderRadius: 8,
-    shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
-    elevation: 5,
-  },
-  addButtonText: {
-    color: "#fff",
-    fontSize: 16,
-    fontWeight: "600",
-    marginLeft: 8,
-  },
-  addressesContainer: {
-    flex: 1,
-  },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: "600",
-    color: "#333",
-    marginTop: 20,
-    marginBottom: 10,
-  },
-  primaryAddressCard: {
-    backgroundColor: "#fff3e6",
-    padding: 15,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: "orange",
-    marginBottom: 10,
-    shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 3,
-    elevation: 3,
-  },
-  addressCard: {
-    backgroundColor: "#f9f9f9",
-    padding: 15,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: "#eee",
-    marginBottom: 10,
-    shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 1,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
-    elevation: 2,
-  },
-  addressText: {
-    fontSize: 16,
-    color: "#333",
-    marginBottom: 4,
-  },
-  addressDetail: {
-    fontSize: 14,
-    color: "#666",
-    marginTop: 2,
-  },
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: "rgba(0, 0, 0, 0.5)",
-    justifyContent: "center",
-    padding: 20,
-  },
-  modalContent: {
-    backgroundColor: "#fff",
-    borderRadius: 12,
-    padding: 20,
-    shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
-    elevation: 5,
-  },
-  modalTitle: {
-    fontSize: 24,
-    fontWeight: "600",
-    color: "#333",
-    marginBottom: 20,
-    textAlign: "center",
-  },
-  input: {
-    borderWidth: 1,
-    borderColor: "#ddd",
-    borderRadius: 8,
-    padding: 12,
-    marginBottom: 15,
-    fontSize: 16,
-  },
-  modalAddButton: {
-    backgroundColor: "orange",
-    padding: 15,
-    borderRadius: 8,
     alignItems: "center",
-    marginTop: 10,
+    marginTop: 24,
   },
-  modalAddButtonText: {
+  addBtnText: {
     color: "#fff",
     fontSize: 16,
-    fontWeight: "600",
   },
 });
-
-export default Addresses;

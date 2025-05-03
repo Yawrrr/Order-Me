@@ -8,7 +8,6 @@ import {
 } from "react-native-gesture-handler";
 import { router, useLocalSearchParams } from "expo-router";
 import { useAuth } from "@/context/AuthContext";
-import { Ionicons } from "@expo/vector-icons";
 
 const ChangeAddress = () => {
   const { user } = useAuth();
@@ -24,12 +23,11 @@ const ChangeAddress = () => {
     <GestureHandlerRootView>
       <SafeAreaView style={styles.container}>
         <View style={styles.header}>
-          <Text style={styles.title}>Select Address</Text>
+          <TouchableWithoutFeedback onPress={() => router.back()}>
+            <Text >Back</Text>
+          </TouchableWithoutFeedback>
+          <Text >Select Delivery Address</Text>
         </View>
-        <TouchableOpacity style={styles.backbtn} onPress={() => router.back()}>
-          <Ionicons name="chevron-back-outline" size={16} color="orange" />
-          <Text style={styles.backText}>Back</Text>
-        </TouchableOpacity>
 
         <View style={styles.addressList}>
           {user?.addresses?.map((address, index) => (
@@ -37,16 +35,14 @@ const ChangeAddress = () => {
               key={index}
               style={[
                 styles.addressItem,
-                address.address === currentAddress && styles.selectedAddress,
+                address.address === currentAddress && styles.selectedAddress
               ]}
               onPress={() => handleSelectAddress(address.address)}
             >
               <Text>{address.address}</Text>
               {address.state && <Text>{address.state}</Text>}
               {address.postcode && <Text>{address.postcode}</Text>}
-              {address.primary && (
-                <Text style={styles.primaryBadge}>Primary</Text>
-              )}
+              {address.primary && <Text style={styles.primaryBadge}>Primary</Text>}
             </TouchableOpacity>
           ))}
         </View>
@@ -60,44 +56,26 @@ export default ChangeAddress;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 20,
-    backgroundColor: "#fff",
+    padding: 16
   },
   header: {
-    alignItems: "flex-start",
-    justifyContent: "center",
-    marginBottom: 10,
-  },
-  title: {
-    fontFamily: "Poppins-Bold",
-    fontSize: 30,
-    color: "orange",
-    marginBottom: 5,
-  },
-  backbtn: {
-    flexDirection: "row",
-    alignItems: "center",
-    maxWidth: "20%",
-    marginBottom: 10,
-  },
-  backText: {
-    fontSize: 14,
-    color: "orange",
-    marginLeft: 5,
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 20
   },
   addressList: {
-    flex: 1,
+    flex: 1
   },
   addressItem: {
     padding: 16,
     borderBottomWidth: 1,
-    borderBottomColor: "#ccc",
+    borderBottomColor: '#ccc'
   },
   selectedAddress: {
-    backgroundColor: "#f0f0f0",
+    backgroundColor: '#f0f0f0'
   },
   primaryBadge: {
-    color: "green",
-    fontSize: 12,
-  },
+    color: 'green',
+    fontSize: 12
+  }
 });
