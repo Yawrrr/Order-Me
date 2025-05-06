@@ -14,7 +14,7 @@ import {
 import { FIREBASE_DB } from '@/FirebaseConfig';
 import { collection, addDoc, serverTimestamp, query, orderBy, onSnapshot, deleteDoc, doc, where } from 'firebase/firestore';
 import { useAuth } from "../../context/AuthContext";
-import { Plus, X, Send, Edit2, Trash2, Bell } from 'lucide-react-native';
+//import { Plus, X, Send, Edit2, Trash2, Bell } from 'lucide-react-native';
 import Announcements from './Announcements';
 import { colors } from '@/constants/colors';
 import { useNavigation } from 'expo-router';

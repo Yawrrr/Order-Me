@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, TextInput, TouchableOpacity, ActivityIndicator } from 'react-native';
-import { Search, Bell } from 'lucide-react-native';
+//import { Search, Bell } from 'lucide-react-native';
 import { ListingType } from "@/type/listingType";
 import { getWishlist } from "@/app/utility/storage";
 import { FIREBASE_DB } from '@/FirebaseConfig';
